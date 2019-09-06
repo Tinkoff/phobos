@@ -1,0 +1,8 @@
+.idea
+**/target
+*.log
+sbt-jss-gen/out
+.ensime_cache
+.ensime
+/logs/*
+
