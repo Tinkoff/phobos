@@ -1,4 +1,5 @@
 import sbt.SettingKey
+
 object Publish {
   val publishVersion: SettingKey[String] = SettingKey(
     label = "publishVersion",
@@ -7,6 +8,6 @@ object Publish {
 
   val publishName: SettingKey[String] = SettingKey(
     label = "publishName",
-    description = "module name"
+    description = "module name, it will be prefixed with phobos- in the artifact name"
   )
 }
