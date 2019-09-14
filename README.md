@@ -12,6 +12,7 @@ Add phobos to your dependencies:
 
 Then paste this code in `sbt console`:
 
+```scala
     import ru.tinkoff.phobos.decoding._
     import ru.tinkoff.phobos.encoding._
     import ru.tinkoff.phobos.syntax._
@@ -26,33 +27,25 @@ Then paste this code in `sbt console`:
     println(fooXml)
     val decodedFoo = XmlDecoder[Foo].decode(fooXml)
     assert(foo == decodedFoo)
-    
+```
+
 ## More complex example
 Please see [phobos wiki](https://github.com/TinkoffCreditSystems/phobos/wiki) for explanation of the syntax.
 
+```scala
     import ru.tinkoff.phobos.decoding._
     import ru.tinkoff.phobos.syntax._
     import ru.tinkoff.phobos.derivation._
-    // import ru.tinkoff.phobos.decoding._
-    // import ru.tinkoff.phobos.syntax._
-    // import ru.tinkoff.phobos.derivation._
     
     case class Price(@attr currency: String, @text value: Double)
-    // defined class Price
     implicit val priceElementDecoder: ElementDecoder[Price] = deriveElementDecoder
-    // priceElementDecoder: ru.tinkoff.phobos.decoding.ElementDecoder[Price] = ElementDecoder$macro$1$1@517d89cf
     
     case class TravelPoint(country: String, city: String)
-    // defined class TravelPoint
     implicit val travelPointElementDecoder: ElementDecoder[TravelPoint] = deriveElementDecoder
-    // travelPointElementDecoder: ru.tinkoff.phobos.decoding.ElementDecoder[TravelPoint] = ElementDecoder$macro$9$1@3813f9b6
     
     case class Journey(price: Price, departure: TravelPoint, arrival: TravelPoint)
-    // defined class Journey
     implicit val journeyElementDecoder: ElementDecoder[Journey] = deriveElementDecoder
-    // journeyElementDecoder: ru.tinkoff.phobos.decoding.ElementDecoder[Journey] = ElementDecoder$macro$19$1@582f1a2e
     implicit val journeyXmlDecoder: XmlDecoder[Journey] = XmlDecoder.fromElementDecoder("journey")
-    // journeyXmlDecoder: ru.tinkoff.phobos.decoding.XmlDecoder[Journey] = ru.tinkoff.phobos.decoding.XmlDecoder$$anon$1@63030fc2
     
     val journeyXml =
       """
@@ -68,13 +61,10 @@ Please see [phobos wiki](https://github.com/TinkoffCreditSystems/phobos/wiki) fo
         |  </arrival>
         |</journey>
         |""".stripMargin
-    
-    // journeyXml: String =
-    //     "
-    //     <journey>
-    //     ...
-    
+        
     println(XmlDecoder[Journey].decode(journeyXml))
+    // Journey(Price(EUR,1000.0),TravelPoint(France,Marcelle),TravelPoint(Germany,Munich))
+```
 
 ## Performance
 Performance details can be found out in [phobos-benchmark repository](https://github.com/valentiay/phobos-benchmark). 
