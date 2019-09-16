@@ -10,8 +10,10 @@ lazy val defaultSettings = List(setModuleName)
 moduleName := "phobos"
 
 lazy val core = project settings defaultSettings
-lazy val utils = project settings defaultSettings dependsOn(core % "compile->compile;test->test;test->compile")
-lazy val coreModules = Seq(core, utils)
+lazy val derevo = project settings defaultSettings dependsOn(core % "compile->compile;test->test;test->compile")
+lazy val enumeratum = project settings defaultSettings dependsOn(core % "compile->compile;test->test;test->compile")
+lazy val akka = project settings defaultSettings dependsOn(core % "compile->compile;test->test;test->compile")
+lazy val coreModules = Seq(core, akka, derevo, enumeratum)
 
 
 lazy val phobos = project
