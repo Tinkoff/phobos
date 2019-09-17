@@ -41,7 +41,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
           .filterNot(_.isEmpty)
           .getOrElse {
             val missingType   = stack.top.fold(searchType)(_.searchType)
-            val typeClassName = s"${missingType.typeSymbol.name.decodedName}.Typeclass"
+            val typeClassName = s"${missingType.typeSymbol.name.decodedName}"
             val genericType   = missingType.typeArgs.head
             val trace         = stack.trace.mkString("    in ", "\n    in ", "\n")
             error(s"Could not find $typeClassName for type $genericType\n$trace")
@@ -135,7 +135,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
           case (_, _, l) if l > 1          => error(s"Multiple @text parameters in one class")
           case _ => deriveProductCodec(stack)(params)
         }
-      } else error("Not case class or sealed trait")
+      } else error(s"$classSymbol is not case class or sealed trait")
     }
 
     val directlyReentrant = stack.top.exists(_.searchType =:= searchType)
