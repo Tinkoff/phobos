@@ -3,13 +3,13 @@ package ru.tinkoff.phobos.decoding
 import cats.Functor
 
 trait AttributeDecoder[A] { self =>
-  def decodeAsAttribute(c: Cursor, localName: String, namespaceUri: Option[String] = None): Either[DecodingError, A]
+  def decodeAsAttribute(c: Cursor, localName: String, namespaceUri: Option[String]): Either[DecodingError, A]
 
   def map[B](f: A => B): AttributeDecoder[B] =
     new AttributeDecoder[B] {
       def decodeAsAttribute(c: Cursor,
                             localName: String,
-                            namespaceUri: Option[String] = None): Either[DecodingError, B] =
+                            namespaceUri: Option[String]): Either[DecodingError, B] =
         self.decodeAsAttribute(c, localName, namespaceUri).map(f)
     }
 

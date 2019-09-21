@@ -141,7 +141,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
       q"(Right(new $classType()): Either[$decodingPkg.DecodingError, $classType])"
     }
 
-    q"""
+    val a = q"""
       ..$preAssignments
       class $decoderName(
         state: $derivationPkg.DecoderDerivation.DecoderState,
@@ -150,7 +150,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
         def decodeAsElement(
           cursor : $decodingPkg.Cursor,
           localName: String,
-          namespaceUri: Option[String] = None,
+          namespaceUri: Option[String],
         ): $decodingPkg.ElementDecoder[$classType] = {
           ..${allParams.map(_.goAssignment)}
 
@@ -240,6 +240,8 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 
       new $decoderName($decoderStateObj.New)
     """
+//    println(a)
+    a
   }
 
   def xml[T: c.WeakTypeTag](localName: Tree): Tree =

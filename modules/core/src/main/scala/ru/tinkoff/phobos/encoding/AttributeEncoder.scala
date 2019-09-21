@@ -4,7 +4,7 @@ import cats.Contravariant
 import org.codehaus.stax2.XMLStreamWriter2
 
 trait AttributeEncoder[A] { self =>
-  def encodeAsAttribute(a: A, sw: XMLStreamWriter2, localName: String, namespaceUri: Option[String] = None): Unit
+  def encodeAsAttribute(a: A, sw: XMLStreamWriter2, localName: String, namespaceUri: Option[String]): Unit
 
   def contramap[B](f: B => A): AttributeEncoder[B] =
     new AttributeEncoder[B] {

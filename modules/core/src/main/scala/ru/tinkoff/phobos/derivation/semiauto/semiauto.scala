@@ -1,9 +1,9 @@
-package ru.tinkoff.phobos
+package ru.tinkoff.phobos.derivation
 
 import ru.tinkoff.phobos.decoding.{ElementDecoder, XmlDecoder}
 import ru.tinkoff.phobos.encoding.{ElementEncoder, XmlEncoder}
 
-package object derivation {
+package object semiauto {
 
   def deriveElementEncoder[T]: ElementEncoder[T] = macro EncoderDerivation.element[T]
   def deriveXmlEncoder[T](localName: String): XmlEncoder[T] = macro EncoderDerivation.xml[T]

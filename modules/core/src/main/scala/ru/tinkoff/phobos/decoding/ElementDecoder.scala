@@ -4,7 +4,7 @@ import cats.Functor
 import ru.tinkoff.phobos.decoding.ElementDecoder.{EMappedDecoder, MappedDecoder}
 
 trait ElementDecoder[A] { self =>
-  def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String] = None): ElementDecoder[A]
+  def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String]): ElementDecoder[A]
   def result(history: List[String]): Either[DecodingError, A]
   def isCompleted: Boolean
 
@@ -33,7 +33,7 @@ object ElementDecoder extends ElementDecoderInstances {
   }
 
   final class MappedDecoder[A, B](fa: ElementDecoder[A], f: A => B) extends ElementDecoder[B] {
-    def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String] = None): ElementDecoder[B] =
+    def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String]): ElementDecoder[B] =
       new MappedDecoder(fa.decodeAsElement(c, localName, namespaceUri), f)
 
     def result(history: List[String]): Either[DecodingError, B] = fa.result(history).map(f)
@@ -63,7 +63,7 @@ object ElementDecoder extends ElementDecoderInstances {
     }
 
   final class ConstDecoder[A](a: A) extends ElementDecoder[A] {
-    def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String] = None): ElementDecoder[A] =
+    def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String]): ElementDecoder[A] =
       new FailedDecoder[A](c.error("Element is already decoded (Most likely it occurred more than once)"))
 
     def result(history: List[String]): Either[DecodingError, A] = Right(a)
@@ -74,7 +74,7 @@ object ElementDecoder extends ElementDecoderInstances {
   }
 
   final class FailedDecoder[A](decodingError: DecodingError) extends ElementDecoder[A] {
-    def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String] = None): ElementDecoder[A] = this
+    def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String]): ElementDecoder[A] = this
 
     def result(history: List[String]): Either[DecodingError, A] = Left(decodingError)
 
