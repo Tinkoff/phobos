@@ -1,12 +1,8 @@
 package ru.tinkoff.phobos.akka
 
-import java.util.concurrent.Executors
-
-import monix.execution.Scheduler
 import org.scalatest._
 
 class SoapSuit extends WordSpec with Matchers {
-  implicit val scheduler: Scheduler = Scheduler(Executors.newScheduledThreadPool(4))
   "Soap codecs" should {
     "be found for envelope" in {
       """
