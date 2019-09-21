@@ -1,31 +1,63 @@
 package ru.tinkoff.phobos.decoding
 
+import cats.Foldable
 import javax.xml.stream.XMLStreamConstants
-import monix.eval.Task
-import monix.reactive.Observable
 import cats.syntax.option._
 import com.fasterxml.aalto.AsyncByteArrayFeeder
 import com.fasterxml.aalto.async.{AsyncByteArrayScanner, AsyncStreamReaderImpl}
 import com.fasterxml.aalto.stax.InputFactoryImpl
 import ru.tinkoff.phobos.Namespace
+import ru.tinkoff.phobos.decoding.XmlDecoder.createStreamReader
 
 trait XmlDecoder[A] {
-  def decodeFromBytes(a: Array[Byte]): A
-  def decodeFromBytesObservable(fa: Observable[Array[Byte]]): Task[A]
+  val localname: String
+  val namespaceuri: Option[String]
+  val elementdecoder: ElementDecoder[A]
 
-  def decode(a: String): A =
-    decodeFromBytes(a.getBytes("UTF-8"))
+  def decode(string: String, charset: String = "UTF-8"): Either[DecodingError, A] =
+    decodeFromBytes(string.getBytes(charset), charset)
 
-  def decodeFromObservable(fa: Observable[String]): Task[A] =
-    decodeFromBytesObservable(fa.map(_.getBytes("UTF-8")))
+  def decodeFromBytes(bytes: Array[Byte], charset: String = "UTF-8"): Either[DecodingError, A] = {
+    val sr: XmlStreamReader = createStreamReader(charset)
+
+    sr.getInputFeeder.feedInput(bytes, 0, bytes.length)
+    sr.getInputFeeder.endOfInput()
+    val cursor = new Cursor(sr)
+    do {
+      cursor.next()
+    } while (cursor.getEventType == XMLStreamConstants.DTD || cursor.getEventType == XMLStreamConstants.START_DOCUMENT)
+    elementdecoder
+      .decodeAsElement(cursor, localname, namespaceuri)
+      .result(cursor.history)
+  }
+
+  def decodeFromFoldable[F[_]: Foldable](f: F[Array[Byte]], charset: String = "UTF-8"): Either[DecodingError, A] = {
+    val sr: XmlStreamReader = createStreamReader(charset)
+    val cursor              = new Cursor(sr)
+
+    val a = Foldable[F].foldLeft(f, elementdecoder) { (decoder: ElementDecoder[A], bytes: Array[Byte]) =>
+      sr.getInputFeeder.feedInput(bytes, 0, bytes.length)
+      do {
+        cursor.next()
+      } while (cursor.getEventType == XMLStreamConstants.DTD || cursor.getEventType == XMLStreamConstants.START_DOCUMENT)
+
+      if (decoder.result(cursor.history).isRight) {
+        decoder
+      } else {
+        decoder.decodeAsElement(cursor, localname, namespaceuri)
+      }
+    }
+    sr.getInputFeeder.endOfInput()
+    a.result(cursor.history)
+  }
 }
 
 object XmlDecoder {
 
-  def createStreamReader: XmlStreamReader = {
+  def createStreamReader(charset: String): XmlStreamReader = {
     val inputFactory = new InputFactoryImpl
     val cfg          = inputFactory.getNonSharedConfig(null, null, null, false, false)
-    cfg.setActualEncoding("UTF-8")
+    cfg.setActualEncoding(charset)
     cfg.doReportCData(false)
     new AsyncStreamReaderImpl[AsyncByteArrayFeeder](new AsyncByteArrayScanner(cfg))
   }
@@ -35,42 +67,9 @@ object XmlDecoder {
   def fromElementDecoder[A](localName: String, namespaceUri: Option[String])(
       implicit elementDecoder: ElementDecoder[A]): XmlDecoder[A] =
     new XmlDecoder[A] {
-      def decodeFromBytesObservable(fa: Observable[Array[Byte]]): Task[A] = {
-        val sr: XmlStreamReader = createStreamReader
-        val cursor              = new Cursor(sr)
-
-        fa.foldLeftL[ElementDecoder[A]](elementDecoder) { (decoder, bytes) =>
-            sr.getInputFeeder.feedInput(bytes, 0, bytes.length)
-            do {
-              cursor.next()
-            } while (cursor.getEventType == XMLStreamConstants.DTD || cursor.getEventType == XMLStreamConstants.START_DOCUMENT)
-
-            if (decoder.result(cursor.history).isRight) {
-              decoder
-            } else {
-              decoder.decodeAsElement(cursor, localName, namespaceUri)
-            }
-          }
-          .map { a =>
-            sr.getInputFeeder.endOfInput()
-            a.result(cursor.history).fold(err => throw err, identity)
-          }
-      }
-
-      def decodeFromBytes(a: Array[Byte]): A = {
-        val sr: XmlStreamReader = createStreamReader
-
-        sr.getInputFeeder.feedInput(a, 0, a.length)
-        sr.getInputFeeder.endOfInput()
-        val cursor = new Cursor(sr)
-        do {
-          cursor.next()
-        } while (cursor.getEventType == XMLStreamConstants.DTD || cursor.getEventType == XMLStreamConstants.START_DOCUMENT)
-        elementDecoder
-          .decodeAsElement(cursor, localName, namespaceUri)
-          .result(cursor.history)
-          .fold(err => throw err, identity)
-      }
+      val localname: String = localName
+      val namespaceuri: Option[String] = namespaceUri
+      val elementdecoder: ElementDecoder[A] = elementDecoder
     }
 
   def fromElementDecoder[A](localName: String)(implicit elementDecoder: ElementDecoder[A]): XmlDecoder[A] =

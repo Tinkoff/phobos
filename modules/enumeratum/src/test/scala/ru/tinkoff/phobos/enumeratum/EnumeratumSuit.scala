@@ -1,10 +1,7 @@
 package ru.tinkoff.phobos.enumeratum
 
-import java.util.concurrent.Executors
-
 import enumeratum._
-import monix.execution.Scheduler
-import monix.reactive.Observable
+import cats.instances.stream._
 import org.scalatest._
 import ru.tinkoff.phobos.annotations.XmlCodec
 import ru.tinkoff.phobos.decoding.XmlDecoder
@@ -12,10 +9,7 @@ import ru.tinkoff.phobos.encoding.XmlEncoder
 import ru.tinkoff.phobos.syntax._
 import ru.tinkoff.phobos.testString._
 
-import scala.concurrent.Future
-
-class EnumeratumSuit extends AsyncWordSpec with Matchers {
-  implicit val scheduler: Scheduler = Scheduler(Executors.newScheduledThreadPool(4))
+class EnumeratumSuit extends WordSpec with Matchers {
   "Enum codecs" should {
     "encode enums" in {
       sealed trait Foo extends EnumEntry with Product with Serializable
@@ -80,13 +74,13 @@ class EnumeratumSuit extends AsyncWordSpec with Matchers {
               """.stripMargin.minimized)
     }
 
-    def pure(str: String): Observable[String] =
-      Observable.pure(str)
+    def pure(str: String): Stream[Array[Byte]] =
+      Stream(str.getBytes("UTF-8"))
 
-    def fromIterable(str: String): Observable[String] =
-      Observable.fromIterable(str.toIterable.map(_.toString))
+    def fromIterable(str: String): Stream[Array[Byte]] =
+      str.toStream.map(c => Array(c.toByte))
 
-    def decodeEnums(toObservable: String => Observable[String]): Future[Assertion] = {
+    def decodeEnums(toStream: String => Stream[Array[Byte]]): Assertion = {
       sealed trait Foo extends EnumEntry with Product with Serializable
       object Foo extends XmlEnum[Foo] with Enum[Foo] {
         val values = findValues
@@ -136,14 +130,11 @@ class EnumeratumSuit extends AsyncWordSpec with Matchers {
         """<?xml version='1.0' encoding='UTF-8'?>
           | <baz f="Foo1">Foo2</baz>
         """.stripMargin
-      (for {
-        decoded1 <- XmlDecoder[Bar].decodeFromObservable(toObservable(string1))
-        decoded2 <- XmlDecoder[Bar].decodeFromObservable(toObservable(string2))
-        decoded3 <- XmlDecoder[Bar].decodeFromObservable(toObservable(string3))
-        decoded4 <- XmlDecoder[Baz].decodeFromObservable(toObservable(string4))
-      } yield {
-        assert(decoded1 == bar1 && decoded2 == bar2 && decoded3 == bar3 && decoded4 == baz)
-      }).runToFuture
+      val decoded1 = XmlDecoder[Bar].decodeFromFoldable(toStream(string1))
+      val decoded2 = XmlDecoder[Bar].decodeFromFoldable(toStream(string2))
+      val decoded3 = XmlDecoder[Bar].decodeFromFoldable(toStream(string3))
+      val decoded4 = XmlDecoder[Baz].decodeFromFoldable(toStream(string4))
+      assert(decoded1 == Right(bar1) && decoded2 == Right(bar2) && decoded3 == Right(bar3) && decoded4 == Right(baz))
     }
 
     "decode enums sync" in decodeEnums(pure)

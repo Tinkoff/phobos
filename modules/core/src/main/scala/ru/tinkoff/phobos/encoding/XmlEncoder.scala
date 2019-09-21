@@ -8,10 +8,25 @@ import com.fasterxml.aalto.stax.OutputFactoryImpl
 import ru.tinkoff.phobos.Namespace
 
 trait XmlEncoder[A] {
-  def encodeToBytes(a: A): Array[Byte]
+  val localname: String
+  val namespaceuri: Option[String]
+  val elementencoder: ElementEncoder[A]
 
-  def encode(a: A): String =
-    new String(encodeToBytes(a))
+  def encode(a: A, charset: String = "UTF-8"): String =
+    new String(encodeToBytes(a, charset), charset)
+
+  def encodeToBytes(a: A, charset: String = "UTF-8"): Array[Byte] = {
+    val os      = new ByteArrayOutputStream
+    val factory = new OutputFactoryImpl
+    factory.setProperty("javax.xml.stream.isRepairingNamespaces", true)
+    val sw = factory.createXMLStreamWriter(os, charset).asInstanceOf[XMLStreamWriter2]
+    sw.writeStartDocument()
+    elementencoder.encodeAsElement(a, sw, localname, namespaceuri)
+    sw.writeEndDocument()
+    sw.flush()
+    sw.close()
+    os.toByteArray
+  }
 }
 
 object XmlEncoder {
@@ -21,18 +36,9 @@ object XmlEncoder {
   def fromElementEncoder[A](localName: String, namespaceUri: Option[String])(
       implicit elementEncoder: ElementEncoder[A]): XmlEncoder[A] =
     new XmlEncoder[A] {
-      def encodeToBytes(a: A): Array[Byte] = {
-        val os      = new ByteArrayOutputStream
-        val factory = new OutputFactoryImpl
-        factory.setProperty("javax.xml.stream.isRepairingNamespaces", true)
-        val sw = factory.createXMLStreamWriter(os, "UTF-8").asInstanceOf[XMLStreamWriter2]
-        sw.writeStartDocument()
-        elementEncoder.encodeAsElement(a, sw, localName, namespaceUri)
-        sw.writeEndDocument()
-        sw.flush()
-        sw.close()
-        os.toByteArray
-      }
+      val localname: String                 = localName
+      val namespaceuri: Option[String]      = namespaceUri
+      val elementencoder: ElementEncoder[A] = elementEncoder
     }
 
   def fromElementEncoder[A](localName: String)(implicit elementEncoder: ElementEncoder[A]): XmlEncoder[A] =

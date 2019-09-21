@@ -15,6 +15,6 @@ object marshalling {
 
   implicit def soapUnmarshaller[T](implicit decoder: XmlDecoder[T]): FromResponseUnmarshaller[T] =
     Unmarshaller.messageUnmarshallerFromEntityUnmarshaller(Unmarshaller.stringUnmarshaller.map { str =>
-      decoder.decode(str)
+      decoder.decode(str).fold(err => throw err, identity)
     })
 }

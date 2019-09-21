@@ -24,5 +24,5 @@ val options = Seq(
 scalacOptions in ThisBuild ++= options
 
 libraryDependencies in ThisBuild ++= Seq(
-  compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+  compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.patch),
 )
