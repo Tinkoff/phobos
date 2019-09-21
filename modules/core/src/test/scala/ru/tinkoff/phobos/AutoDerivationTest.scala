@@ -73,10 +73,8 @@ class AutoDerivationTest extends WordSpec with Matchers {
       val encoder = XmlEncoder.fromElementEncoder[Baz]("baz")
       assert(encoder.encode(baz) == bazXml.minimized)
 
-      val decoder = derivation.semiauto.deriveElementDecoder[Baz]
-//      implicitly[Exported[ElementDecoder[Baz]]]
-//      val decoder = XmlDecoder.fromElementDecoder[Baz]("baz")
-//      assert(decoder.decode(bazXml) == baz)
+      val decoder = XmlDecoder.fromElementDecoder[Baz]("baz")
+      assert(decoder.decode(bazXml) == baz)
     }
   }
 }

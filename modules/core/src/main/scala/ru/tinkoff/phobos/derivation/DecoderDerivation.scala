@@ -29,6 +29,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
     val assignedName = TermName(c.freshName(s"ElementDecoderTypeclass")).encodedName.toTermName
 
     case class Param(classConstructorParam: Tree,
+                     defaultValue: Tree,
                      decoderParamAssignment: Tree,
                      goAssignment: Tree,
                      classConstructionForEnum: Tree,
@@ -60,11 +61,8 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 
           allParams.append(
             Param(
-              decoderParamAssignment =
-                q"""
-                  private[this] val $paramName: $derivationPkg.CallByNeed[$elementDecoder] =
-                    $derivationPkg.CallByNeed[$elementDecoder]($ref)
-                """,
+              decoderParamAssignment = q"private[this] val $paramName: $derivationPkg.CallByNeed[$elementDecoder]",
+              defaultValue = q"$derivationPkg.CallByNeed[$elementDecoder]($ref)",
               goAssignment = q"var $tempName: $elementDecoder = $paramName.value",
               decoderConstructionParam = q"$derivationPkg.CallByNeed[$elementDecoder]($tempName)",
               classConstructionForEnum = fq"$forName <- $tempName.result(cursor.history)",
@@ -96,9 +94,8 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
           allParams.append(
             Param(
               decoderParamAssignment =
-                q"""
-                  private[this] val $paramName: Option[Either[$decodingPkg.DecodingError, ${param.paramType}]] = None
-                """,
+                q"private[this] val $paramName: Option[Either[$decodingPkg.DecodingError, ${param.paramType}]]",
+              defaultValue = q"None",
               goAssignment =
                 q"""
                   var $tempName: Option[Either[$decodingPkg.DecodingError, ${param.paramType}]] = $paramName
@@ -123,7 +120,8 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 
           allParams.append(
             Param(
-              decoderParamAssignment = q"private[this] val $paramName: $textDecoder = $textDecoderInstance",
+              decoderParamAssignment = q"private[this] val $paramName: $textDecoder",
+              defaultValue = q"$textDecoderInstance",
               goAssignment = q"var $tempName: $textDecoder = $paramName",
               decoderConstructionParam = q"$tempName",
               classConstructionForEnum = fq"$forName <- $tempName.result(cursor.history)",
@@ -141,7 +139,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
       q"(Right(new $classType()): Either[$decodingPkg.DecodingError, $classType])"
     }
 
-    val a = q"""
+    q"""
       ..$preAssignments
       class $decoderName(
         state: $derivationPkg.DecoderDerivation.DecoderState,
@@ -238,10 +236,8 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
         val isCompleted: Boolean = false
       }
 
-      new $decoderName($decoderStateObj.New)
+      new $decoderName($decoderStateObj.New, ..${allParams.map(_.defaultValue)})
     """
-//    println(a)
-    a
   }
 
   def xml[T: c.WeakTypeTag](localName: Tree): Tree =
