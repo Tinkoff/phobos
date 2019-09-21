@@ -1,20 +1,36 @@
-import Publish._
+ThisBuild / name := "phobos"
 
-name := "phobos"
+ThisBuild / scalaVersion := "2.12.8"
 
-scalaVersion := "2.12.8"
+lazy val commonDependencies =
+  libraryDependencies ++= Seq(
+    "org.typelevel" % "cats-core_2.12" % "2.0.0",
+    "io.monix" %% "monix" % "3.0.0",
+    "com.fasterxml" % "aalto-xml" % "1.2.1",
+    "org.scalactic" %% "scalactic" % "3.0.5" % "test",
+    "org.scalatest" %% "scalatest" % "3.0.5" % "test",
+  )
 
-lazy val setModuleName   = moduleName := { s"phobos-${(publishName or name).value}" }
-lazy val defaultSettings = List(setModuleName)
+def configuration(id: String)(project: Project): Project =
+  project.settings(
+    moduleName := s"phobos-$id",
+    sources in (Compile, doc) := Seq.empty,
+    commonDependencies
+  )
 
-moduleName := "phobos"
+def phobosModule(id: String) =
+  Project(id, file(s"modules/$id"))
+    .configure(configuration(id))
 
-lazy val core = project settings defaultSettings
-lazy val utils = project settings defaultSettings dependsOn(core % "compile->compile;test->test;test->compile")
-lazy val coreModules = Seq(core, utils)
+lazy val core = phobosModule("core")
+lazy val derevo = phobosModule("derevo") dependsOn (core % "compile->compile;test->test")
+lazy val enumeratum = phobosModule("enumeratum") dependsOn (core % "compile->compile;test->test")
+lazy val akka = phobosModule("akka") dependsOn (core % "compile->compile;test->test")
+
+lazy val modules: Seq[ProjectReference] = Seq(core, akka, derevo, enumeratum)
 
 
 lazy val phobos = project
   .in(file("."))
-  .aggregate(coreModules.map(x => x: ProjectReference): _*)
-  .dependsOn(coreModules.map(x => x: ClasspathDep[ProjectReference]): _*)
+  .settings(moduleName := "phobos")
+  .aggregate(modules: _*)

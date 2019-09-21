@@ -1,6 +1,6 @@
 import Publish._
 
-publishVersion := "0.1.0"
+publishVersion := "0.1.1"
 
 ThisBuild / organization := "ru.tinkoff"
 ThisBuild / scalaVersion := "2.12.8"
@@ -12,12 +12,12 @@ ThisBuild / version := {
 
 ThisBuild / publishMavenStyle := true
 
-ThisBuild / publishTo := Some(
-  if (isSnapshot.value)
-    Opts.resolver.sonatypeSnapshots
-  else
-    Opts.resolver.sonatypeStaging
-)
+ThisBuild / publishTo :=
+  (if (!isSnapshot.value) {
+    sonatypePublishToBundle.value
+  } else {
+    Some(Opts.resolver.sonatypeSnapshots)
+  })
 
 ThisBuild / scmInfo := Some(
   ScmInfo(
