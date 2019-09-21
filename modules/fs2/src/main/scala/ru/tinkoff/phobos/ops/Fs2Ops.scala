@@ -1,17 +1,21 @@
 package ru.tinkoff.phobos.ops
 
+import cats.MonadError
+import cats.syntax.flatMap._
 import javax.xml.stream.XMLStreamConstants
-import monix.eval.Task
-import monix.reactive.Observable
 import ru.tinkoff.phobos.decoding.{Cursor, ElementDecoder, XmlDecoder, XmlStreamReader}
+import fs2.Stream
 
-private[phobos] trait MonixOps {
+private[phobos] trait Fs2Ops {
   implicit class DecoderOps[A](xmlDecoder: XmlDecoder[A]) {
-    def decodeFromObservable(observable: Observable[Array[Byte]], charset: String = "UTF-8"): Task[A] = {
+    def decodeFromStream[F[_], G[_]](stream: Stream[F, Array[Byte]], charset: String = "UTF-8")(
+        implicit compiler: Stream.Compiler[F, G],
+        monadError: MonadError[G, Throwable]): G[A] = {
       val sr: XmlStreamReader = XmlDecoder.createStreamReader(charset)
       val cursor              = new Cursor(sr)
 
-      observable.foldLeftL[ElementDecoder[A]](xmlDecoder.elementdecoder) { (decoder, bytes) =>
+      stream
+        .fold[ElementDecoder[A]](xmlDecoder.elementdecoder) { (decoder, bytes) =>
           sr.getInputFeeder.feedInput(bytes, 0, bytes.length)
           do {
             cursor.next()
@@ -23,10 +27,10 @@ private[phobos] trait MonixOps {
             decoder.decodeAsElement(cursor, xmlDecoder.localname, xmlDecoder.namespaceuri)
           }
         }
-        .flatMap { a =>
-          sr.getInputFeeder.endOfInput()
-          Task.fromEither(a.result(cursor.history))
-        }
+        .map(_.result(cursor.history))
+        .compile
+        .lastOrError
+        .flatMap(result => MonadError[G, Throwable].fromEither(result))
     }
   }
 }

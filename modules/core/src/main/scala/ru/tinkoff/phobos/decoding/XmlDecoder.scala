@@ -17,10 +17,10 @@ trait XmlDecoder[A] {
   def decode(string: String, charset: String = "UTF-8"): Either[DecodingError, A] =
     decodeFromBytes(string.getBytes(charset), charset)
 
-  def decodeFromBytes(a: Array[Byte], charset: String = "UTF-8"): Either[DecodingError, A] = {
+  def decodeFromBytes(bytes: Array[Byte], charset: String = "UTF-8"): Either[DecodingError, A] = {
     val sr: XmlStreamReader = createStreamReader(charset)
 
-    sr.getInputFeeder.feedInput(a, 0, a.length)
+    sr.getInputFeeder.feedInput(bytes, 0, bytes.length)
     sr.getInputFeeder.endOfInput()
     val cursor = new Cursor(sr)
     do {

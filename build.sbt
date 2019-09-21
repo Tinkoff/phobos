@@ -27,7 +27,9 @@ lazy val derevo = phobosModule("derevo") dependsOn (core % "compile->compile;tes
 lazy val enumeratum = phobosModule("enumeratum") dependsOn (core % "compile->compile;test->test")
 lazy val akka = phobosModule("akka") dependsOn (core % "compile->compile;test->test")
 lazy val monix = phobosModule("monix") dependsOn (core % "compile->compile;test->test")
-lazy val modules: Seq[ProjectReference] = Seq(core, akka, derevo, enumeratum)
+lazy val fs2 = phobosModule("fs2") dependsOn (core % "compile->compile;test->test")
+
+lazy val modules: Seq[ProjectReference] = Seq(core, akka, derevo, enumeratum, monix, fs2)
 
 
 lazy val phobos = project
