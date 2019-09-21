@@ -18,11 +18,11 @@ private final class ElementCodecImpl(ctx: blackbox.Context) extends CodecAnnotat
     Seq(
       q"""
           implicit val ${TermName(c.freshName("elementEncoder"))}: $pkg.encoding.ElementEncoder[$typ] =
-            $pkg.derivation.deriveElementEncoder[$typ]
+            $pkg.derivation.semiauto.deriveElementEncoder[$typ]
        """,
       q"""
           implicit val ${TermName(c.freshName("elementDecoder"))}: $pkg.decoding.ElementDecoder[$typ] =
-            $pkg.derivation.deriveElementDecoder[$typ]
+            $pkg.derivation.semiauto.deriveElementDecoder[$typ]
        """
     )
   }

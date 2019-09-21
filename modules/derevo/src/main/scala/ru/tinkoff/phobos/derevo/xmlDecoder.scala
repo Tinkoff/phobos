@@ -5,7 +5,7 @@ package ru.tinkoff.phobos.derevo
 import org.manatki.derevo.{Derevo, Derivation, delegating}
 import ru.tinkoff.phobos.decoding.XmlDecoder
 
-@delegating("ru.tinkoff.phobos.derivation.deriveXmlDecoder")
+@delegating("ru.tinkoff.phobos.derivation.semiauto.deriveXmlDecoder")
 object xmlDecoder extends Derivation[XmlDecoder] {
 
   def apply[A](arg: String): XmlDecoder[A] = macro Derevo.delegateParam[XmlDecoder, A, String]

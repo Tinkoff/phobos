@@ -3,6 +3,7 @@ package ru.tinkoff.phobos.derivation
 import ru.tinkoff.phobos.Namespace
 import ru.tinkoff.phobos.derivation.CompileTimeState.{ChainedImplicit, Stack}
 import ru.tinkoff.phobos.derivation.Derivation.DirectlyReentrantException
+import ru.tinkoff.phobos.derivation.auto.Exported
 import ru.tinkoff.phobos.syntax.{attr, text, xmlns}
 
 import scala.reflect.macros.blackbox
@@ -22,6 +23,11 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
     q"lazy val $name: $tpe = $rhs"
   }
 
+  def exportedTypecclass(searchType: Type): Option[Tree] =
+    Option(c.inferImplicitValue(appliedType(typeOf[Exported[_]], searchType)))
+      .map(exported => q"$exported.value")
+      .filterNot(_.isEmpty)
+
   def typeclassTree(stack: Stack[c.type])(genericType: Type, typeConstructor: Type): Tree = {
     val prefixType   = c.prefix.tree.tpe
     val prefixObject = prefixType.typeSymbol
@@ -39,6 +45,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
       stack.recurse(frame, searchType) {
         Option(c.inferImplicitValue(searchType))
           .filterNot(_.isEmpty)
+          .orElse(exportedTypecclass(searchType))
           .getOrElse {
             val missingType   = stack.top.fold(searchType)(_.searchType)
             val typeClassName = s"${missingType.typeSymbol.name.decodedName}"
@@ -54,11 +61,11 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
     val classType  = weakTypeOf[T]
     val typeSymbol = classType.typeSymbol
     if (!typeSymbol.isClass) error("Don't know how to work with not classes")
-    val classSymbol          = typeSymbol.asClass
-    val namespaceType        = typeOf[Namespace[_]]
-    val attrType             = typeOf[attr]
-    val textType             = typeOf[text]
-    val xmlnsType            = weakTypeOf[xmlns[_]]
+    val classSymbol   = typeSymbol.asClass
+    val namespaceType = typeOf[Namespace[_]]
+    val attrType      = typeOf[attr]
+    val textType      = typeOf[text]
+    val xmlnsType     = weakTypeOf[xmlns[_]]
 
     val expandDeferred = new Transformer {
       override def transform(tree: Tree) = tree match {
@@ -80,7 +87,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
               case tpe if tpe == attrType => ParamCategory.attribute :: acc
               case tpe if tpe == textType => ParamCategory.text :: acc
               case _                      => acc
-            }) match {
+          }) match {
             case List(group) => group
             case Nil         => ParamCategory.element
             case groups =>
@@ -89,9 +96,9 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
         }
 
         def fetchNamespace(param: TermSymbol): Tree =
-          param.annotations.collectFirst{
+          param.annotations.collectFirst {
             case annot if annot.tree.tpe <:< xmlnsType =>
-              Option(c.inferImplicitValue(appliedType(namespaceType, annot.tree.tpe.typeArgs.head))).map{ tree =>
+              Option(c.inferImplicitValue(appliedType(namespaceType, annot.tree.tpe.typeArgs.head))).map { tree =>
                 q"Some($tree.getNamespace)"
               }.getOrElse(error(s"Namespace typeclass not found for ${annot.tree.tpe.typeArgs.head}"))
           }.getOrElse(q"None")
@@ -123,7 +130,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
           case (paramType, param) =>
             fetchNamespace(param)
             val namespace = fetchNamespace(param)
-            val group = fetchGroup(param)
+            val group     = fetchGroup(param)
             CaseClassParam(param.name.decodedName.toString, namespace, paramType, group)
         }
 
@@ -132,8 +139,8 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
         val textParamsNumber      = params.count(_.category == ParamCategory.text)
 
         (attributeParamsNumber, regularParamsNumber, textParamsNumber) match {
-          case (_, _, l) if l > 1          => error(s"Multiple @text parameters in one class")
-          case _ => deriveProductCodec(stack)(params)
+          case (_, _, l) if l > 1 => error(s"Multiple @text parameters in one class")
+          case _                  => deriveProductCodec(stack)(params)
         }
       } else error(s"$classSymbol is not case class or sealed trait")
     }

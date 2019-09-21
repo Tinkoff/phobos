@@ -21,11 +21,11 @@ private final class XmlCodecImpl(ctx: blackbox.Context) extends CodecAnnotation(
     Seq(
       q"""
           implicit val ${TermName(c.freshName("elementEncoder"))}: $pkg.encoding.ElementEncoder[$typ] =
-            $pkg.derivation.deriveElementEncoder[$typ]
+            $pkg.derivation.semiauto.deriveElementEncoder[$typ]
        """,
       q"""
           implicit val ${TermName(c.freshName("elementDecoder"))}: $pkg.decoding.ElementDecoder[$typ] =
-            $pkg.derivation.deriveElementDecoder[$typ]
+            $pkg.derivation.semiauto.deriveElementDecoder[$typ]
        """,
       q"""
           implicit val ${TermName(c.freshName("xmlEncoder"))}: $pkg.encoding.XmlEncoder[$typ] =

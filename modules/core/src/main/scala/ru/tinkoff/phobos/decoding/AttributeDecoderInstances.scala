@@ -6,7 +6,7 @@ trait AttributeDecoderInstances {
     new AttributeDecoder[String] {
       def decodeAsAttribute(c: Cursor,
                             localName: String,
-                            namespaceUri: Option[String] = None): Either[DecodingError, String] = {
+                            namespaceUri: Option[String]): Either[DecodingError, String] = {
         val idx = c.getAttributeIndex(namespaceUri.orNull, localName)
         if (idx > -1) {
           Right(c.getAttributeValue(idx))
@@ -23,7 +23,7 @@ trait AttributeDecoderInstances {
     new AttributeDecoder[Option[A]] {
       def decodeAsAttribute(c: Cursor,
                             localName: String,
-                            namespaceUri: Option[String] = None): Either[DecodingError, Option[A]] = {
+                            namespaceUri: Option[String]): Either[DecodingError, Option[A]] = {
         val idx = c.getAttributeIndex(namespaceUri.orNull, localName)
         if (idx > -1) {
           decoder.decodeAsAttribute(c, localName, namespaceUri).map(Some.apply)

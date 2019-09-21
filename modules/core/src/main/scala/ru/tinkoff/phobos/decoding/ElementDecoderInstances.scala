@@ -11,7 +11,7 @@ import scala.collection.mutable.ListBuffer
 trait ElementDecoderInstances {
 
   final class StringDecoder(string: String = "") extends ElementDecoder[String] {
-    def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String] = None): ElementDecoder[String] = {
+    def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String]): ElementDecoder[String] = {
       val stringBuilder = new StringBuilder(string)
 
       @tailrec
@@ -61,7 +61,7 @@ trait ElementDecoderInstances {
     new ElementDecoder[Option[A]] {
       def decodeAsElement(c: Cursor,
                           localName: String,
-                          namespaceUri: Option[String] = None): ElementDecoder[Option[A]] = {
+                          namespaceUri: Option[String]): ElementDecoder[Option[A]] = {
         if (c.isStartElement && c.getLocalName == localName) {
           if (ElementDecoder.isNil(c)) {
             c.next()
