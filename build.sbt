@@ -6,6 +6,7 @@ lazy val commonDependencies =
   libraryDependencies ++= Seq(
     "org.typelevel" % "cats-core_2.12" % "2.0.0",
     "com.fasterxml" % "aalto-xml" % "1.2.1",
+    "org.scala-lang" % "scala-reflect" % "2.12.8",
     "org.scalactic" %% "scalactic" % "3.0.5" % "test",
     "org.scalatest" %% "scalatest" % "3.0.5" % "test",
   )
@@ -25,7 +26,7 @@ lazy val core = phobosModule("core")
 lazy val derevo = phobosModule("derevo") dependsOn (core % "compile->compile;test->test")
 lazy val enumeratum = phobosModule("enumeratum") dependsOn (core % "compile->compile;test->test")
 lazy val akka = phobosModule("akka") dependsOn (core % "compile->compile;test->test")
-
+lazy val monix = phobosModule("monix") dependsOn (core % "compile->compile;test->test")
 lazy val modules: Seq[ProjectReference] = Seq(core, akka, derevo, enumeratum)
 
 
