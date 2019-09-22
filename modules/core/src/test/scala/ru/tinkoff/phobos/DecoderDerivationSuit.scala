@@ -4,7 +4,7 @@ import cats.syntax.option._
 import cats.instances.stream._
 import org.scalatest._
 import ru.tinkoff.phobos.annotations.{ElementCodec, XmlCodec, XmlCodecNs, XmlnsDef}
-import ru.tinkoff.phobos.decoding.XmlDecoder
+import ru.tinkoff.phobos.decoding.{AttributeDecoder, ElementDecoder, TextDecoder, XmlDecoder}
 import ru.tinkoff.phobos.syntax._
 
 class DecoderDerivationSuit extends WordSpec with Matchers {
@@ -65,6 +65,35 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
 
     "decode attributes sync" in decodeAttributes(pure)
     "decode attributes async" in decodeAttributes(fromIterable)
+
+    def allowToOverrideCodecs(toStream: String => Stream[Array[Byte]]): Assertion = {
+      implicit val alternativeElementDecoder: ElementDecoder[String] =
+        ElementDecoder.stringDecoder.map(_ => "constant")
+      implicit val alternativeAttributeDecoder: AttributeDecoder[Int] =
+        AttributeDecoder.stringDecoder.map(_ => 24)
+      implicit val alternativeTextDecoder: TextDecoder[Double] =
+        TextDecoder.stringDecoder.map(_ => -42.0)
+
+      @ElementCodec
+      case class Foo(@attr bar: Int, @text baz: Double)
+      @XmlCodec("qux")
+      case class Qux(str: String, foo: Foo)
+
+      val qux = Qux("constant", Foo(24, -42.0))
+      val string =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <qux>
+          |   <str>Not that constant</str>
+          |   <foo bar="not number">not number</foo>
+          | </qux>
+          """.stripMargin
+      val decoded = XmlDecoder[Qux].decodeFromFoldable(toStream(string))
+      assert(decoded == Right(qux))
+
+    }
+
+    "allow to override codecs sync" in allowToOverrideCodecs(pure)
+    "allow to override codecs async" in allowToOverrideCodecs(fromIterable)
 
     def decodeOptions(toStream: String => Stream[Array[Byte]]): Assertion = {
       @ElementCodec

@@ -3,7 +3,7 @@ package ru.tinkoff.phobos
 import cats.syntax.option._
 import org.scalatest._
 import ru.tinkoff.phobos.annotations.{ElementCodec, XmlCodec, XmlCodecNs, XmlnsDef}
-import ru.tinkoff.phobos.encoding.XmlEncoder
+import ru.tinkoff.phobos.encoding.{AttributeEncoder, ElementEncoder, TextEncoder, XmlEncoder}
 import ru.tinkoff.phobos.testString._
 import ru.tinkoff.phobos.syntax._
 
@@ -53,6 +53,31 @@ class EncoderDerivationSuit extends WordSpec with Matchers {
             |     <c>3.0</c>
             |   </foo>
             | </bar>
+          """.stripMargin.minimized)
+    }
+
+    "allow to override codecs" in {
+      implicit val alternativeElementEncoder: ElementEncoder[String] =
+        ElementEncoder.stringEncoder.contramap(_ => "constant")
+      implicit val alternativeAttributeEncoder: AttributeEncoder[Int] =
+        AttributeEncoder.stringEncoder.contramap(_ => "a74153b")
+      implicit val alternativeTextEncoder: TextEncoder[Double] =
+        TextEncoder.stringEncoder.contramap(_ => "text")
+
+      @ElementCodec
+      case class Foo(@attr bar: Int, @text baz: Double)
+      @XmlCodec("qux")
+      case class Qux(str: String, foo: Foo)
+
+      val qux = Qux("42", Foo(42, 12.2))
+      val xml = XmlEncoder[Qux].encode(qux)
+      assert(xml ==
+        """
+          | <?xml version='1.0' encoding='UTF-8'?>
+          | <qux>
+          |   <str>constant</str>
+          |   <foo bar="a74153b">text</foo>
+          | </qux>
           """.stripMargin.minimized)
     }
 
