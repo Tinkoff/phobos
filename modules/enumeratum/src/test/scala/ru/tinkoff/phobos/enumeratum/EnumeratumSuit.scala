@@ -1,7 +1,7 @@
 package ru.tinkoff.phobos.enumeratum
 
 import enumeratum._
-import cats.instances.stream._
+import cats.instances.list._
 import org.scalatest._
 import ru.tinkoff.phobos.annotations.XmlCodec
 import ru.tinkoff.phobos.decoding.XmlDecoder
@@ -74,13 +74,13 @@ class EnumeratumSuit extends WordSpec with Matchers {
               """.stripMargin.minimized)
     }
 
-    def pure(str: String): Stream[Array[Byte]] =
-      Stream(str.getBytes("UTF-8"))
+    def pure(str: String): List[Array[Byte]] =
+      List(str.getBytes("UTF-8"))
 
-    def fromIterable(str: String): Stream[Array[Byte]] =
-      str.toStream.map(c => Array(c.toByte))
+    def fromIterable(str: String): List[Array[Byte]] =
+      str.toList.map(c => Array(c.toByte))
 
-    def decodeEnums(toStream: String => Stream[Array[Byte]]): Assertion = {
+    def decodeEnums(toList: String => List[Array[Byte]]): Assertion = {
       sealed trait Foo extends EnumEntry with Product with Serializable
       object Foo extends XmlEnum[Foo] with Enum[Foo] {
         val values = findValues
@@ -130,10 +130,10 @@ class EnumeratumSuit extends WordSpec with Matchers {
         """<?xml version='1.0' encoding='UTF-8'?>
           | <baz f="Foo1">Foo2</baz>
         """.stripMargin
-      val decoded1 = XmlDecoder[Bar].decodeFromFoldable(toStream(string1))
-      val decoded2 = XmlDecoder[Bar].decodeFromFoldable(toStream(string2))
-      val decoded3 = XmlDecoder[Bar].decodeFromFoldable(toStream(string3))
-      val decoded4 = XmlDecoder[Baz].decodeFromFoldable(toStream(string4))
+      val decoded1 = XmlDecoder[Bar].decodeFromFoldable(toList(string1))
+      val decoded2 = XmlDecoder[Bar].decodeFromFoldable(toList(string2))
+      val decoded3 = XmlDecoder[Bar].decodeFromFoldable(toList(string3))
+      val decoded4 = XmlDecoder[Baz].decodeFromFoldable(toList(string4))
       assert(decoded1 == Right(bar1) && decoded2 == Right(bar2) && decoded3 == Right(bar3) && decoded4 == Right(baz))
     }
 

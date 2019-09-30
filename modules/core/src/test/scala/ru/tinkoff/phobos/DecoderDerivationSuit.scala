@@ -1,22 +1,22 @@
 package ru.tinkoff.phobos
 
 import cats.syntax.option._
-import cats.instances.stream._
+import cats.instances.list._
 import org.scalatest._
 import ru.tinkoff.phobos.annotations.{ElementCodec, XmlCodec, XmlCodecNs, XmlnsDef}
 import ru.tinkoff.phobos.decoding.{AttributeDecoder, ElementDecoder, TextDecoder, XmlDecoder}
 import ru.tinkoff.phobos.syntax._
 
 class DecoderDerivationSuit extends WordSpec with Matchers {
-  def pure(str: String): Stream[Array[Byte]] =
-    Stream(str.getBytes("UTF-8"))
+  def pure(str: String): List[Array[Byte]] =
+    List(str.getBytes("UTF-8"))
 
-  def fromIterable(str: String): Stream[Array[Byte]] =
-    str.toStream.map(c => Array(c.toByte))
+  def fromIterable(str: String): List[Array[Byte]] =
+    str.toList.map(c => Array(c.toByte))
 
   "Decoder derivation without namespaces" should {
 
-    def decodeSimpleCaseClasses(toStream: String => Stream[Array[Byte]]): Assertion = {
+    def decodeSimpleCaseClasses(toList: String => List[Array[Byte]]): Assertion = {
       @ElementCodec
       case class Foo(a: Int, b: String, c: Double)
       @XmlCodec("bar")
@@ -35,14 +35,14 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
                      | </bar>
                    """.stripMargin
 
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toStream(string))
+      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
       assert(decoded == Right(bar))
     }
 
     "decode simple case classes sync" in decodeSimpleCaseClasses(pure)
     "decode simple case classes async" in decodeSimpleCaseClasses(fromIterable)
 
-    def decodeAttributes(toStream: String => Stream[Array[Byte]]): Assertion = {
+    def decodeAttributes(toList: String => List[Array[Byte]]): Assertion = {
       @ElementCodec
       case class Foo(a: Int, @attr b: String, c: Double)
       @XmlCodec("bar")
@@ -59,14 +59,14 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
                      |   </foo>
                      | </bar>
                    """.stripMargin
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toStream(string))
+      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
       assert(decoded == Right(bar))
     }
 
     "decode attributes sync" in decodeAttributes(pure)
     "decode attributes async" in decodeAttributes(fromIterable)
 
-    def allowToOverrideCodecs(toStream: String => Stream[Array[Byte]]): Assertion = {
+    def allowToOverrideCodecs(toList: String => List[Array[Byte]]): Assertion = {
       implicit val alternativeElementDecoder: ElementDecoder[String] =
         ElementDecoder.stringDecoder.map(_ => "constant")
       implicit val alternativeAttributeDecoder: AttributeDecoder[Int] =
@@ -87,7 +87,7 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
           |   <foo bar="not number">not number</foo>
           | </qux>
           """.stripMargin
-      val decoded = XmlDecoder[Qux].decodeFromFoldable(toStream(string))
+      val decoded = XmlDecoder[Qux].decodeFromFoldable(toList(string))
       assert(decoded == Right(qux))
 
     }
@@ -95,7 +95,7 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
     "allow to override codecs sync" in allowToOverrideCodecs(pure)
     "allow to override codecs async" in allowToOverrideCodecs(fromIterable)
 
-    def decodeOptions(toStream: String => Stream[Array[Byte]]): Assertion = {
+    def decodeOptions(toList: String => List[Array[Byte]]): Assertion = {
       @ElementCodec
       case class Foo(a: Int, @attr b: String, c: Double)
       @XmlCodec("Wrapper")
@@ -115,15 +115,15 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
       val string2  = """<?xml version='1.0' encoding='UTF-8'?>
                       | <Wrapper/>
                     """.stripMargin
-      val decoded1 = XmlDecoder[Wrapper].decodeFromFoldable(toStream(string1))
-      val decoded2 = XmlDecoder[Wrapper].decodeFromFoldable(toStream(string2))
+      val decoded1 = XmlDecoder[Wrapper].decodeFromFoldable(toList(string1))
+      val decoded2 = XmlDecoder[Wrapper].decodeFromFoldable(toList(string2))
       assert(decoded1 == Right(opt1) && decoded2 == Right(opt2))
     }
 
     "decode options sync" in decodeOptions(pure)
     "decode options async" in decodeOptions(fromIterable)
 
-    def decodeNilValues(toStream: String => Stream[Array[Byte]]): Assertion = {
+    def decodeNilValues(toList: String => List[Array[Byte]]): Assertion = {
       @ElementCodec
       case class Foo(a: Int, @attr b: String)
       @XmlCodec("Wrapper1")
@@ -153,15 +153,15 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
                       | </Wrapper2>
                     """.stripMargin
 
-      val decoded1 = XmlDecoder[Wrapper1].decodeFromFoldable(toStream(string1))
-      val decoded2 = XmlDecoder[Wrapper2].decodeFromFoldable(toStream(string2))
+      val decoded1 = XmlDecoder[Wrapper1].decodeFromFoldable(toList(string1))
+      val decoded2 = XmlDecoder[Wrapper2].decodeFromFoldable(toList(string2))
       assert(decoded1 == Right(wrapper1) && decoded2 == Right(wrapper2))
     }
 
     "decode nil values sync" in decodeNilValues(pure)
     "decode nil values async" in decodeNilValues(fromIterable)
 
-    def decodeLists(toStream: String => Stream[Array[Byte]]): Assertion = {
+    def decodeLists(toList: String => List[Array[Byte]]): Assertion = {
       @ElementCodec
       case class Foo(a: Int, @attr b: Option[String], c: Option[Double])
       @XmlCodec("foos")
@@ -197,15 +197,15 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
           | <foos/>
         """.stripMargin
 
-      val decoded1 = XmlDecoder[Foos].decodeFromFoldable(toStream(string1))
-      val decoded2 = XmlDecoder[Foos].decodeFromFoldable(toStream(string2))
+      val decoded1 = XmlDecoder[Foos].decodeFromFoldable(toList(string1))
+      val decoded2 = XmlDecoder[Foos].decodeFromFoldable(toList(string2))
       assert(decoded1 == Right(bar1) && decoded2 == Right(bar2))
     }
 
     "decode lists sync" in decodeLists(pure)
     "decode lists async" in decodeLists(fromIterable)
 
-    def decodeMixedLists(toStream: String => Stream[Array[Byte]]): Assertion = {
+    def decodeMixedLists(toList: String => List[Array[Byte]]): Assertion = {
       @ElementCodec
       case class Foo(a: Int, @attr b: Option[String], c: Option[Double])
       @ElementCodec
@@ -254,15 +254,15 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
           | <foobars/>
         """.stripMargin
 
-      val decoded1 = XmlDecoder[FooBars].decodeFromFoldable(toStream(string1))
-      val decoded2 = XmlDecoder[FooBars].decodeFromFoldable(toStream(string2))
+      val decoded1 = XmlDecoder[FooBars].decodeFromFoldable(toList(string1))
+      val decoded2 = XmlDecoder[FooBars].decodeFromFoldable(toList(string2))
       assert(decoded1 == Right(bar1) && decoded2 == Right(bar2))
     }
 
     "decode mixed lists sync" in decodeMixedLists(pure)
     "decode mixed lists async" in decodeMixedLists(fromIterable)
 
-    def decodeByteArrays(toStream: String => Stream[Array[Byte]]): Assertion = {
+    def decodeByteArrays(toList: String => List[Array[Byte]]): Assertion = {
       @XmlCodec("foo")
       case class Foo(@text content: Array[Byte])
       val foo = Foo("foobar".getBytes)
@@ -271,14 +271,14 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
                      | <foo>Zm9vYmFy</foo>
                     """.stripMargin
 
-      val decoded = XmlDecoder[Foo].decodeFromFoldable(toStream(string))
-      assert(decoded.map(_.content.deep) == Right(foo.content.deep))
+      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
+      assert(decoded.map(d => java.util.Arrays.equals(d.content, foo.content)) == Right(true))
     }
 
     "decode byte arrays sync" in decodeByteArrays(pure)
     "decode byte arrays async" in decodeByteArrays(fromIterable)
 
-    def decodeTextValues(toStream: String => Stream[Array[Byte]]): Assertion = {
+    def decodeTextValues(toList: String => List[Array[Byte]]): Assertion = {
       @ElementCodec
       case class Foo(@attr a: Int, @attr b: String, @text c: Double)
       @XmlCodec("bar")
@@ -293,14 +293,14 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
                      | </bar>
                    """.stripMargin
 
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toStream(string))
+      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
       assert(decoded == Right(bar))
     }
 
     "decode text values sync" in decodeTextValues(pure)
     "decode text values async" in decodeTextValues(fromIterable)
 
-    def decodeRecursiveValues(toStream: String => Stream[Array[Byte]]): Assertion = {
+    def decodeRecursiveValues(toList: String => List[Array[Byte]]): Assertion = {
       @XmlCodec("foo")
       case class Foo(foo: Option[Foo], das: Int)
 
@@ -323,14 +323,14 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
                      |</foo>
                    """.stripMargin
 
-      val decoded = XmlDecoder[Foo].decodeFromFoldable(toStream(string))
+      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
       assert(decoded == Right(foo))
     }
 
     "decode recursive values sync" in decodeRecursiveValues(pure)
     "decode recursive values async" in decodeRecursiveValues(fromIterable)
 
-    def ignoreExtraElements(toStream: String => Stream[Array[Byte]]): Assertion = {
+    def ignoreExtraElements(toList: String => List[Array[Byte]]): Assertion = {
       @XmlCodec("foo")
       case class Foo(das: Int)
 
@@ -353,7 +353,7 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
                      |</foo>
                    """.stripMargin
 
-      val decoded = XmlDecoder[Foo].decodeFromFoldable(toStream(string))
+      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
       assert(decoded == Right(foo))
 
     }
@@ -361,7 +361,7 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
     "ignore extra elements sync" in ignoreExtraElements(pure)
     "ignore extra elements async" in ignoreExtraElements(fromIterable)
 
-    def decodeMixedContent(toStream: String => Stream[Array[Byte]]): Assertion = {
+    def decodeMixedContent(toList: String => List[Array[Byte]]): Assertion = {
       @XmlCodec("foo")
       case class Foo(count: Int, buz: String, @text text: String)
 
@@ -370,7 +370,7 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
                      |<foo>Sending <count>1</count> item to <buz>Buzz</buz></foo>
                    """.stripMargin
 
-      val decoded = XmlDecoder[Foo].decodeFromFoldable(toStream(string))
+      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
       assert(decoded == Right(foo))
 
     }
@@ -381,7 +381,7 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
 
   "Decoder derivation with namespaces" should {
 
-    def decodeSimpleCaseClasses(toStream: String => Stream[Array[Byte]]): Assertion = {
+    def decodeSimpleCaseClasses(toList: String => List[Array[Byte]]): Assertion = {
       @XmlnsDef("tinkoff.ru")
       object tkf
 
@@ -411,14 +411,14 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
                      | </ans1:bar>
                    """.stripMargin
 
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toStream(string))
+      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
       assert(decoded == Right(bar))
     }
 
     "decode simple case classes sync" in decodeSimpleCaseClasses(pure)
     "decode simple case classes async" in decodeSimpleCaseClasses(fromIterable)
 
-    def decodeAttributes(toStream: String => Stream[Array[Byte]]): Assertion = {
+    def decodeAttributes(toList: String => List[Array[Byte]]): Assertion = {
       @XmlnsDef("tinkoff.ru")
       case object tkf
       @ElementCodec
@@ -445,7 +445,7 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
                      | </ans1:bar>
                    """.stripMargin
 
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toStream(string))
+      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
       assert(decoded == Right(bar))
 
     }
@@ -453,7 +453,7 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
     "decode attributes sync" in decodeAttributes(pure)
     "decode attributes async" in decodeAttributes(fromIterable)
 
-    def decodeNestedNamespaces(toStream: String => Stream[Array[Byte]]): Assertion = {
+    def decodeNestedNamespaces(toList: String => List[Array[Byte]]): Assertion = {
       @XmlnsDef("tinkoff.ru")
       case object tkf
       @ElementCodec
@@ -479,7 +479,7 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
                      |   </ans1:foo>
                      | </bar>
                    """.stripMargin
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toStream(string))
+      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
       assert(decoded == Right(bar))
 
     }
@@ -487,7 +487,7 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
     "decode nested namespace sync" in decodeNestedNamespaces(pure)
     "decode nested namespace async" in decodeNestedNamespaces(fromIterable)
 
-    def decodeMultipleNamespaces(toStream: String => Stream[Array[Byte]]): Assertion = {
+    def decodeMultipleNamespaces(toList: String => List[Array[Byte]]): Assertion = {
       @XmlnsDef("tinkoff.ru")
       case object tkf
       @XmlnsDef("tcsbank.ru")
@@ -516,7 +516,7 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
                      | </ans1:bar>
                    """.stripMargin
 
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toStream(string))
+      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
       assert(decoded == Right(bar))
 
     }

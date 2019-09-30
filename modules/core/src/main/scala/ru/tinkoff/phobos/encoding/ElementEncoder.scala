@@ -3,7 +3,7 @@ package ru.tinkoff.phobos.encoding
 import java.time.{LocalDate, LocalDateTime, LocalTime, ZonedDateTime}
 import java.util.{Base64, UUID}
 
-import cats.Contravariant
+import cats.{Contravariant, Foldable}
 import cats.data.{Chain, NonEmptyChain, NonEmptyList, NonEmptySet, NonEmptyVector}
 import org.codehaus.stax2.XMLStreamWriter2
 
@@ -75,29 +75,35 @@ object ElementEncoder {
 
   implicit val noneEncoder: ElementEncoder[None.type] = unitEncoder.contramap(_ => ())
 
-  implicit def traversableEncoder[A](implicit encoder: ElementEncoder[A]): ElementEncoder[TraversableOnce[A]] =
-    new ElementEncoder[TraversableOnce[A]] {
-      def encodeAsElement(as: TraversableOnce[A],
+  implicit def foldableEncoder[F[_]: Foldable, A](implicit encoder: ElementEncoder[A]): ElementEncoder[F[A]] =
+    new ElementEncoder[F[A]] {
+      def encodeAsElement(as: F[A], sw: XMLStreamWriter2, localName: String, namespaceUri: Option[String]): Unit =
+        Foldable[F].foldLeft(as, ())((_, a) => encoder.encodeAsElement(a, sw, localName, namespaceUri))
+    }
+
+  implicit def iteratorEncoder[A](implicit encoder: ElementEncoder[A]): ElementEncoder[Iterator[A]] =
+    new ElementEncoder[Iterator[A]] {
+      def encodeAsElement(as: Iterator[A],
                           sw: XMLStreamWriter2,
                           localName: String,
                           namespaceUri: Option[String]): Unit =
-        for (a <- as) encoder.encodeAsElement(a, sw, localName, namespaceUri)
+        as.foreach(a => encoder.encodeAsElement(a, sw, localName, namespaceUri))
     }
 
   implicit def seqEncoder[A](implicit encoder: ElementEncoder[A]): ElementEncoder[Seq[A]] =
-    traversableEncoder[A].contramap(identity)
+    iteratorEncoder[A].contramap(_.iterator)
 
   implicit def setEncoder[A](implicit encoder: ElementEncoder[A]): ElementEncoder[Set[A]] =
-    traversableEncoder[A].contramap(identity)
+    iteratorEncoder[A].contramap(_.iterator)
 
   implicit def listEncoder[A](implicit encoder: ElementEncoder[A]): ElementEncoder[List[A]] =
-    traversableEncoder[A].contramap(identity)
+    iteratorEncoder[A].contramap(_.iterator)
 
   implicit def vectorEncoder[A](implicit encoder: ElementEncoder[A]): ElementEncoder[Vector[A]] =
-    traversableEncoder[A].contramap(identity)
+    iteratorEncoder[A].contramap(_.iterator)
 
   implicit def chainEncoder[A](implicit encoder: ElementEncoder[A]): ElementEncoder[Chain[A]] =
-    traversableEncoder[A].contramap(_.iterator)
+    iteratorEncoder[A].contramap(_.iterator)
 
   implicit def nonEmptyListEncoder[A](implicit encoder: ElementEncoder[A]): ElementEncoder[NonEmptyList[A]] =
     listEncoder[A].contramap(_.toList)

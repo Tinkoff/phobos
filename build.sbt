@@ -1,21 +1,39 @@
 ThisBuild / name := "phobos"
 
-ThisBuild / scalaVersion := "2.12.8"
+ThisBuild / scalaVersion := "2.13.1"
+
+lazy val supportedVersions = List("2.12.9", "2.13.1")
 
 lazy val commonDependencies =
-  libraryDependencies ++= Seq(
-    "org.typelevel" % "cats-core_2.12" % "2.0.0",
+  libraryDependencies ++= List(
+    "org.typelevel" %% "cats-core" % "2.0.0",
     "com.fasterxml" % "aalto-xml" % "1.2.1",
-    "org.scala-lang" % "scala-reflect" % "2.12.8",
-    "org.scalactic" %% "scalactic" % "3.0.5" % "test",
-    "org.scalatest" %% "scalatest" % "3.0.5" % "test",
+    "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+    "org.scalactic" %% "scalactic" % "3.0.8" % "test",
+    "org.scalatest" %% "scalatest" % "3.0.8" % "test",
   )
 
 def configuration(id: String)(project: Project): Project =
   project.settings(
     moduleName := s"phobos-$id",
-    sources in (Compile, doc) := Seq.empty,
-    commonDependencies
+    crossScalaVersions := supportedVersions,
+    sources in (Compile, doc) := List.empty,
+    commonDependencies,
+    scalacOptions ++= List(
+      "-language:experimental.macros",
+    ),
+    libraryDependencies ++= {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, 13)) => Nil
+        case _ => List(compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.patch))
+      }
+    },
+    scalacOptions ++= {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, 13)) => List("-Ymacro-annotations")
+        case _ => Nil
+      }
+    }
   )
 
 def phobosModule(id: String) =
@@ -29,10 +47,13 @@ lazy val akka = phobosModule("akka") dependsOn (core % "compile->compile;test->t
 lazy val monix = phobosModule("monix") dependsOn (core % "compile->compile;test->test")
 lazy val fs2 = phobosModule("fs2") dependsOn (core % "compile->compile;test->test")
 
-lazy val modules: Seq[ProjectReference] = Seq(core, akka, derevo, enumeratum, monix, fs2)
+lazy val modules: List[ProjectReference] = List(core, akka, derevo, enumeratum, monix, fs2)
 
 
 lazy val phobos = project
   .in(file("."))
-  .settings(moduleName := "phobos")
+  .settings(
+    moduleName := "phobos",
+    crossScalaVersions := Nil,
+  )
   .aggregate(modules: _*)

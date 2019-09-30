@@ -3,7 +3,6 @@ import Publish._
 publishVersion := "0.1.1"
 
 ThisBuild / organization := "ru.tinkoff"
-ThisBuild / scalaVersion := "2.12.8"
 ThisBuild / version := {
   val branch = git.gitCurrentBranch.value
   if (branch == "master") publishVersion.value
