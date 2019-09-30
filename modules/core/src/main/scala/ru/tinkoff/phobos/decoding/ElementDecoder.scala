@@ -265,9 +265,6 @@ object ElementDecoder {
 
   implicit def listDecoder[A](implicit decoder: ElementDecoder[A]): ElementDecoder[List[A]] = new ListDecoder[A]()
 
-  implicit def traversableDecoder[A](implicit encoder: ElementDecoder[A]): ElementDecoder[TraversableOnce[A]] =
-    listDecoder[A].map(_.toTraversable)
-
   implicit def seqDecoder[A](implicit encoder: ElementDecoder[A]): ElementDecoder[Seq[A]] =
     listDecoder[A].map(_.toSeq)
 

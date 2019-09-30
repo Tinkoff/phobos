@@ -41,10 +41,10 @@ private[derivation] object CompileTimeState {
     }
 
     def trace: List[TypePath] =
-      (frames.drop(1), frames).zipped.collect {
+      frames.drop(1).zip(frames).collect {
         case (Frame(path, tp1, _), Frame(_, tp2, _))
           if !(tp1 =:= tp2) => path
-      }.toList
+      }
 
     override def toString: String =
       frames.mkString(" a stack:\n", "\n", "\n")
