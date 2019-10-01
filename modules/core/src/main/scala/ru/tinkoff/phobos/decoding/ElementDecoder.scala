@@ -12,6 +12,22 @@ import ru.tinkoff.phobos.decoding.ElementDecoder.{EMappedDecoder, MappedDecoder}
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 
+/**
+ * Warning! This is a complicated internal API which may change in future.
+ * Do not implement or use this trait directly unless you know what you are doing.
+ *
+ * Use XmlDecoder for decoding XML documents.
+ *
+ * ElementDecoder instance must exist for every type decoded from XML element.
+ *
+ * ElementDecoder instance can be created
+ *  - from existing instance by using .map or .emap method (mostly used for "simple" types);
+ *  - by macros from ru.tinkoff.phobos.derivation.semiauto package (for case classes and sealed traits).
+ *
+ *
+ * This typeclass describes process of decoding some element to an A value. Name of the element is
+ * not defined in typeclass, it should be passed in decodeAsElement method.
+ */
 trait ElementDecoder[A] { self =>
   def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String]): ElementDecoder[A]
   def result(history: List[String]): Either[DecodingError, A]
@@ -265,19 +281,19 @@ object ElementDecoder {
 
   implicit def listDecoder[A](implicit decoder: ElementDecoder[A]): ElementDecoder[List[A]] = new ListDecoder[A]()
 
-  implicit def seqDecoder[A](implicit encoder: ElementDecoder[A]): ElementDecoder[Seq[A]] =
+  implicit def seqDecoder[A](implicit decoder: ElementDecoder[A]): ElementDecoder[Seq[A]] =
     listDecoder[A].map(_.toSeq)
 
-  implicit def setDecoder[A](implicit encoder: ElementDecoder[A]): ElementDecoder[Set[A]] =
+  implicit def setDecoder[A](implicit decoder: ElementDecoder[A]): ElementDecoder[Set[A]] =
     listDecoder[A].map(_.toSet)
 
-  implicit def vectorDecoder[A](implicit encoder: ElementDecoder[A]): ElementDecoder[Vector[A]] =
+  implicit def vectorDecoder[A](implicit decoder: ElementDecoder[A]): ElementDecoder[Vector[A]] =
     listDecoder[A].map(_.toVector)
 
-  implicit def chainDecoder[A](implicit encoder: ElementDecoder[A]): ElementDecoder[Chain[A]] =
+  implicit def chainDecoder[A](implicit decoder: ElementDecoder[A]): ElementDecoder[Chain[A]] =
     listDecoder[A].map(Chain.fromSeq)
 
-  implicit def nonEmptyListDecoder[A](implicit encoder: ElementDecoder[A]): ElementDecoder[NonEmptyList[A]] =
+  implicit def nonEmptyListDecoder[A](implicit decoder: ElementDecoder[A]): ElementDecoder[NonEmptyList[A]] =
     listDecoder[A].emap(
       (history, list) =>
         NonEmptyList
@@ -285,7 +301,7 @@ object ElementDecoder {
           .fold[Either[DecodingError, NonEmptyList[A]]](Left(DecodingError("List is empty", history)))(Right.apply)
     )
 
-  implicit def nonEmptyVectorDecoder[A](implicit encoder: ElementDecoder[A]): ElementDecoder[NonEmptyVector[A]] =
+  implicit def nonEmptyVectorDecoder[A](implicit decoder: ElementDecoder[A]): ElementDecoder[NonEmptyVector[A]] =
     vectorDecoder[A].emap(
       (history, vector) =>
         NonEmptyVector
@@ -293,7 +309,7 @@ object ElementDecoder {
           .fold[Either[DecodingError, NonEmptyVector[A]]](Left(DecodingError("Vector is empty", history)))(Right.apply)
     )
 
-  implicit def nonEmptyChainDecoder[A](implicit encoder: ElementDecoder[A]): ElementDecoder[NonEmptyChain[A]] =
+  implicit def nonEmptyChainDecoder[A](implicit decoder: ElementDecoder[A]): ElementDecoder[NonEmptyChain[A]] =
     chainDecoder[A].emap(
       (history, chain) =>
         NonEmptyChain

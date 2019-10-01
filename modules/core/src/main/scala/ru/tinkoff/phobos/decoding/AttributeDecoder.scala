@@ -5,6 +5,17 @@ import java.util.{Base64, UUID}
 
 import cats.Functor
 
+/**
+ * Warning! This is an internal API which may change in future.
+ * Do not implement or use this trait directly unless you know what you are doing.
+ *
+ * Use XmlDecoder for decoding XML documents.
+ *
+ * AttributeDecoder instance must exist for every type decoded from attribute.
+ * This typeclass is used for decoding case class parameters with @attr annotation.
+ *
+ * To create new instance use .map or .emap method of existing instance.
+ */
 trait AttributeDecoder[A] { self =>
   def decodeAsAttribute(c: Cursor, localName: String, namespaceUri: Option[String]): Either[DecodingError, A]
 

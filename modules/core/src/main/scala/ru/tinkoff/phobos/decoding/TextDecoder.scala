@@ -10,6 +10,17 @@ import ru.tinkoff.phobos.decoding.TextDecoder.{EMappedDecoder, MappedDecoder}
 
 import scala.annotation.tailrec
 
+/**
+ * Warning! This is a complicated internal API which may change in future.
+ * Do not implement or use this trait directly unless you know what you are doing.
+ *
+ * Use XmlDecoder for decoding XML documents.
+ *
+ * TextDecoder instance must exist for every type decoded from text inside XML element.
+ * This typeclass is used for decoding case class parameters with @text annotation.
+ *
+ * To create new instance use .map or .emap method of existing instance.
+ */
 trait TextDecoder[A] { self =>
   def decodeAsText(c: Cursor, localName: String, namespaceUri: Option[String]): TextDecoder[A]
   def result(history: List[String]): Either[DecodingError, A]

@@ -6,6 +6,17 @@ import java.util.{Base64, UUID}
 import cats.Contravariant
 import org.codehaus.stax2.XMLStreamWriter2
 
+/**
+ * Warning! This is an internal API which may change in future.
+ * Do not implement or use this trait directly unless you know what you are doing.
+ *
+ * Use XmlEncoder for encoding XML documents.
+ *
+ * AttributeEncoder instance must exist for every type encoded to attribute.
+ * This typeclass is used for encoding case class parameters with @attr annotation.
+ *
+ * To create new instance use .contramap method of existing instance.
+ */
 trait AttributeEncoder[A] { self =>
   def encodeAsAttribute(a: A, sw: XMLStreamWriter2, localName: String, namespaceUri: Option[String]): Unit
 

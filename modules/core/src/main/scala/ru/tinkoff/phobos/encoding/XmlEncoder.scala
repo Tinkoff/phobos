@@ -7,6 +7,17 @@ import cats.syntax.option._
 import com.fasterxml.aalto.stax.OutputFactoryImpl
 import ru.tinkoff.phobos.Namespace
 
+/**
+ * Typeclass for encoding XML document to an A value.
+ *
+ * XmlEncoder instance must exist only for types which are encoded as XML documents (only for root elements).
+ *
+ * XmlEncoder instance can be created
+ *  - from ElementEncoder using functions in XmlEncoder object
+ *  - by macros from ru.tinkoff.phobos.derivation.semiauto package
+ *
+ * This typeclass wraps ElementEncoder[A] and provides element name and StreamWriter.
+ */
 trait XmlEncoder[A] {
   val localname: String
   val namespaceuri: Option[String]

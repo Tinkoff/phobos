@@ -9,6 +9,17 @@ import com.fasterxml.aalto.stax.InputFactoryImpl
 import ru.tinkoff.phobos.Namespace
 import ru.tinkoff.phobos.decoding.XmlDecoder.createStreamReader
 
+/**
+ * Typeclass for decoding XML document to an A value.
+ *
+ * XmlDecoder instance must exist only for types which are decoded as XML documents (only for root elements).
+ *
+ * XmlDecoder instance can be created
+ *  - from ElementDecoder using functions in XmlDecoder object
+ *  - by macros from ru.tinkoff.phobos.derivation.semiauto package
+ *
+ * This typeclass wraps ElementDecoder[A] and provides element name and Cursor.
+ */
 trait XmlDecoder[A] {
   val localname: String
   val namespaceuri: Option[String]

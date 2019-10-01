@@ -7,6 +7,22 @@ import cats.{Contravariant, Foldable}
 import cats.data.{Chain, NonEmptyChain, NonEmptyList, NonEmptySet, NonEmptyVector}
 import org.codehaus.stax2.XMLStreamWriter2
 
+/**
+ * Warning! This is an internal API which may change in future.
+ * Do not implement or use this trait directly unless you know what you are doing.
+ *
+ * Use XmlEncoder for encoding.
+ *
+ * ElementEncoder instance must exist for every type encoded to XML element.
+ *
+ * ElementEncoder instance can be created
+ *  - from existing instance by using .contramap (mostly used for "simple" types);
+ *  - by macros from ru.tinkoff.phobos.derivation.semiauto package (for case classes and sealed traits).
+ *
+ *
+ * This typeclass describes process of encoding some A value to XML document. Name of the element is
+ * not defined in typeclass, it should be passed in encodeAsElement method.
+ */
 trait ElementEncoder[A] { self =>
   def encodeAsElement(a: A, sw: XMLStreamWriter2, localName: String, namespaceUri: Option[String]): Unit
 

@@ -54,6 +54,6 @@ lazy val phobos = project
   .in(file("."))
   .settings(
     moduleName := "phobos",
-    crossScalaVersions := Nil,
+    skip in publish := true
   )
   .aggregate(modules: _*)
