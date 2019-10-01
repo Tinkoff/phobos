@@ -5,8 +5,6 @@ Phobos is an XML data-binding library based on stream parsing.
 It depends on [cats-core](https://github.com/typelevel/cats) and 
 [aalto-xml](https://github.com/FasterXML/aalto-xml/) for parsing.
 
-**Readme and wiki are under construction**
-
 Scala 2.12 and 2.13 are supported. Support for Scala 2.11 may be implemented on demand.
 
 ## QuickStart
@@ -16,63 +14,48 @@ Add phobos-core to your dependencies:
 libraryDependencies += "ru.tinkoff" %% "phobos-core" % "0.1.1"
 ```
 
-Then paste this code in `sbt console`:
-
-```scala
-  import ru.tinkoff.phobos.decoding._
-  import ru.tinkoff.phobos.encoding._
-  import ru.tinkoff.phobos.syntax._
-  import ru.tinkoff.phobos.derivation.semiauto._
-
-  case class Foo(@attr bar: Int, baz: String)
-  val fooEncoder: XmlEncoder[Foo] = deriveXmlEncoder("foo")
-  val fooDecoder: XmlDecoder[Foo] = deriveXmlDecoder("foo")
-
-  val foo = Foo(42, "fluffy")
-  val fooXml: String = fooEncoder.encode(foo)
-  println(fooXml)
-
-  val decodedFoo = fooDecoder.decode(fooXml)
-  println(decodedFoo)
-
-  assert(Right(foo) == decodedFoo)
-```
-
-## More complex example
-Please see [phobos wiki](https://github.com/TinkoffCreditSystems/phobos/wiki) for explanation of the syntax and more details.
-
+Then try this code out in `sbt console` or in a separate source file:
 ```scala
 import ru.tinkoff.phobos.decoding._
+import ru.tinkoff.phobos.encoding._
 import ru.tinkoff.phobos.syntax._
 import ru.tinkoff.phobos.derivation.semiauto._
 
-case class Price(@attr currency: String, @text value: Double)
-implicit val priceElementDecoder: ElementDecoder[Price] = deriveElementDecoder
-
 case class TravelPoint(country: String, city: String)
-implicit val travelPointElementDecoder: ElementDecoder[TravelPoint] = deriveElementDecoder
+object TravelPoint {
+  implicit val travelPointElementEncoder: ElementEncoder[TravelPoint] = deriveElementEncoder
+  implicit val travelPointElementDecoder: ElementDecoder[TravelPoint] = deriveElementDecoder
+}
+
+case class Price(@attr currency: String, @text value: Double)
+object Price {
+  implicit val priceElementEncoder: ElementEncoder[Price] = deriveElementEncoder
+  implicit val priceElementDecoder: ElementDecoder[Price] = deriveElementDecoder
+}
 
 case class Journey(price: Price, departure: TravelPoint, arrival: TravelPoint)
-implicit val journeyXmlDecoder: XmlDecoder[Journey] = deriveXmlDecoder("journey")
+object Journey {
+  implicit val journeyXmlEncoder: XmlEncoder[Journey] = deriveXmlEncoder("journey")
+  implicit val journeyXmlDecoder: XmlDecoder[Journey] = deriveXmlDecoder("journey")
+}
 
-val journeyXml =
-"""
-  |<journey>
-  |  <price currency="EUR">1000</price>
-  |  <departure>
-  |    <country>France</country>
-  |    <city>Marcelle</city>
-  |  </departure>
-  |  <arrival>
-  |    <country>Germany</country>
-  |    <city>Munich</city>
-  |  </arrival>
-  |</journey>
-  |""".stripMargin
 
-println(XmlDecoder[Journey].decode(journeyXml))
-// Journey(Price(EUR,1000.0),TravelPoint(France,Marcelle),TravelPoint(Germany,Munich))
+val journey =
+  Journey(
+    price = Price("EUR", 1000.0),
+    departure = TravelPoint("France", "Marcelle"),
+    arrival = TravelPoint("Germany", "Munich")
+  )
+
+val xml: String = XmlEncoder[Journey].encode(journey)
+println(xml)
+
+val decodedJourney = XmlDecoder[Journey].decode(xml)
+println(decodedJourney)
+
+assert(Right(journey) == decodedJourney)
 ```
+Please see [phobos wiki](https://github.com/TinkoffCreditSystems/phobos/wiki) for explanation of the syntax and more details.
 
 ## Performance
 Performance details can be found out in [phobos-benchmark repository](https://github.com/valentiay/phobos-benchmark). 
