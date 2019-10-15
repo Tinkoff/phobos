@@ -14,7 +14,10 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
   def searchType[T: c.WeakTypeTag]: Type = appliedType(c.typeOf[ElementEncoder[_]], c.weakTypeOf[T])
 
   def deriveProductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(params: IndexedSeq[CaseClassParam]): Tree = {
-    val assignedName    = TermName(c.freshName(s"ElementEncoderTypeclass")).encodedName.toTermName
+    val assignedName = TermName(c.freshName(s"ElementEncoderTypeclass")).encodedName.toTermName
+
+    val scalaPkg = q"_root_.scala"
+    val javaPkg  = q"_root_.java.lang"
 
     val classType            = c.weakTypeOf[T]
     val attributeEncoderType = typeOf[AttributeEncoder[_]]
@@ -69,9 +72,9 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
        def encodeAsElement(
          a: $classType,
          sw: _root_.org.codehaus.stax2.XMLStreamWriter2,
-         localName: String,
-         namespaceUri: Option[String]
-       ): Unit = {
+         localName: $javaPkg.String,
+         namespaceUri: $scalaPkg.Option[$javaPkg.String]
+       ): $scalaPkg.Unit = {
          namespaceUri.fold(sw.writeStartElement(localName))(ns => sw.writeStartElement(ns, localName))
 
          ..$encodeAttributes
@@ -91,6 +94,7 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
     val nsInstance = Option(c.inferImplicitValue(appliedType(weakTypeOf[Namespace[_]], weakTypeOf[NS])))
       .filter(_.nonEmpty)
       .getOrElse(error(s"Could not find Namespace instance for $ns"))
-    q"""_root_.ru.tinkoff.phobos.encoding.XmlEncoder.fromElementEncoderNs[${weakTypeOf[T]}, ${weakTypeOf[NS]}]($localName, $ns)(${element[T]}, $nsInstance)"""
+    q"""_root_.ru.tinkoff.phobos.encoding.XmlEncoder.fromElementEncoderNs[${weakTypeOf[T]}, ${weakTypeOf[NS]}]($localName, $ns)(${element[
+      T]}, $nsInstance)"""
   }
 }

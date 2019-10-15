@@ -1,5 +1,9 @@
 package ru.tinkoff.phobos.derivation
 
+/*
+ * Copy-pasted from https://github.com/propensive/magnolia
+ */
+
 import scala.collection.mutable
 import scala.reflect.macros.blackbox
 

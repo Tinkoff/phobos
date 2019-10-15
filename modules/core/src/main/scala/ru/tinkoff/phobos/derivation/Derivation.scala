@@ -78,7 +78,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
 
     def inferCodec: Tree = {
       if (classSymbol.isSealed) {
-        error("E")
+        error("Sealed traits support is not implemented yet")
       } else if (classSymbol.isCaseClass) {
 
         def fetchGroup(param: TermSymbol): ParamCategory = {
@@ -99,9 +99,9 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
           param.annotations.collectFirst {
             case annot if annot.tree.tpe <:< xmlnsType =>
               Option(c.inferImplicitValue(appliedType(namespaceType, annot.tree.tpe.typeArgs.head))).map { tree =>
-                q"Some($tree.getNamespace)"
+                q"_root_.scala.Some($tree.getNamespace)"
               }.getOrElse(error(s"Namespace typeclass not found for ${annot.tree.tpe.typeArgs.head}"))
-          }.getOrElse(q"None")
+          }.getOrElse(q"_root_.scala.None")
 
         val repeatedParamClass = definitions.RepeatedParamClass
         val scalaSeqType       = typeOf[Seq[_]].typeConstructor
