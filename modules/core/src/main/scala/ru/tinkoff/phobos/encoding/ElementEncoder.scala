@@ -42,11 +42,20 @@ object ElementEncoder {
   /**
     * Instances
     */
-  implicit val stringEncoder: ElementEncoder[String] =
+  val stringEncoder: ElementEncoder[String] =
     new ElementEncoder[String] {
       def encodeAsElement(a: String, sw: XMLStreamWriter2, localName: String, namespaceUri: Option[String]): Unit = {
         namespaceUri.fold(sw.writeStartElement(localName))(ns => sw.writeStartElement(ns, localName))
         sw.writeRaw(a)
+        sw.writeEndElement()
+      }
+    }
+
+  implicit val escapingStringEncoder: ElementEncoder[String] =
+    new ElementEncoder[String] {
+      def encodeAsElement(a: String, sw: XMLStreamWriter2, localName: String, namespaceUri: Option[String]): Unit = {
+        namespaceUri.fold(sw.writeStartElement(localName))(ns => sw.writeStartElement(ns, localName))
+        sw.writeCharacters(a)
         sw.writeEndElement()
       }
     }
