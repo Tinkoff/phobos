@@ -71,8 +71,9 @@ class EncoderDerivationSuit extends WordSpec with Matchers {
 
       val qux = Qux("42", Foo(42, 12.2))
       val xml = XmlEncoder[Qux].encode(qux)
-      assert(xml ==
-        """
+      assert(
+        xml ==
+          """
           | <?xml version='1.0' encoding='UTF-8'?>
           | <qux>
           |   <str>constant</str>
@@ -282,6 +283,22 @@ class EncoderDerivationSuit extends WordSpec with Matchers {
           """
             | <?xml version='1.0' encoding='UTF-8'?>
             | <foo>Sending item to <count>1</count><buz>Buzz</buz></foo>
+          """.stripMargin.minimized)
+    }
+
+    "escape characters" in {
+      @XmlCodec("foo")
+      case class Foo(@attr baz: String, bar: String)
+
+      val foo    = Foo("Esca\"'<>&pe", "Esca\"'<>&pe")
+      val string = XmlEncoder[Foo].encode(foo)
+      assert(
+        string ==
+          """
+             | <?xml version='1.0' encoding='UTF-8'?>
+             | <foo baz="Esca&quot;&apos;&lt;>&amp;pe">
+             |   <bar>Esca"'&lt;>&amp;pe</bar>
+             | </foo>
           """.stripMargin.minimized)
     }
   }
