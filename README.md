@@ -11,7 +11,7 @@ Scala 2.12 and 2.13 are supported. Support for Scala 2.11 may be implemented on 
 Add phobos-core to your dependencies:
 
 ```
-libraryDependencies += "ru.tinkoff" %% "phobos-core" % "0.2.0"
+libraryDependencies += "ru.tinkoff" %% "phobos-core" % "0.2.1"
 ```
 
 Then try this code out in `sbt console` or in a separate source file:
