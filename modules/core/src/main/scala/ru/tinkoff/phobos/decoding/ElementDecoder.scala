@@ -203,7 +203,7 @@ object ElementDecoder {
     new ElementDecoder[Option[A]] {
       def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String]): ElementDecoder[Option[A]] = {
         if (c.isStartElement && c.getLocalName == localName) {
-          if (ElementDecoder.isNil(c)) {
+          if (ElementDecoder.isNil(c) || c.isEmptyElement) {
             c.next()
             new ConstDecoder(None)
           } else {
