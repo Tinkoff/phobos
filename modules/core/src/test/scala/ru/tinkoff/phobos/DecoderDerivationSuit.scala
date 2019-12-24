@@ -115,9 +115,15 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
       val string2  = """<?xml version='1.0' encoding='UTF-8'?>
                       | <Wrapper/>
                     """.stripMargin
+      val string3  = """<?xml version='1.0' encoding='UTF-8'?>
+                       | <Wrapper>
+                       |   <foo/>
+                       | </Wrapper>
+                    """.stripMargin
       val decoded1 = XmlDecoder[Wrapper].decodeFromFoldable(toList(string1))
       val decoded2 = XmlDecoder[Wrapper].decodeFromFoldable(toList(string2))
-      assert(decoded1 == Right(opt1) && decoded2 == Right(opt2))
+      val decoded3 = XmlDecoder[Wrapper].decodeFromFoldable(toList(string3))
+      assert(decoded1 == Right(opt1) && decoded2 == Right(opt2) && decoded3 == Right(opt2))
     }
 
     "decode options sync" in decodeOptions(pure)
