@@ -301,6 +301,67 @@ class EncoderDerivationSuit extends WordSpec with Matchers {
              | </foo>
           """.stripMargin.minimized)
     }
+
+    "encode with @renamed" in {
+      @ElementCodec
+      case class Foo(a: Int, @renamed("theB") b: String, c: Double)
+      @XmlCodec("bar")
+      case class Bar(d: String, @renamed("theFoo") foo: Foo, e: Char)
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val string = XmlEncoder[Bar].encode(bar)
+      assert(
+        string ==
+          """
+            | <?xml version='1.0' encoding='UTF-8'?>
+            | <bar>
+            |   <d>d value</d>
+            |   <theFoo>
+            |     <a>1</a>
+            |     <theB>b value</theB>
+            |     <c>3.0</c>
+            |   </theFoo>
+            |   <e>e</e>
+            | </bar>
+          """.stripMargin.minimized)
+    }
+
+    "encode with @renamed @attr" in {
+      @XmlCodec("foo")
+      case class Foo(a: Int, @renamed("theB") @attr b: String, c: Double)
+
+      val bar    = Foo(1, "b value", 3.0)
+      val string = XmlEncoder[Foo].encode(bar)
+      assert(
+        string ==
+          """
+            | <?xml version='1.0' encoding='UTF-8'?>
+            |   <foo theB="b value">
+            |     <a>1</a>
+            |     <c>3.0</c>
+            |   </foo>
+          """.stripMargin.minimized)
+    }
+
+    "encode @renamed text values" in {
+      @ElementCodec
+      case class Foo(@attr a: Int, @attr @renamed("theB") b: String, @text c: Double)
+      @XmlCodec("bar")
+      case class Bar(d: String, foo: Foo, e: Char)
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val string = XmlEncoder[Bar].encode(bar)
+      assert(
+        string ==
+          """
+            | <?xml version='1.0' encoding='UTF-8'?>
+            | <bar>
+            |   <d>d value</d>
+            |   <foo a="1" theB="b value">3.0</foo>
+            |   <e>e</e>
+            | </bar>
+          """.stripMargin.minimized)
+    }
   }
 
   "Encoder derivation with namespaces" should {
