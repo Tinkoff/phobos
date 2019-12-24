@@ -394,6 +394,85 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
 
     "escape characters sync" in escapeCharacters(pure)
     "escape characters async" in escapeCharacters(fromIterable)
+
+    def decodeWithRenamed(toList: String => List[Array[Byte]]): Assertion = {
+      @XmlCodec("foo")
+      case class Foo(@attr baz: String, bar: String, @renamed("foooo") sample: String)
+
+      val foo    = Foo("Esca\"'<>&pe", "Esca\"'<>&pe", "somefoo")
+      val string = """<?xml version='1.0' encoding='UTF-8'?>
+                     |<foo baz="Esca&quot;&apos;&lt;>&amp;pe">
+                     |  <bar>Esca"'&lt;>&amp;pe</bar>
+                     |  <foooo>somefoo</foooo>
+                     |</foo>
+                   """.stripMargin
+      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
+      assert(decoded == Right(foo))
+    }
+
+    "decodes with @renamed sync" in decodeWithRenamed(pure)
+    "decodes with @renamed async" in decodeWithRenamed(fromIterable)
+
+    def decodeWithRenamedNested(toList: String => List[Array[Byte]]): Assertion = {
+      @XmlCodec("foo")
+      case class Foo(@attr baz: String, @renamed("theBar") bar: Bar)
+
+      @XmlCodec("bar")
+      case class Bar(a: String, b: String)
+      val foo    = Foo("Esca\"'<>&pe", Bar("theA", "theB"))
+      val string = """<?xml version='1.0' encoding='UTF-8'?>
+                     |<foo baz="Esca&quot;&apos;&lt;>&amp;pe">
+                     |  <theBar>
+                     |    <a>theA</a>
+                     |    <b>theB</b>
+                     |  </theBar>
+                     |</foo>
+                   """.stripMargin
+      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
+      assert(decoded == Right(foo))
+    }
+
+    "decodes with @renamed nested sync" in decodeWithRenamedNested(pure)
+    "decodes with @renamed nested async" in decodeWithRenamedNested(fromIterable)
+
+    def decodeWithRenamedAttribute(toList: String => List[Array[Byte]]): Assertion = {
+      @XmlCodec("foo")
+      case class Foo(@attr @renamed("theBaz")  baz: String, bar: String)
+
+      val foo    = Foo("Esca\"'<>&pe", "Esca\"'<>&pe")
+      val string = """<?xml version='1.0' encoding='UTF-8'?>
+                     |<foo theBaz="Esca&quot;&apos;&lt;>&amp;pe">
+                     |  <bar>Esca"'&lt;>&amp;pe</bar>
+                     |</foo>
+                   """.stripMargin
+      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
+      assert(decoded == Right(foo))
+    }
+
+    "decodes with @renamed @attr sync" in decodeWithRenamedAttribute(pure)
+    "decodes with @renamed @attr async" in decodeWithRenamedAttribute(fromIterable)
+
+    def decodeRenamedTextValues(toList: String => List[Array[Byte]]): Assertion = {
+      @ElementCodec
+      case class Foo(@attr a: Int, @attr @renamed("theB") b: String, @text c: Double)
+      @XmlCodec("bar")
+      case class Bar(d: String, foo: Foo, e: Char)
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val string = """<?xml version='1.0' encoding='UTF-8'?>
+                     | <bar>
+                     |   <d>d value</d>
+                     |   <foo a="1" theB="b value">3.0</foo>
+                     |   <e>e</e>
+                     | </bar>
+                   """.stripMargin
+
+      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
+      assert(decoded == Right(bar))
+    }
+
+    "decode @renamed text values sync" in decodeRenamedTextValues(pure)
+    "decode @renamed text values async" in decodeRenamedTextValues(fromIterable)
   }
 
   "Decoder derivation with namespaces" should {

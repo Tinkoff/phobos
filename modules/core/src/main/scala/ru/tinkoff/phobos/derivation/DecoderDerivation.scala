@@ -73,15 +73,15 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 
           decodeElements.append(
             cq"""
-              ${param.localName}  =>
-                $tempName = $tempName.decodeAsElement(cursor, ${param.localName}, ${param.namespaceUri})
+              ${param.xmlName}  =>
+                $tempName = $tempName.decodeAsElement(cursor, ${param.xmlName}, ${param.namespaceUri})
                 if ($tempName.isCompleted) {
                   $tempName.result(cursor.history) match {
                     case $scalaPkg.Right(_) => go($decoderStateObj.DecodingSelf)
                     case $scalaPkg.Left(error) => new $decodingPkg.ElementDecoder.FailedDecoder[$classType](error)
                   }
                 } else {
-                  go($decoderStateObj.DecodingElement(${param.localName}))
+                  go($decoderStateObj.DecodingElement(${param.xmlName}))
                 }
             """
           )
@@ -108,7 +108,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 
           decodeAttributes.append(
             q"""
-              $tempName = $scalaPkg.Some($attributeDecoderInstance.decodeAsAttribute(cursor, ${param.localName}, ${param.namespaceUri}))
+              $tempName = $scalaPkg.Some($attributeDecoderInstance.decodeAsAttribute(cursor, ${param.xmlName}, ${param.namespaceUri}))
             """,
           )
 

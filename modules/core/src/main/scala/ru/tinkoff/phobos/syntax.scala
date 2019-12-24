@@ -20,4 +20,9 @@ object syntax {
    * Annotation @xmlns adds namespace to case class parameter if implicit Namespace[T] exists.
    */
   final class xmlns[T](ns: T) extends StaticAnnotation
+
+  /**
+   * Allows to rename xml tag or attribute name while encoding and decoding
+   */
+  final class renamed(to: String) extends StaticAnnotation
 }

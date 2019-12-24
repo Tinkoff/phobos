@@ -4,14 +4,14 @@ import ru.tinkoff.phobos.Namespace
 import ru.tinkoff.phobos.derivation.CompileTimeState.{ChainedImplicit, Stack}
 import ru.tinkoff.phobos.derivation.Derivation.DirectlyReentrantException
 import ru.tinkoff.phobos.derivation.auto.Exported
-import ru.tinkoff.phobos.syntax.{attr, text, xmlns}
+import ru.tinkoff.phobos.syntax.{attr, renamed, text, xmlns}
 
 import scala.reflect.macros.blackbox
 
 private[phobos] abstract class Derivation(val c: blackbox.Context) {
   import c.universe._
 
-  final case class CaseClassParam(localName: String, namespaceUri: Tree, paramType: Type, category: ParamCategory)
+  final case class CaseClassParam(localName: String, xmlName: String, namespaceUri: Tree, paramType: Type, category: ParamCategory)
 
   def searchType[T: c.WeakTypeTag]: Type
 
@@ -66,6 +66,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
     val attrType      = typeOf[attr]
     val textType      = typeOf[text]
     val xmlnsType     = weakTypeOf[xmlns[_]]
+    val renamedType   = typeOf[renamed]
 
     val expandDeferred = new Transformer {
       override def transform(tree: Tree) = tree match {
@@ -131,7 +132,16 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
             fetchNamespace(param)
             val namespace = fetchNamespace(param)
             val group     = fetchGroup(param)
-            CaseClassParam(param.name.decodedName.toString, namespace, paramType, group)
+            val localName = param.name.decodedName.toString
+            val xmlName: String = param.annotations.collectFirst {
+              case annotation if annotation.tree.tpe =:= renamedType =>
+                annotation.tree.children.tail.collectFirst {
+                  case Literal(Constant(renamedTo: String)) => renamedTo
+                }.getOrElse {
+                  error("@renamed is only allowed to be used with string literals")
+                }
+            }.getOrElse(localName)
+            CaseClassParam(localName, xmlName, namespace, paramType, group)
         }
 
         val attributeParamsNumber = params.count(_.category == ParamCategory.attribute)

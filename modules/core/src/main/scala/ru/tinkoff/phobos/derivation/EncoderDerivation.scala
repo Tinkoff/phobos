@@ -35,7 +35,7 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
           .filter(_.nonEmpty)
           .getOrElse(error(s"Could not find $attributeEncoder for encoding $classType"))
 
-      q"$attributeEncoderInstance.encodeAsAttribute(a.${TermName(param.localName)}, sw, ${param.localName}, ${param.namespaceUri})"
+      q"$attributeEncoderInstance.encodeAsAttribute(a.${TermName(param.localName)}, sw, ${param.xmlName}, ${param.namespaceUri})"
     }
 
     val encodeText = groups.getOrElse(ParamCategory.text, Nil).map { param =>
@@ -62,7 +62,7 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 
       preAssignments.append(assigned)
 
-      q"$ref.encodeAsElement(a.${TermName(param.localName)}, sw, ${param.localName}, ${param.namespaceUri})"
+      q"$ref.encodeAsElement(a.${TermName(param.localName)}, sw, ${param.xmlName}, ${param.namespaceUri})"
     }
 
     q"""
