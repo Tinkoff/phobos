@@ -13,21 +13,21 @@ import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 
 /**
- * Warning! This is a complicated internal API which may change in future.
- * Do not implement or use this trait directly unless you know what you are doing.
- *
- * Use XmlDecoder for decoding XML documents.
- *
- * ElementDecoder instance must exist for every type decoded from XML element.
- *
- * ElementDecoder instance can be created
- *  - from existing instance by using .map or .emap method (mostly used for "simple" types);
- *  - by macros from ru.tinkoff.phobos.derivation.semiauto package (for case classes and sealed traits).
- *
- *
- * This typeclass describes process of decoding some element to an A value. Name of the element is
- * not defined in typeclass, it should be passed in decodeAsElement method.
- */
+  * Warning! This is a complicated internal API which may change in future.
+  * Do not implement or use this trait directly unless you know what you are doing.
+  *
+  * Use XmlDecoder for decoding XML documents.
+  *
+  * ElementDecoder instance must exist for every type decoded from XML element.
+  *
+  * ElementDecoder instance can be created
+  *  - from existing instance by using .map or .emap method (mostly used for "simple" types);
+  *  - by macros from ru.tinkoff.phobos.derivation.semiauto package (for case classes and sealed traits).
+  *
+  *
+  * This typeclass describes process of decoding some element to an A value. Name of the element is
+  * not defined in typeclass, it should be passed in decodeAsElement method.
+  */
 trait ElementDecoder[A] { self =>
   def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String]): ElementDecoder[A]
   def result(history: List[String]): Either[DecodingError, A]
@@ -202,15 +202,17 @@ object ElementDecoder {
   implicit def optionDecoder[A](implicit decoder: ElementDecoder[A]): ElementDecoder[Option[A]] =
     new ElementDecoder[Option[A]] {
       def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String]): ElementDecoder[Option[A]] = {
-        if (c.isStartElement && c.getLocalName == localName) {
-          if (ElementDecoder.isNil(c) || c.isEmptyElement) {
-            c.next()
-            new ConstDecoder(None)
-          } else {
-            decoder.map[Option[A]](a => Some(a)).decodeAsElement(c, localName, namespaceUri)
+        if (c.isStartElement) {
+          ElementDecoder.errorIfWrongName[Option[A]](c, localName, namespaceUri).getOrElse {
+            if (ElementDecoder.isNil(c) || c.isEmptyElement) {
+              c.next()
+              new ConstDecoder(None)
+            } else {
+              decoder.map[Option[A]](a => Some(a)).decodeAsElement(c, localName, namespaceUri)
+            }
           }
         } else {
-          new FailedDecoder[Option[A]](DecodingError("Wrong state", List()))
+          new FailedDecoder[Option[A]](c.error(s"Unexpected event: '${c.getEventType}'"))
         }
       }
 
