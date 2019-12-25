@@ -1,17 +1,21 @@
 package ru.tinkoff.phobos.derivation
 
-import ru.tinkoff.phobos.Namespace
+import ru.tinkoff.phobos.{Namespace, naming => Naming}
 import ru.tinkoff.phobos.derivation.CompileTimeState.{ChainedImplicit, Stack}
 import ru.tinkoff.phobos.derivation.Derivation.DirectlyReentrantException
 import ru.tinkoff.phobos.derivation.auto.Exported
 import ru.tinkoff.phobos.syntax.{attr, renamed, text, xmlns}
-
 import scala.reflect.macros.blackbox
 
 private[phobos] abstract class Derivation(val c: blackbox.Context) {
+
   import c.universe._
 
-  final case class CaseClassParam(localName: String, xmlName: String, namespaceUri: Tree, paramType: Type, category: ParamCategory)
+  final case class CaseClassParam(localName: String,
+                                  xmlName: String,
+                                  namespaceUri: Tree,
+                                  paramType: Type,
+                                  category: ParamCategory)
 
   def searchType[T: c.WeakTypeTag]: Type
 
@@ -57,7 +61,9 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
     }
   }
 
-  def element[T: c.WeakTypeTag]: Tree = Stack.withContext(c) { stack =>
+  def element[T: c.WeakTypeTag]: Tree = elementWithNaming[T](asIsTree)
+
+  def elementWithNaming[T: c.WeakTypeTag](naming: Tree): Tree = Stack.withContext(c) { stack =>
     val classType  = weakTypeOf[T]
     val typeSymbol = classType.typeSymbol
     if (!typeSymbol.isClass) error("Don't know how to work with not classes")
@@ -67,6 +73,16 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
     val textType      = typeOf[text]
     val xmlnsType     = weakTypeOf[xmlns[_]]
     val renamedType   = typeOf[renamed]
+    val asIsType      = typeOf[Naming.asIs.type]
+    val camelCaseType = typeOf[Naming.camelCase.type]
+    val snakeCaseType = typeOf[Naming.snakeCase.type]
+
+    val namingLiteral = c.typecheck(naming) match {
+      case naming if naming.tpe <:< asIsType      => Naming.asIs
+      case naming if naming.tpe <:< camelCaseType => Naming.camelCase
+      case naming if naming.tpe <:< snakeCaseType => Naming.snakeCase
+      case _                                      => error(s"naming parameter is only allowed to be a compile-time constant")
+    }
 
     val expandDeferred = new Transformer {
       override def transform(tree: Tree) = tree match {
@@ -140,7 +156,9 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
                 }.getOrElse {
                   error("@renamed is only allowed to be used with string literals")
                 }
-            }.getOrElse(localName)
+            } getOrElse {
+              namingLiteral.transformName(localName)
+            }
             CaseClassParam(localName, xmlName, namespace, paramType, group)
         }
 
@@ -166,6 +184,8 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
     if (stack.nonEmpty) result
     else c.untypecheck(expandDeferred.transform(result))
   }
+
+  protected val asIsTree: Tree = reify(Naming.asIs).tree
 }
 
 object Derivation {
