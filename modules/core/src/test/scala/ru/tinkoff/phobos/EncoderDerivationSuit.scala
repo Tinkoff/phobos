@@ -6,7 +6,7 @@ import ru.tinkoff.phobos.annotations.{ElementCodec, XmlCodec, XmlCodecNs, XmlnsD
 import ru.tinkoff.phobos.encoding.{AttributeEncoder, ElementEncoder, TextEncoder, XmlEncoder}
 import ru.tinkoff.phobos.testString._
 import ru.tinkoff.phobos.syntax._
-import ru.tinkoff.phobos.naming._
+import ru.tinkoff.phobos.configured.naming._
 
 class EncoderDerivationSuit extends WordSpec with Matchers {
 

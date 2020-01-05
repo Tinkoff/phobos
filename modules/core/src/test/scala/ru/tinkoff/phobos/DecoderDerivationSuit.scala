@@ -6,7 +6,7 @@ import org.scalatest._
 import ru.tinkoff.phobos.annotations.{ElementCodec, XmlCodec, XmlCodecNs, XmlnsDef}
 import ru.tinkoff.phobos.decoding.{AttributeDecoder, ElementDecoder, TextDecoder, XmlDecoder}
 import ru.tinkoff.phobos.syntax._
-import ru.tinkoff.phobos.naming._
+import ru.tinkoff.phobos.configured.naming._
 
 class DecoderDerivationSuit extends WordSpec with Matchers {
   def pure(str: String): List[Array[Byte]] =

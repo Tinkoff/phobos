@@ -1,6 +1,6 @@
 package ru.tinkoff.phobos.annotations
 
-import ru.tinkoff.phobos.naming
+import ru.tinkoff.phobos.configured.naming
 import scala.reflect.macros.blackbox
 
 private[phobos] abstract class CodecAnnotation(val c: blackbox.Context) {
@@ -39,5 +39,5 @@ private[phobos] abstract class CodecAnnotation(val c: blackbox.Context) {
     }
   }
 
-  protected val asIsTree = reify(naming.asIs).tree
+  protected val asIsExpr = reify(naming.asIs)
 }

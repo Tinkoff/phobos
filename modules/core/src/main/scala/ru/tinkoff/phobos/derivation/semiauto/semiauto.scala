@@ -2,7 +2,7 @@ package ru.tinkoff.phobos.derivation
 
 import ru.tinkoff.phobos.decoding.{ElementDecoder, XmlDecoder}
 import ru.tinkoff.phobos.encoding.{ElementEncoder, XmlEncoder}
-import ru.tinkoff.phobos.naming
+import ru.tinkoff.phobos.configured._
 
 package object semiauto {
 
@@ -24,7 +24,7 @@ package object semiauto {
   /**
    * Like deriveElementEncoder, but also provides naming (CamelCase, snake_case)
    */
-  def deriveElementEncoder[T](naming: naming): ElementEncoder[T] = macro EncoderDerivation.elementWithNaming[T]
+  def deriveElementEncoderConfigured[T](config: ElementCodecConfig): ElementEncoder[T] = macro EncoderDerivation.elementConfigured[T]
 
   /**
    * Creates XmlEncoder[T] by deriving ElementEncoder[T] and using XmlEncoder.fromElementEncoder(localName) function.
@@ -36,7 +36,7 @@ package object semiauto {
   /**
    * Like deriveXmlEncoder(localName: String), but also provides naming (CamelCase, snake_case)
    */
-  def deriveXmlEncoder[T](localName: String, naming: naming): XmlEncoder[T] = macro EncoderDerivation.xmlWithNaming[T]
+  def deriveXmlEncoderConfigured[T](localName: String, config: ElementCodecConfig): XmlEncoder[T] = macro EncoderDerivation.xmlConfigured[T]
 
   /**
    * Like deriveXmlEncoder(localName: String), but also provides namespace
@@ -46,7 +46,7 @@ package object semiauto {
   /**
    * Like deriveXmlEncoder(localName: String), but also provides namespace with naming (CamelCase, snake_case)
    */
-  def deriveXmlEncoder[T, NS](localName: String, ns: NS, naming: naming): XmlEncoder[T] = macro EncoderDerivation.xmlNsWithNaming[T, NS]
+  def deriveXmlEncoderConfigured[T, NS](localName: String, ns: NS, config: ElementCodecConfig): XmlEncoder[T] = macro EncoderDerivation.xmlNsConfigured[T, NS]
 
 
   /**
@@ -67,7 +67,7 @@ package object semiauto {
   /**
    * Like deriveElementDecoder, but also provides naming (CamelCase, snake_case)
    */
-  def deriveElementDecoder[T](naming: naming): ElementDecoder[T] = macro DecoderDerivation.elementWithNaming[T]
+  def deriveElementDecoderConfigured[T](config: ElementCodecConfig): ElementDecoder[T] = macro DecoderDerivation.elementConfigured[T]
 
   /**
    * Creates XmlDecoder[T] by deriving ElementDecoder[T] and using XmlDecoder.fromElementDecoder(localName) function.
@@ -79,7 +79,7 @@ package object semiauto {
   /**
    * Like deriveXmlDecoder(localName: String), but also provides naming (CamelCase, snake_case)
    */
-  def deriveXmlDecoder[T](localName: String, naming: naming): XmlDecoder[T] = macro DecoderDerivation.xmlWithNaming[T]
+  def deriveXmlDecoderConfigured[T](localName: String, config: ElementCodecConfig): XmlDecoder[T] = macro DecoderDerivation.xmlConfigured[T]
 
   /**
    * Like deriveXmlDecoder(localName: String), but also provides namespace
@@ -89,5 +89,5 @@ package object semiauto {
   /**
    * Like deriveXmlDecoder(localName: String), but also provides namespace with naming (CamelCase, snake_case)
    */
-  def deriveXmlDecoder[T, NS](localName: String, ns: NS, naming: naming): XmlDecoder[T] = macro DecoderDerivation.xmlNsWithNaming[T, NS]
+  def deriveXmlDecoderConfigured[T, NS](localName: String, ns: NS, config: ElementCodecConfig): XmlDecoder[T] = macro DecoderDerivation.xmlNsConfigured[T, NS]
 }
