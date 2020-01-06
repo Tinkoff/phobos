@@ -6,6 +6,8 @@ import ru.tinkoff.phobos.annotations.{ElementCodec, XmlCodec, XmlCodecNs, XmlnsD
 import ru.tinkoff.phobos.encoding.{AttributeEncoder, ElementEncoder, TextEncoder, XmlEncoder}
 import ru.tinkoff.phobos.testString._
 import ru.tinkoff.phobos.syntax._
+import ru.tinkoff.phobos.configured.naming._
+import ru.tinkoff.phobos.configured.ElementCodecConfig
 
 class EncoderDerivationSuit extends WordSpec with Matchers {
 
@@ -362,6 +364,48 @@ class EncoderDerivationSuit extends WordSpec with Matchers {
             | </bar>
           """.stripMargin.minimized)
     }
+
+    "encode CamelCase" in {
+      val camelCaseConfig = ElementCodecConfig.default.withStyle(camelCase)
+      @ElementCodec(camelCaseConfig)
+      case class Foo(@attr someName: Int, @attr someOther: String, @text c: Double)
+      @XmlCodec("Bar", camelCaseConfig)
+      case class Bar(someTopName: String, someFoo: Foo, e: Char)
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val string = XmlEncoder[Bar].encode(bar)
+      assert(
+        string ==
+          """
+            |<?xml version='1.0' encoding='UTF-8'?>
+            | <Bar>
+            |   <SomeTopName>d value</SomeTopName>
+            |   <SomeFoo SomeName="1" SomeOther="b value">3.0</SomeFoo>
+            |   <E>e</E>
+            | </Bar>
+          """.stripMargin.minimized)
+    }
+
+    "encode snake_case" in {
+      val snakeCaseConfig = ElementCodecConfig.default.withStyle(snakeCase)
+      @ElementCodec(snakeCaseConfig)
+      case class Foo(@attr someName: Int, @attr someOther: String, @text c: Double)
+      @XmlCodec("bar", snakeCaseConfig)
+      case class Bar(someTopName: String, someFoo: Foo, e: Char)
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val string = XmlEncoder[Bar].encode(bar)
+      assert(
+        string ==
+          """
+            |<?xml version='1.0' encoding='UTF-8'?>
+            | <bar>
+            |   <some_top_name>d value</some_top_name>
+            |   <some_foo some_name="1" some_other="b value">3.0</some_foo>
+            |   <e>e</e>
+            | </bar>
+          """.stripMargin.minimized)
+    }
   }
 
   "Encoder derivation with namespaces" should {
@@ -494,6 +538,93 @@ class EncoderDerivationSuit extends WordSpec with Matchers {
             |     <ans2:c>3.0</ans2:c>
             |   </ans2:foo>
             | </ans1:bar>
+          """.stripMargin.minimized)
+    }
+
+    "encode CamelCase" in {
+      val camelCaseConfig = ElementCodecConfig.default.withStyle(camelCase)
+      @XmlnsDef("tinkoff.ru")
+      case object tkf
+      @ElementCodec(camelCaseConfig)
+      case class Foo(
+          @xmlns(tkf) someName: Int,
+          @xmlns(tkf) someOtherName: String,
+          @xmlns(tkf) c: Double,
+      )
+      @XmlCodecNs("Bar", tkf, camelCaseConfig)
+      case class Bar(
+          @xmlns(tkf) someTopName: String,
+          @xmlns(tkf) someFoo: Foo
+      )
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0))
+      val string = XmlEncoder[Bar].encode(bar)
+      assert(
+        string ==
+          """
+            | <?xml version='1.0' encoding='UTF-8'?>
+            | <ans1:Bar xmlns:ans1="tinkoff.ru">
+            |   <ans1:SomeTopName>d value</ans1:SomeTopName>
+            |   <ans1:SomeFoo>
+            |     <ans1:SomeName>1</ans1:SomeName>
+            |     <ans1:SomeOtherName>b value</ans1:SomeOtherName>
+            |     <ans1:C>3.0</ans1:C>
+            |   </ans1:SomeFoo>
+            | </ans1:Bar>
+          """.stripMargin.minimized)
+    }
+
+    "encode snake_case" in {
+      val snakeCaseConfig = ElementCodecConfig.default.withStyle(snakeCase)
+      @XmlnsDef("tinkoff.ru")
+      case object tkf
+      @ElementCodec(snakeCaseConfig)
+      case class Foo(
+          @xmlns(tkf) someName: Int,
+          @xmlns(tkf) someOtherName: String,
+          @xmlns(tkf) c: Double,
+      )
+      @XmlCodecNs("bar", tkf, snakeCaseConfig)
+      case class Bar(
+          @xmlns(tkf) someTopName: String,
+          @xmlns(tkf) someFoo: Foo
+      )
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0))
+      val string = XmlEncoder[Bar].encode(bar)
+      assert(
+        string ==
+          """
+            | <?xml version='1.0' encoding='UTF-8'?>
+            | <ans1:bar xmlns:ans1="tinkoff.ru">
+            |   <ans1:some_top_name>d value</ans1:some_top_name>
+            |   <ans1:some_foo>
+            |     <ans1:some_name>1</ans1:some_name>
+            |     <ans1:some_other_name>b value</ans1:some_other_name>
+            |     <ans1:c>3.0</ans1:c>
+            |   </ans1:some_foo>
+            | </ans1:bar>
+          """.stripMargin.minimized)
+    }
+
+    "encode with @renamed having priority over naming" in {
+      val snakeCaseConfig = ElementCodecConfig.default.withStyle(snakeCase)
+      @ElementCodec(snakeCaseConfig)
+      case class Foo(@attr someName: Int, @attr @renamed("i-Have-priority") someOther: String, @text c: Double)
+      @XmlCodec("bar", snakeCaseConfig)
+      case class Bar(someTopName: String, @renamed("Me2") someFoo: Foo, e: Char)
+
+      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
+
+      val string = XmlEncoder[Bar].encode(bar)
+      assert(
+        string ==
+          """<?xml version='1.0' encoding='UTF-8'?>
+            | <bar>
+            |   <some_top_name>d value</some_top_name>
+            |   <Me2 some_name="1" i-Have-priority="b value">3.0</Me2>
+            |   <e>e</e>
+            | </bar>
           """.stripMargin.minimized)
     }
   }

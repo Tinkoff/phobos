@@ -1,9 +1,9 @@
 package ru.tinkoff.phobos.derivation
 
 import ru.tinkoff.phobos.Namespace
+import ru.tinkoff.phobos.configured.ElementCodecConfig
 import ru.tinkoff.phobos.derivation.CompileTimeState.{ProductType, Stack}
 import ru.tinkoff.phobos.encoding.{AttributeEncoder, ElementEncoder, TextEncoder}
-
 import scala.collection.mutable.ListBuffer
 import scala.reflect.macros.blackbox
 
@@ -88,13 +88,20 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
   }
 
   def xml[T: c.WeakTypeTag](localName: Tree): Tree =
-    q"""_root_.ru.tinkoff.phobos.encoding.XmlEncoder.fromElementEncoder[${weakTypeOf[T]}]($localName)(${element[T]})"""
+    xmlConfigured[T](localName, defaultConfig)
 
-  def xmlNs[T: c.WeakTypeTag, NS: c.WeakTypeTag](localName: Tree, ns: Tree): Tree = {
+  def xmlConfigured[T: c.WeakTypeTag](localName: Tree, config: Expr[ElementCodecConfig]): Tree =
+    q"""_root_.ru.tinkoff.phobos.encoding.XmlEncoder.fromElementEncoder[${weakTypeOf[T]}]($localName)(${elementConfigured[
+      T](config)})"""
+
+  def xmlNs[T: c.WeakTypeTag, NS: c.WeakTypeTag](localName: Tree, ns: Tree): Tree =
+    xmlNsConfigured[T, NS](localName, ns, defaultConfig)
+
+  def xmlNsConfigured[T: c.WeakTypeTag, NS: c.WeakTypeTag](localName: Tree, ns: Tree, config: Expr[ElementCodecConfig]): Tree = {
     val nsInstance = Option(c.inferImplicitValue(appliedType(weakTypeOf[Namespace[_]], weakTypeOf[NS])))
       .filter(_.nonEmpty)
       .getOrElse(error(s"Could not find Namespace instance for $ns"))
-    q"""_root_.ru.tinkoff.phobos.encoding.XmlEncoder.fromElementEncoderNs[${weakTypeOf[T]}, ${weakTypeOf[NS]}]($localName, $ns)(${element[
-      T]}, $nsInstance)"""
+    q"""_root_.ru.tinkoff.phobos.encoding.XmlEncoder.fromElementEncoderNs[${weakTypeOf[T]}, ${weakTypeOf[NS]}]($localName, $ns)(${elementConfigured[
+      T](config)}, $nsInstance)"""
   }
 }

@@ -1,17 +1,22 @@
 package ru.tinkoff.phobos.derivation
 
 import ru.tinkoff.phobos.Namespace
+import ru.tinkoff.phobos.configured.ElementCodecConfig
 import ru.tinkoff.phobos.derivation.CompileTimeState.{ChainedImplicit, Stack}
 import ru.tinkoff.phobos.derivation.Derivation.DirectlyReentrantException
 import ru.tinkoff.phobos.derivation.auto.Exported
 import ru.tinkoff.phobos.syntax.{attr, renamed, text, xmlns}
-
 import scala.reflect.macros.blackbox
 
 private[phobos] abstract class Derivation(val c: blackbox.Context) {
+
   import c.universe._
 
-  final case class CaseClassParam(localName: String, xmlName: String, namespaceUri: Tree, paramType: Type, category: ParamCategory)
+  final case class CaseClassParam(localName: String,
+                                  xmlName: Tree,
+                                  namespaceUri: Tree,
+                                  paramType: Type,
+                                  category: ParamCategory)
 
   def searchType[T: c.WeakTypeTag]: Type
 
@@ -57,7 +62,9 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
     }
   }
 
-  def element[T: c.WeakTypeTag]: Tree = Stack.withContext(c) { stack =>
+  def element[T: c.WeakTypeTag]: Tree = elementConfigured[T](defaultConfig)
+
+  def elementConfigured[T: c.WeakTypeTag](config: Expr[ElementCodecConfig]): Tree = Stack.withContext(c) { stack =>
     val classType  = weakTypeOf[T]
     val typeSymbol = classType.typeSymbol
     if (!typeSymbol.isClass) error("Don't know how to work with not classes")
@@ -133,14 +140,23 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
             val namespace = fetchNamespace(param)
             val group     = fetchGroup(param)
             val localName = param.name.decodedName.toString
-            val xmlName: String = param.annotations.collectFirst {
+            val xmlName: Tree = param.annotations.collectFirst {
               case annotation if annotation.tree.tpe =:= renamedType =>
                 annotation.tree.children.tail.collectFirst {
-                  case Literal(Constant(renamedTo: String)) => renamedTo
+                  case t@Literal(Constant(_: String)) => t
                 }.getOrElse {
                   error("@renamed is only allowed to be used with string literals")
                 }
-            }.getOrElse(localName)
+            } getOrElse {
+              val localNameTree = q"""$localName"""
+              group match {
+                case ParamCategory.attribute =>
+                  q"""$config.transformAttributeNames($localNameTree)"""
+                case ParamCategory.element =>
+                  q"""$config.transformElementNames($localNameTree)"""
+                case _ => localNameTree
+              }
+            }
             CaseClassParam(localName, xmlName, namespace, paramType, group)
         }
 
@@ -166,6 +182,8 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
     if (stack.nonEmpty) result
     else c.untypecheck(expandDeferred.transform(result))
   }
+
+  protected val defaultConfig: Expr[ElementCodecConfig] = reify(ElementCodecConfig.default)
 }
 
 object Derivation {

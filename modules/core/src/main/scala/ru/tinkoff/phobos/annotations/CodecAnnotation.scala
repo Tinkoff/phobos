@@ -1,5 +1,6 @@
 package ru.tinkoff.phobos.annotations
 
+import ru.tinkoff.phobos.configured.ElementCodecConfig
 import scala.reflect.macros.blackbox
 
 private[phobos] abstract class CodecAnnotation(val c: blackbox.Context) {
@@ -37,4 +38,6 @@ private[phobos] abstract class CodecAnnotation(val c: blackbox.Context) {
         c.abort(c.enclosingPosition, "Namespace must be represented with class or object")
     }
   }
+
+  protected val defaultConfig = reify(ElementCodecConfig.default)
 }

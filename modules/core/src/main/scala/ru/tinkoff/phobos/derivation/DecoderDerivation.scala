@@ -1,9 +1,9 @@
 package ru.tinkoff.phobos.derivation
 
 import ru.tinkoff.phobos.Namespace
+import ru.tinkoff.phobos.configured.ElementCodecConfig
 import ru.tinkoff.phobos.decoding.{AttributeDecoder, ElementDecoder, TextDecoder}
 import ru.tinkoff.phobos.derivation.CompileTimeState.{ProductType, Stack}
-
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.reflect.macros.blackbox
@@ -41,13 +41,17 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
     val decodeAttributes: mutable.ListBuffer[Tree] = mutable.ListBuffer.empty
     val decodeElements: mutable.ListBuffer[Tree]   = mutable.ListBuffer.empty
     val decodeText: mutable.ListBuffer[Tree]       = mutable.ListBuffer.empty
+    val elementNames: mutable.ListBuffer[Tree]     = mutable.ListBuffer.empty
     val preAssignments                             = new ListBuffer[Tree]
 
     params.foreach { param =>
-      val tempName  = TermName(c.freshName(param.localName))
-      val paramName = TermName(c.freshName(param.localName))
-      val forName   = TermName(c.freshName(param.localName))
-
+      val tempName   = TermName(c.freshName(param.localName))
+      val paramName  = TermName(c.freshName(param.localName))
+      val forName    = TermName(c.freshName(param.localName))
+      val xmlNameVal = TermName(c.freshName(param.localName))
+      elementNames.append(
+        q"""val $xmlNameVal = ${param.xmlName}"""
+      )
       param.category match {
         case ParamCategory.element =>
           val elementDecoder = appliedType(elementDecoderType, param.paramType)
@@ -73,15 +77,15 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 
           decodeElements.append(
             cq"""
-              ${param.xmlName}  =>
-                $tempName = $tempName.decodeAsElement(cursor, ${param.xmlName}, ${param.namespaceUri})
+              `$xmlNameVal`  =>
+                $tempName = $tempName.decodeAsElement(cursor, $xmlNameVal, ${param.namespaceUri})
                 if ($tempName.isCompleted) {
                   $tempName.result(cursor.history) match {
                     case $scalaPkg.Right(_) => go($decoderStateObj.DecodingSelf)
                     case $scalaPkg.Left(error) => new $decodingPkg.ElementDecoder.FailedDecoder[$classType](error)
                   }
                 } else {
-                  go($decoderStateObj.DecodingElement(${param.xmlName}))
+                  go($decoderStateObj.DecodingElement($xmlNameVal))
                 }
             """
           )
@@ -108,7 +112,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 
           decodeAttributes.append(
             q"""
-              $tempName = $scalaPkg.Some($attributeDecoderInstance.decodeAsAttribute(cursor, ${param.xmlName}, ${param.namespaceUri}))
+              $tempName = $scalaPkg.Some($attributeDecoderInstance.decodeAsAttribute(cursor, $xmlNameVal, ${param.namespaceUri}))
             """,
           )
 
@@ -152,7 +156,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
           namespaceUri: $scalaPkg.Option[$javaPkg.String],
         ): $decodingPkg.ElementDecoder[$classType] = {
           ..${allParams.map(_.goAssignment)}
-
+          ..$elementNames
           @_root_.scala.annotation.tailrec
           def go(currentState: $derivationPkg.DecoderDerivation.DecoderState): $decodingPkg.ElementDecoder[$classType] = {
             if (cursor.getEventType == _root_.com.fasterxml.aalto.AsyncXMLStreamReader.EVENT_INCOMPLETE) {
@@ -240,14 +244,23 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
   }
 
   def xml[T: c.WeakTypeTag](localName: Tree): Tree =
-    q"""_root_.ru.tinkoff.phobos.decoding.XmlDecoder.fromElementDecoder[${weakTypeOf[T]}]($localName)(${element[T]})"""
+    xmlConfigured[T](localName, defaultConfig)
 
-  def xmlNs[T: c.WeakTypeTag, NS: c.WeakTypeTag](localName: Tree, ns: Tree): Tree = {
+  def xmlConfigured[T: c.WeakTypeTag](localName: Tree, config: Expr[ElementCodecConfig]): Tree =
+    q"""_root_.ru.tinkoff.phobos.decoding.XmlDecoder.fromElementDecoder[${weakTypeOf[T]}]($localName)(${elementConfigured[
+      T](config)})"""
+
+  def xmlNs[T: c.WeakTypeTag, NS: c.WeakTypeTag](localName: Tree, ns: Tree): Tree =
+    xmlNsConfigured[T, NS](localName, ns, defaultConfig)
+
+  def xmlNsConfigured[T: c.WeakTypeTag, NS: c.WeakTypeTag](localName: Tree,
+                                                           ns: Tree,
+                                                           config: Expr[ElementCodecConfig]): Tree = {
     val nsInstance = Option(c.inferImplicitValue(appliedType(weakTypeOf[Namespace[_]], weakTypeOf[NS])))
       .filter(_.nonEmpty)
       .getOrElse(error(s"Could not find Namespace instance for $ns"))
-    q"""_root_.ru.tinkoff.phobos.decoding.XmlDecoder.fromElementDecoderNs[${weakTypeOf[T]}, ${weakTypeOf[NS]}]($localName, $ns)(${element[
-      T]}, $nsInstance)"""
+    q"""_root_.ru.tinkoff.phobos.decoding.XmlDecoder.fromElementDecoderNs[${weakTypeOf[T]}, ${weakTypeOf[NS]}]($localName, $ns)(${elementConfigured[
+      T](config)}, $nsInstance)"""
   }
 }
 
