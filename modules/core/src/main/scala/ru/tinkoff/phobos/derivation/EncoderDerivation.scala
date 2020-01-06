@@ -88,14 +88,14 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
   }
 
   def xml[T: c.WeakTypeTag](localName: Tree): Tree =
-    xmlConfigured[T](localName, asIsExpr)
+    xmlConfigured[T](localName, defaultConfig)
 
   def xmlConfigured[T: c.WeakTypeTag](localName: Tree, config: Expr[ElementCodecConfig]): Tree =
     q"""_root_.ru.tinkoff.phobos.encoding.XmlEncoder.fromElementEncoder[${weakTypeOf[T]}]($localName)(${elementConfigured[
       T](config)})"""
 
   def xmlNs[T: c.WeakTypeTag, NS: c.WeakTypeTag](localName: Tree, ns: Tree): Tree =
-    xmlNsConfigured[T, NS](localName, ns, asIsExpr)
+    xmlNsConfigured[T, NS](localName, ns, defaultConfig)
 
   def xmlNsConfigured[T: c.WeakTypeTag, NS: c.WeakTypeTag](localName: Tree, ns: Tree, config: Expr[ElementCodecConfig]): Tree = {
     val nsInstance = Option(c.inferImplicitValue(appliedType(weakTypeOf[Namespace[_]], weakTypeOf[NS])))

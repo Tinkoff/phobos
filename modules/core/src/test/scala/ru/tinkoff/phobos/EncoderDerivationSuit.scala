@@ -7,6 +7,7 @@ import ru.tinkoff.phobos.encoding.{AttributeEncoder, ElementEncoder, TextEncoder
 import ru.tinkoff.phobos.testString._
 import ru.tinkoff.phobos.syntax._
 import ru.tinkoff.phobos.configured.naming._
+import ru.tinkoff.phobos.configured.ElementCodecConfig
 
 class EncoderDerivationSuit extends WordSpec with Matchers {
 
@@ -365,9 +366,10 @@ class EncoderDerivationSuit extends WordSpec with Matchers {
     }
 
     "encode CamelCase" in {
-      @ElementCodec(camelCase)
+      val camelCaseConfig = ElementCodecConfig.default.withStyle(camelCase)
+      @ElementCodec(camelCaseConfig)
       case class Foo(@attr someName: Int, @attr someOther: String, @text c: Double)
-      @XmlCodec("Bar", camelCase)
+      @XmlCodec("Bar", camelCaseConfig)
       case class Bar(someTopName: String, someFoo: Foo, e: Char)
 
       val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
@@ -385,9 +387,10 @@ class EncoderDerivationSuit extends WordSpec with Matchers {
     }
 
     "encode snake_case" in {
-      @ElementCodec(snakeCase)
+      val snakeCaseConfig = ElementCodecConfig.default.withStyle(snakeCase)
+      @ElementCodec(snakeCaseConfig)
       case class Foo(@attr someName: Int, @attr someOther: String, @text c: Double)
-      @XmlCodec("bar", snakeCase)
+      @XmlCodec("bar", snakeCaseConfig)
       case class Bar(someTopName: String, someFoo: Foo, e: Char)
 
       val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
@@ -539,15 +542,16 @@ class EncoderDerivationSuit extends WordSpec with Matchers {
     }
 
     "encode CamelCase" in {
+      val camelCaseConfig = ElementCodecConfig.default.withStyle(camelCase)
       @XmlnsDef("tinkoff.ru")
       case object tkf
-      @ElementCodec(camelCase)
+      @ElementCodec(camelCaseConfig)
       case class Foo(
           @xmlns(tkf) someName: Int,
           @xmlns(tkf) someOtherName: String,
           @xmlns(tkf) c: Double,
       )
-      @XmlCodecNs("Bar", tkf, camelCase)
+      @XmlCodecNs("Bar", tkf, camelCaseConfig)
       case class Bar(
           @xmlns(tkf) someTopName: String,
           @xmlns(tkf) someFoo: Foo
@@ -571,15 +575,16 @@ class EncoderDerivationSuit extends WordSpec with Matchers {
     }
 
     "encode snake_case" in {
+      val snakeCaseConfig = ElementCodecConfig.default.withStyle(snakeCase)
       @XmlnsDef("tinkoff.ru")
       case object tkf
-      @ElementCodec(snakeCase)
+      @ElementCodec(snakeCaseConfig)
       case class Foo(
           @xmlns(tkf) someName: Int,
           @xmlns(tkf) someOtherName: String,
           @xmlns(tkf) c: Double,
       )
-      @XmlCodecNs("bar", tkf, snakeCase)
+      @XmlCodecNs("bar", tkf, snakeCaseConfig)
       case class Bar(
           @xmlns(tkf) someTopName: String,
           @xmlns(tkf) someFoo: Foo
@@ -603,9 +608,10 @@ class EncoderDerivationSuit extends WordSpec with Matchers {
     }
 
     "encode with @renamed having priority over naming" in {
-      @ElementCodec(snakeCase)
+      val snakeCaseConfig = ElementCodecConfig.default.withStyle(snakeCase)
+      @ElementCodec(snakeCaseConfig)
       case class Foo(@attr someName: Int, @attr @renamed("i-Have-priority") someOther: String, @text c: Double)
-      @XmlCodec("bar", snakeCase)
+      @XmlCodec("bar", snakeCaseConfig)
       case class Bar(someTopName: String, @renamed("Me2") someFoo: Foo, e: Char)
 
       val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')

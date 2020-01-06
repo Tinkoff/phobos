@@ -1,7 +1,7 @@
 package ru.tinkoff.phobos.derivation
 
 import ru.tinkoff.phobos.Namespace
-import ru.tinkoff.phobos.configured.{ElementCodecConfig, naming}
+import ru.tinkoff.phobos.configured.ElementCodecConfig
 import ru.tinkoff.phobos.derivation.CompileTimeState.{ChainedImplicit, Stack}
 import ru.tinkoff.phobos.derivation.Derivation.DirectlyReentrantException
 import ru.tinkoff.phobos.derivation.auto.Exported
@@ -62,7 +62,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
     }
   }
 
-  def element[T: c.WeakTypeTag]: Tree = elementConfigured[T](asIsExpr)
+  def element[T: c.WeakTypeTag]: Tree = elementConfigured[T](defaultConfig)
 
   def elementConfigured[T: c.WeakTypeTag](config: Expr[ElementCodecConfig]): Tree = Stack.withContext(c) { stack =>
     val classType  = weakTypeOf[T]
@@ -183,7 +183,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
     else c.untypecheck(expandDeferred.transform(result))
   }
 
-  protected val asIsExpr: Expr[ElementCodecConfig] = reify(naming.asIs)
+  protected val defaultConfig: Expr[ElementCodecConfig] = reify(ElementCodecConfig.default)
 }
 
 object Derivation {

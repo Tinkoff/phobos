@@ -7,6 +7,7 @@ import ru.tinkoff.phobos.annotations.{ElementCodec, XmlCodec, XmlCodecNs, XmlnsD
 import ru.tinkoff.phobos.decoding.{AttributeDecoder, ElementDecoder, TextDecoder, XmlDecoder}
 import ru.tinkoff.phobos.syntax._
 import ru.tinkoff.phobos.configured.naming._
+import ru.tinkoff.phobos.configured.ElementCodecConfig
 
 class DecoderDerivationSuit extends WordSpec with Matchers {
   def pure(str: String): List[Array[Byte]] =
@@ -482,9 +483,10 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
     "decode @renamed text values async" in decodeRenamedTextValues(fromIterable)
 
     def decodeCamelCase(toList: String => List[Array[Byte]]): Assertion = {
-      @ElementCodec(camelCase)
+      val camelCaseConfig = ElementCodecConfig.default.withStyle(camelCase)
+      @ElementCodec(camelCaseConfig)
       case class Foo(@attr someName: Int, @attr someOther: String, @text c: Double)
-      @XmlCodec("Bar", camelCase)
+      @XmlCodec("Bar", camelCaseConfig)
       case class Bar(someTopName: String, someFoo: Foo, e: Char)
 
       val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
@@ -504,9 +506,10 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
     "decode CamelCase async" in decodeCamelCase(fromIterable)
 
     def decodeSnakeCase(toList: String => List[Array[Byte]]): Assertion = {
-      @ElementCodec(snakeCase)
+      val snakeCaseConfig = ElementCodecConfig.default.withStyle(snakeCase)
+      @ElementCodec(snakeCaseConfig)
       case class Foo(@attr someName: Int, @attr someOther: String, @text c: Double)
-      @XmlCodec("bar", snakeCase)
+      @XmlCodec("bar", snakeCaseConfig)
       case class Bar(someTopName: String, someFoo: Foo, e: Char)
 
       val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
@@ -526,9 +529,10 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
     "decode snake_case async" in decodeSnakeCase(fromIterable)
 
     def decodeRenamedPriority(toList: String => List[Array[Byte]]): Assertion = {
-      @ElementCodec(snakeCase)
+      val snakeCaseConfig = ElementCodecConfig.default.withStyle(snakeCase)
+      @ElementCodec(snakeCaseConfig)
       case class Foo(@attr someName: Int, @attr @renamed("i-Have-priority") someOther: String, @text c: Double)
-      @XmlCodec("bar", snakeCase)
+      @XmlCodec("bar", snakeCaseConfig)
       case class Bar(someTopName: String, @renamed("Me2") someFoo: Foo, e: Char)
 
       val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
@@ -694,15 +698,16 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
     "decode multiple namespaces async" in decodeMultipleNamespaces(fromIterable)
 
     def decodeCamelCase(toList: String => List[Array[Byte]]): Assertion = {
+      val camelCaseConfig = ElementCodecConfig.default.withStyle(camelCase)
       @XmlnsDef("tinkoff.ru")
       case object tkf
-      @ElementCodec(camelCase)
+      @ElementCodec(camelCaseConfig)
       case class Foo(
           @xmlns(tkf) someName: Int,
           @xmlns(tkf) someOtherName: String,
           @xmlns(tkf) c: Double,
       )
-      @XmlCodecNs("Bar", tkf, camelCase)
+      @XmlCodecNs("Bar", tkf, camelCaseConfig)
       case class Bar(
           @xmlns(tkf) someTopName: String,
           @xmlns(tkf) someFoo: Foo
@@ -728,15 +733,16 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
     "decode CamelCase async" in decodeCamelCase(fromIterable)
 
     def decodeSnakeCase(toList: String => List[Array[Byte]]): Assertion = {
+      val snakeCaseConfig = ElementCodecConfig.default.withStyle(snakeCase)
       @XmlnsDef("tinkoff.ru")
       case object tkf
-      @ElementCodec(snakeCase)
+      @ElementCodec(snakeCaseConfig)
       case class Foo(
           @xmlns(tkf) someName: Int,
           @xmlns(tkf) someOtherName: String,
           @xmlns(tkf) c: Double,
       )
-      @XmlCodecNs("bar", tkf, snakeCase)
+      @XmlCodecNs("bar", tkf, snakeCaseConfig)
       case class Bar(
           @xmlns(tkf) someTopName: String,
           @xmlns(tkf) someFoo: Foo

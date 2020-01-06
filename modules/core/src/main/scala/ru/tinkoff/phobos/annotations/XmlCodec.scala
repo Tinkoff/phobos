@@ -1,11 +1,11 @@
 package ru.tinkoff.phobos.annotations
 
-import ru.tinkoff.phobos.configured.{ElementCodecConfig, naming}
+import ru.tinkoff.phobos.configured.ElementCodecConfig
 import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.reflect.macros.blackbox
 
 @compileTimeOnly("enable macro paradise to expand macro annotations")
-class XmlCodec(localName: String, config: ElementCodecConfig = naming.asIs) extends StaticAnnotation {
+class XmlCodec(localName: String, config: ElementCodecConfig = ElementCodecConfig.default) extends StaticAnnotation {
   def macroTransform(annottees: Any*): Any = macro XmlCodecImpl.impl
 }
 
@@ -15,7 +15,7 @@ private final class XmlCodecImpl(ctx: blackbox.Context) extends CodecAnnotation(
   def instances(typ: Tree): Seq[Tree] = {
     val pkg = q"ru.tinkoff.phobos"
     val (localName, config) = c.prefix.tree match {
-      case q"new XmlCodec($localName)"          => (localName, asIsExpr.tree)
+      case q"new XmlCodec($localName)"          => (localName, defaultConfig.tree)
       case q"new XmlCodec($localName, $config)" => (localName, config)
     }
 
