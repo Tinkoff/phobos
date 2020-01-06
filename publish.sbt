@@ -40,3 +40,5 @@ ThisBuild / homepage := Some(url("https://github.com/TinkoffCreditSystems/phobos
 
 // Remove all additional repository other than Maven Central from POM
 ThisBuild / pomIncludeRepository := { _ => false }
+
+ThisBuild / credentials += Credentials(Path.userHome / ".sbt" / "sonatype_credential")
