@@ -99,12 +99,13 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
 
     def decodeOptions(toList: String => List[Array[Byte]]): Assertion = {
       @ElementCodec
-      case class Foo(a: Int, @attr b: String, c: Double)
+      case class Foo(a: Option[Int], @attr b: String, c: Option[Double])
       @XmlCodec("Wrapper")
       case class Wrapper(foo: Option[Foo])
 
-      val opt1 = Wrapper(Some(Foo(1, "b", 2.0)))
+      val opt1 = Wrapper(Some(Foo(Some(1), "b", Some(2.0))))
       val opt2 = Wrapper(None)
+      val opt3 = Wrapper(Some(Foo(None, "b", None)))
 
       val string1  = """<?xml version='1.0' encoding='UTF-8'?>
                       | <Wrapper>
@@ -119,13 +120,19 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
                     """.stripMargin
       val string3  = """<?xml version='1.0' encoding='UTF-8'?>
                        | <Wrapper>
+                       |   <foo b="b"/>
+                       | </Wrapper>
+                    """.stripMargin
+      val string4  = """<?xml version='1.0' encoding='UTF-8'?>
+                       | <Wrapper>
                        |   <foo/>
                        | </Wrapper>
                     """.stripMargin
       val decoded1 = XmlDecoder[Wrapper].decodeFromFoldable(toList(string1))
       val decoded2 = XmlDecoder[Wrapper].decodeFromFoldable(toList(string2))
       val decoded3 = XmlDecoder[Wrapper].decodeFromFoldable(toList(string3))
-      assert(decoded1 == Right(opt1) && decoded2 == Right(opt2) && decoded3 == Right(opt2))
+      val decoded4 = XmlDecoder[Wrapper].decodeFromFoldable(toList(string4))
+      assert(decoded1 == Right(opt1) && decoded2 == Right(opt2) && decoded3 == Right(opt3) && decoded4 == Right(opt2))
     }
 
     "decode options sync" in decodeOptions(pure)
