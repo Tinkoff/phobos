@@ -1,3 +1,3 @@
 libraryDependencies ++= Seq(
-  "com.beachape" %% "enumeratum" % "1.5.13",
+  "com.beachape" %% "enumeratum" % "1.5.15",
 )

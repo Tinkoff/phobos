@@ -1,5 +1,6 @@
 # phobos
 [![Maven Central](https://img.shields.io/maven-central/v/ru.tinkoff/phobos-core_2.13.svg)](https://search.maven.org/search?q=ru.tinkoff.phobos-core)
+[![Discord](https://img.shields.io/badge/chat-discord%20(en%2Fru)-blue)](https://discord.gg/S9Ad88t)
 
 Phobos is an XML data-binding library based on stream parsing. 
 It depends on [cats-core](https://github.com/typelevel/cats) and 
@@ -11,7 +12,7 @@ Scala 2.12 and 2.13 are supported. Support for Scala 2.11 may be implemented on 
 Add phobos-core to your dependencies:
 
 ```
-libraryDependencies += "ru.tinkoff" %% "phobos-core" % "0.3.0"
+libraryDependencies += "ru.tinkoff" %% "phobos-core" % "0.3.1"
 ```
 
 Then try this code out in `sbt console` or in a separate source file:

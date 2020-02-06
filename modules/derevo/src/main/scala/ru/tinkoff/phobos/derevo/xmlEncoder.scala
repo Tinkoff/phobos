@@ -1,7 +1,6 @@
-
 package ru.tinkoff.phobos.derevo
 
-import org.manatki.derevo.{Derevo, Derivation, delegating}
+import derevo.{Derevo, Derivation, delegating}
 import ru.tinkoff.phobos.encoding.XmlEncoder
 
 @delegating("ru.tinkoff.phobos.derivation.semiauto.deriveXmlEncoder")

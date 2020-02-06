@@ -6,7 +6,7 @@ class DerevoSuit extends WordSpec with Matchers {
   "Derevo" should {
     "derive xml encoder without namespace" in {
       """
-        | import org.manatki.derevo.derive
+        | import derevo.derive
         | import ru.tinkoff.phobos.derevo.xmlEncoder
         | import ru.tinkoff.phobos.encoding.XmlEncoder
         | @derive(xmlEncoder("foo"))
@@ -17,7 +17,7 @@ class DerevoSuit extends WordSpec with Matchers {
 
     "derive xml encoder with namespace" in {
       """
-        | import org.manatki.derevo.derive
+        | import derevo.derive
         | import ru.tinkoff.phobos.annotations.XmlnsDef
         | import ru.tinkoff.phobos.derevo.xmlEncoder
         | import ru.tinkoff.phobos.encoding.XmlEncoder
@@ -31,7 +31,7 @@ class DerevoSuit extends WordSpec with Matchers {
 
     "derive xml decoder without namespace" in {
       """
-        | import org.manatki.derevo.derive
+        | import derevo.derive
         | import ru.tinkoff.phobos.derevo.xmlDecoder
         | import ru.tinkoff.phobos.decoding.XmlDecoder
         | @derive(xmlDecoder("foo"))
@@ -42,7 +42,7 @@ class DerevoSuit extends WordSpec with Matchers {
 
     "derive xml decoder with namespace" in {
       """
-        | import org.manatki.derevo.derive
+        | import derevo.derive
         | import ru.tinkoff.phobos.annotations.XmlnsDef
         | import ru.tinkoff.phobos.derevo.xmlDecoder
         | import ru.tinkoff.phobos.decoding.XmlDecoder
