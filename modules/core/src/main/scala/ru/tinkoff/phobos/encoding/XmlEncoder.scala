@@ -49,7 +49,7 @@ trait XmlEncoder[A] {
     factory.setProperty("javax.xml.stream.isRepairingNamespaces", true)
     val sw = factory.createXMLStreamWriter(os, config.encoding).asInstanceOf[XMLStreamWriter2]
     if (config.writeProlog) {
-      sw.writeStartDocument(config.version, config.encoding)
+      sw.writeStartDocument(config.encoding, config.version)
     }
     elementencoder.encodeAsElement(a, sw, localname, namespaceuri)
     if (config.writeProlog) {
