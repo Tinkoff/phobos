@@ -6,18 +6,19 @@ import org.codehaus.stax2.XMLStreamWriter2
 import cats.syntax.option._
 import com.fasterxml.aalto.stax.OutputFactoryImpl
 import ru.tinkoff.phobos.Namespace
+import ru.tinkoff.phobos.encoding.XmlEncoder.XmlEncoderConfig
 
 /**
- * Typeclass for encoding XML document to an A value.
- *
- * XmlEncoder instance must exist only for types which are encoded as XML documents (only for root elements).
- *
- * XmlEncoder instance can be created
- *  - from ElementEncoder using functions in XmlEncoder object
- *  - by macros from ru.tinkoff.phobos.derivation.semiauto package
- *
- * This typeclass wraps ElementEncoder[A] and provides element name and StreamWriter.
- */
+  * Typeclass for encoding XML document to an A value.
+  *
+  * XmlEncoder instance must exist only for types which are encoded as XML documents (only for root elements).
+  *
+  * XmlEncoder instance can be created
+  *  - from ElementEncoder using functions in XmlEncoder object
+  *  - by macros from ru.tinkoff.phobos.derivation.semiauto package
+  *
+  * This typeclass wraps ElementEncoder[A] and provides element name and StreamWriter.
+  */
 trait XmlEncoder[A] {
   val localname: String
   val namespaceuri: Option[String]
@@ -38,6 +39,27 @@ trait XmlEncoder[A] {
     sw.close()
     os.toByteArray
   }
+
+  def encodeWithConfig(a: A, config: XmlEncoderConfig): String =
+    new String(encodeToBytesWithConfig(a, config), config.encoding)
+
+  def encodeToBytesWithConfig(a: A, config: XmlEncoderConfig): Array[Byte] = {
+    val os      = new ByteArrayOutputStream
+    val factory = new OutputFactoryImpl
+    factory.setProperty("javax.xml.stream.isRepairingNamespaces", true)
+    val sw = factory.createXMLStreamWriter(os, config.encoding).asInstanceOf[XMLStreamWriter2]
+    if (config.writeProlog) {
+      sw.writeStartDocument(config.version, config.encoding)
+    }
+    elementencoder.encodeAsElement(a, sw, localname, namespaceuri)
+    if (config.writeProlog) {
+      sw.writeEndDocument()
+    }
+    sw.flush()
+    sw.close()
+    os.toByteArray
+  }
+
 }
 
 object XmlEncoder {
@@ -62,4 +84,19 @@ object XmlEncoder {
   def fromElementEncoderNs[A, NS](localName: String)(implicit elementEncoder: ElementEncoder[A],
                                                      namespace: Namespace[NS]): XmlEncoder[A] =
     fromElementEncoder(localName, namespace.getNamespace.some)
+
+  final case class XmlEncoderConfig(
+      encoding: String,
+      version: String,
+      writeProlog: Boolean
+  ) {
+    def withoutProlog: XmlEncoderConfig = copy(writeProlog = false)
+  }
+
+  val defaultConfig: XmlEncoderConfig =
+    XmlEncoderConfig(
+      encoding = "UTF-8",
+      version = "1.0",
+      writeProlog = true
+    )
 }
