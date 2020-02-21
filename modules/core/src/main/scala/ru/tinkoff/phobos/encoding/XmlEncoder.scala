@@ -2,9 +2,9 @@ package ru.tinkoff.phobos.encoding
 
 import java.io.ByteArrayOutputStream
 
-import org.codehaus.stax2.XMLStreamWriter2
 import cats.syntax.option._
 import com.fasterxml.aalto.stax.OutputFactoryImpl
+import org.codehaus.stax2.XMLStreamWriter2
 import ru.tinkoff.phobos.Namespace
 import ru.tinkoff.phobos.encoding.XmlEncoder.XmlEncoderConfig
 
@@ -31,7 +31,7 @@ trait XmlEncoder[A] {
     val os      = new ByteArrayOutputStream
     val factory = new OutputFactoryImpl
     factory.setProperty("javax.xml.stream.isRepairingNamespaces", true)
-    val sw = factory.createXMLStreamWriter(os, charset).asInstanceOf[XMLStreamWriter2]
+    val sw = new PhobosStreamWriter(factory.createXMLStreamWriter(os, charset).asInstanceOf[XMLStreamWriter2])
     sw.writeStartDocument()
     elementencoder.encodeAsElement(a, sw, localname, namespaceuri)
     sw.writeEndDocument()
@@ -47,7 +47,7 @@ trait XmlEncoder[A] {
     val os      = new ByteArrayOutputStream
     val factory = new OutputFactoryImpl
     factory.setProperty("javax.xml.stream.isRepairingNamespaces", true)
-    val sw = factory.createXMLStreamWriter(os, config.encoding).asInstanceOf[XMLStreamWriter2]
+    val sw = new PhobosStreamWriter(factory.createXMLStreamWriter(os, config.encoding).asInstanceOf[XMLStreamWriter2])
     if (config.writeProlog) {
       sw.writeStartDocument(config.encoding, config.version)
     }

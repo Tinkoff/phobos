@@ -71,7 +71,7 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
      new _root_.ru.tinkoff.phobos.encoding.ElementEncoder[$classType] {
        def encodeAsElement(
          a: $classType,
-         sw: _root_.org.codehaus.stax2.XMLStreamWriter2,
+         sw: _root_.ru.tinkoff.phobos.encoding.PhobosStreamWriter,
          localName: $javaPkg.String,
          namespaceUri: $scalaPkg.Option[$javaPkg.String]
        ): $scalaPkg.Unit = {
