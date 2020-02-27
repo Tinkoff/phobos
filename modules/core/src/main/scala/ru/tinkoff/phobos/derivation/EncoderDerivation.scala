@@ -2,8 +2,9 @@ package ru.tinkoff.phobos.derivation
 
 import ru.tinkoff.phobos.Namespace
 import ru.tinkoff.phobos.configured.ElementCodecConfig
-import ru.tinkoff.phobos.derivation.CompileTimeState.{ProductType, Stack}
+import ru.tinkoff.phobos.derivation.CompileTimeState.{CoproductType, ProductType, Stack}
 import ru.tinkoff.phobos.encoding.{AttributeEncoder, ElementEncoder, TextEncoder}
+
 import scala.collection.mutable.ListBuffer
 import scala.reflect.macros.blackbox
 
@@ -12,6 +13,54 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
   import c.universe._
 
   def searchType[T: c.WeakTypeTag]: Type = appliedType(c.typeOf[ElementEncoder[_]], c.weakTypeOf[T])
+
+  def deriveCoproductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(subtypes: Iterable[SealedTraitSubtype]): Tree = {
+    val assignedName = TermName(c.freshName(s"ElementEncoderTypeclass")).encodedName.toTermName
+
+    val preAssignments = new ListBuffer[Tree]
+    val classType = c.weakTypeOf[T]
+    val scalaPkg  = q"_root_.scala"
+    val javaPkg   = q"_root_.java.lang"
+    val elementEncoderType   = typeOf[ElementEncoder[_]]
+
+    val kek = subtypes.map{ subtype =>
+      val requiredImplicit = appliedType(elementEncoderType, subtype.subtypeType)
+      val path             = CoproductType(weakTypeOf[T].toString)
+      val frame            = stack.Frame(path, appliedType(elementEncoderType, weakTypeOf[T]), assignedName)
+      val derivedImplicit = stack.recurse(frame, requiredImplicit) {
+        typeclassTree(stack)(subtype.subtypeType, elementEncoderType)
+      }
+
+      val ref      = TermName(c.freshName("paramTypeclass"))
+      val assigned = deferredVal(ref, requiredImplicit, derivedImplicit)
+
+      preAssignments.append(assigned)
+
+      cq"""sub: ${subtype.subtypeType.resultType} =>
+             sw.memorizeDiscriminator("type", ${subtype.constructorName})
+             $ref.encodeAsElement(sub, sw, localName, namespaceUri)
+      """
+    }
+
+    val a = q"""
+      ..$preAssignments
+
+      new _root_.ru.tinkoff.phobos.encoding.ElementEncoder[$classType] {
+        def encodeAsElement(
+          a: $classType,
+          sw: _root_.ru.tinkoff.phobos.encoding.PhobosStreamWriter,
+          localName: $javaPkg.String,
+          namespaceUri: $scalaPkg.Option[$javaPkg.String]
+        ): $scalaPkg.Unit = {
+          a match {
+            case ..$kek
+          }
+        }
+      }
+    """
+    println(a)
+    a
+  }
 
   def deriveProductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(params: IndexedSeq[CaseClassParam]): Tree = {
     val assignedName = TermName(c.freshName(s"ElementEncoderTypeclass")).encodedName.toTermName
@@ -97,7 +146,9 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
   def xmlNs[T: c.WeakTypeTag, NS: c.WeakTypeTag](localName: Tree, ns: Tree): Tree =
     xmlNsConfigured[T, NS](localName, ns, defaultConfig)
 
-  def xmlNsConfigured[T: c.WeakTypeTag, NS: c.WeakTypeTag](localName: Tree, ns: Tree, config: Expr[ElementCodecConfig]): Tree = {
+  def xmlNsConfigured[T: c.WeakTypeTag, NS: c.WeakTypeTag](localName: Tree,
+                                                           ns: Tree,
+                                                           config: Expr[ElementCodecConfig]): Tree = {
     val nsInstance = Option(c.inferImplicitValue(appliedType(weakTypeOf[Namespace[_]], weakTypeOf[NS])))
       .filter(_.nonEmpty)
       .getOrElse(error(s"Could not find Namespace instance for $ns"))

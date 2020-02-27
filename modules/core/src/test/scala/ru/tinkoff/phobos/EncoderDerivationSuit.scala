@@ -213,66 +213,54 @@ class EncoderDerivationSuit extends WordSpec with Matchers {
           """.stripMargin.minimized)
     }
 
-    //    "encode sealed traits" in {
-    //      @ElementCodec
-    //      sealed trait Foo
-    //      object Foo {
-    //        @ElementCodec
-    //        case class Foo1(a: String) extends Foo
-    //        @ElementCodec
-    //        case class Foo2(b: Int) extends Foo
-    //        @ElementCodec
-    //        case class Foo3(c: Char) extends Foo
-    //      }
-    //      import Foo._
-    //      @ElementCodec
-    //      case class Bar(d: String, foo: Foo, e: Char)
-    //
-    //      val bar1       = Bar("d value", Foo1("string"), 'e')
-    //      val bar2       = Bar("d value", Foo2(1), 'e')
-    //      val bar3       = Bar("another one value", Foo3('c'), 'v')
-    //      val barEncoder = XmlEncoder.fromTagEncoder[Bar]("bar")
-    //      (for {
-    //        xml1 <- barEncoder.encode(bar1).firstL
-    //        xml2 <- barEncoder.encode(bar2).firstL
-    //        xml3 <- barEncoder.encode(bar3).firstL
-    //      } yield {
-    //        assert(
-    //          xml1 ==
-    //            """
-    //              | <?xml version='1.0' encoding='UTF-8'?>
-    //              | <bar>
-    //              |   <d>d value</d>
-    //              |   <foo>
-    //              |     <a>string</a>
-    //              |   </foo>
-    //              |   <e>e</e>
-    //              | </bar>
-    //            """.stripMargin.minimized &&
-    //            xml2 ==
-    //              """
-    //                | <?xml version='1.0' encoding='UTF-8'?>
-    //                | <bar>
-    //                |   <d>d value</d>
-    //                |   <foo>
-    //                |     <b>1</b>
-    //                |   </foo>
-    //                |   <e>e</e>
-    //                | </bar>
-    //              """.stripMargin.minimized &&
-    //            xml3 ==
-    //              """
-    //                | <?xml version='1.0' encoding='UTF-8'?>
-    //                | <bar>
-    //                |   <d>another one value</d>
-    //                |   <foo>
-    //                |     <c>c</c>
-    //                |   </foo>
-    //                |   <e>v</e>
-    //                | </bar>
-    //              """.stripMargin.minimized)
-    //      }).runToFuture
-    //    }
+    "encode sealed traits" in {
+      @ElementCodec
+      case class Bar(d: String, foo: SealedClasses.Foo, e: Char)
+
+      val bar1 = Bar("d value", SealedClasses.Foo1("string"), 'e')
+      val bar2 = Bar("d value", SealedClasses.Foo2(1), 'e')
+      val bar3 = Bar("another one value", SealedClasses.Foo3('c'), 'v')
+
+      val barEncoder = XmlEncoder.fromElementEncoder[Bar]("bar")
+
+      val string1 = barEncoder.encode(bar1)
+      val string2 = barEncoder.encode(bar2)
+      val string3 = barEncoder.encode(bar3)
+      assert(
+        string1 ==
+          """
+            | <?xml version='1.0' encoding='UTF-8'?>
+            | <bar>
+            |   <d>d value</d>
+            |   <foo>
+            |     <a>string</a>
+            |   </foo>
+            |   <e>e</e>
+            | </bar>
+          """.stripMargin.minimized &&
+          string2 ==
+            """
+            | <?xml version='1.0' encoding='UTF-8'?>
+            | <bar>
+            |   <d>d value</d>
+            |   <foo>
+            |     <b>1</b>
+            |   </foo>
+            |   <e>e</e>
+            | </bar>
+          """.stripMargin.minimized &&
+          string3 ==
+            """
+            | <?xml version='1.0' encoding='UTF-8'?>
+            | <bar>
+            |   <d>another one value</d>
+            |   <foo>
+            |     <c>c</c>
+            |   </foo>
+            |   <e>v</e>
+            | </bar>
+          """.stripMargin.minimized)
+    }
 
     "encode mixed content" in {
       @XmlCodec("foo")

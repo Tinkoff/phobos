@@ -18,7 +18,11 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
                                   paramType: Type,
                                   category: ParamCategory)
 
+  final case class SealedTraitSubtype(constructorName: String, subtypeType: Type)
+
   def searchType[T: c.WeakTypeTag]: Type
+
+  def deriveCoproductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(subtypes: Iterable[SealedTraitSubtype]): Tree
 
   def deriveProductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(params: IndexedSeq[CaseClassParam]): Tree
 
@@ -30,8 +34,8 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
 
   def exportedTypecclass(searchType: Type): Option[Tree] =
     Option(c.inferImplicitValue(appliedType(typeOf[Exported[_]], searchType)))
-      .map(exported => q"$exported.value")
       .filterNot(_.isEmpty)
+      .map(exported => q"$exported.value")
 
   def typeclassTree(stack: Stack[c.type])(genericType: Type, typeConstructor: Type): Tree = {
     val prefixType   = c.prefix.tree.tpe
@@ -86,7 +90,10 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
 
     def inferCodec: Tree = {
       if (classSymbol.isSealed) {
-        error("Sealed traits support is not implemented yet")
+        val sealedTraitSubtypes = classType.typeSymbol.asClass.knownDirectSubclasses.map { symbol =>
+          SealedTraitSubtype(symbol.name.decodedName.toString, symbol.asType.toType)
+        }
+        deriveCoproductCodec(stack)(sealedTraitSubtypes)
       } else if (classSymbol.isCaseClass) {
 
         def fetchGroup(param: TermSymbol): ParamCategory = {
@@ -143,7 +150,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
             val xmlName: Tree = param.annotations.collectFirst {
               case annotation if annotation.tree.tpe =:= renamedType =>
                 annotation.tree.children.tail.collectFirst {
-                  case t@Literal(Constant(_: String)) => t
+                  case t @ Literal(Constant(_: String)) => t
                 }.getOrElse {
                   error("@renamed is only allowed to be used with string literals")
                 }
