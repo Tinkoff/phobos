@@ -13,7 +13,10 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 
   def searchType[T: c.WeakTypeTag]: Type = appliedType(c.typeOf[ElementDecoder[_]], c.weakTypeOf[T])
 
-  def deriveCoproductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(subtypes: Iterable[SealedTraitSubtype]): Tree = q""
+  def deriveCoproductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(
+      config: Expr[ElementCodecConfig],
+      subtypes: Iterable[SealedTraitSubtype]
+  ): Tree = q""
 
   def deriveProductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(params: IndexedSeq[CaseClassParam]): Tree = {
 

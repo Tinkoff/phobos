@@ -22,7 +22,10 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
 
   def searchType[T: c.WeakTypeTag]: Type
 
-  def deriveCoproductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(subtypes: Iterable[SealedTraitSubtype]): Tree
+  def deriveCoproductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(
+      config: Expr[ElementCodecConfig],
+      subtypes: Iterable[SealedTraitSubtype]
+  ): Tree
 
   def deriveProductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(params: IndexedSeq[CaseClassParam]): Tree
 
@@ -93,7 +96,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
         val sealedTraitSubtypes = classType.typeSymbol.asClass.knownDirectSubclasses.map { symbol =>
           SealedTraitSubtype(symbol.name.decodedName.toString, symbol.asType.toType)
         }
-        deriveCoproductCodec(stack)(sealedTraitSubtypes)
+        deriveCoproductCodec(stack)(config, sealedTraitSubtypes)
       } else if (classSymbol.isCaseClass) {
 
         def fetchGroup(param: TermSymbol): ParamCategory = {

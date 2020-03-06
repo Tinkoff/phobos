@@ -19,7 +19,7 @@ final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
    *
    * Following code
    * <code>
-   *   sw.memoizeDiscriminator("http://www.w3.org/2001/XMLSchema-instance", "type", "dog")
+   *   sw.memoizeDiscriminator(Some("http://www.w3.org/2001/XMLSchema-instance"), "type", "dog")
    *   sw.writeStartElement("GoodBoy")
    * </code>
    * will result to something like
@@ -34,19 +34,8 @@ final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
    * @param localName local name of type discriminator
    * @param value value of type discriminator
    */
-  def memorizeDiscriminator(namespaceUri: String, localName: String, value: String): Unit = {
-    discriminatorNamespace = Some(namespaceUri)
-    discriminatorLocalName = Some(localName)
-    discriminatorValue = Some(value)
-  }
-
-  /**
-  *  Like [[memorizeDiscriminator]] above, but without namespace uri
-   *
-   * @param localName local name of type discriminator
-   * @param value value of type discriminator
-   */
-  def memorizeDiscriminator(localName: String, value: String): Unit = {
+  def memorizeDiscriminator(namespaceUri: Option[String], localName: String, value: String): Unit = {
+    discriminatorNamespace = namespaceUri
     discriminatorLocalName = Some(localName)
     discriminatorValue = Some(value)
   }
@@ -180,13 +169,17 @@ final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
   def writeDoubleArrayAttribute(prefix: String, namespaceURI: String, localName: String, value: Array[Double]): Unit =
     sw.writeDoubleArrayAttribute(prefix, namespaceURI, localName, value)
 
-  private def maybeWriteDiscriminator(): Unit =
+  private def maybeWriteDiscriminator(): Unit = {
     (discriminatorNamespace, discriminatorLocalName, discriminatorValue) match {
       case (None, None, None) =>
       case (None, Some(dLocalName), Some(dValue)) => sw.writeAttribute(dLocalName, dValue)
       case (Some(dNamespace), Some(dLocalName), Some(dValue)) => sw.writeAttribute(dNamespace, dLocalName, dValue)
       case state => throw new XMLStreamException(s"Unexpected discriminator names state: $state")
     }
+    discriminatorNamespace = None
+    discriminatorLocalName = None
+    discriminatorValue = None
+  }
 
   def writeStartElement(localName: String): Unit = {
     sw.writeStartElement(localName: String)

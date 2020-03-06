@@ -14,16 +14,19 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 
   def searchType[T: c.WeakTypeTag]: Type = appliedType(c.typeOf[ElementEncoder[_]], c.weakTypeOf[T])
 
-  def deriveCoproductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(subtypes: Iterable[SealedTraitSubtype]): Tree = {
+  def deriveCoproductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(
+      config: Expr[ElementCodecConfig],
+      subtypes: Iterable[SealedTraitSubtype]
+  ): Tree = {
     val assignedName = TermName(c.freshName(s"ElementEncoderTypeclass")).encodedName.toTermName
 
-    val preAssignments = new ListBuffer[Tree]
-    val classType = c.weakTypeOf[T]
-    val scalaPkg  = q"_root_.scala"
-    val javaPkg   = q"_root_.java.lang"
-    val elementEncoderType   = typeOf[ElementEncoder[_]]
+    val preAssignments     = new ListBuffer[Tree]
+    val classType          = c.weakTypeOf[T]
+    val scalaPkg           = q"_root_.scala"
+    val javaPkg            = q"_root_.java.lang"
+    val elementEncoderType = typeOf[ElementEncoder[_]]
 
-    val kek = subtypes.map{ subtype =>
+    val alternatives = subtypes.map { subtype =>
       val requiredImplicit = appliedType(elementEncoderType, subtype.subtypeType)
       val path             = CoproductType(weakTypeOf[T].toString)
       val frame            = stack.Frame(path, appliedType(elementEncoderType, weakTypeOf[T]), assignedName)
@@ -37,7 +40,7 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
       preAssignments.append(assigned)
 
       cq"""sub: ${subtype.subtypeType.resultType} =>
-             sw.memorizeDiscriminator("type", ${subtype.constructorName})
+             sw.memorizeDiscriminator($config.discriminatorNamespace, $config.discriminatorLocalName, ${subtype.constructorName})
              $ref.encodeAsElement(sub, sw, localName, namespaceUri)
       """
     }
@@ -53,7 +56,7 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
           namespaceUri: $scalaPkg.Option[$javaPkg.String]
         ): $scalaPkg.Unit = {
           a match {
-            case ..$kek
+            case ..$alternatives
           }
         }
       }

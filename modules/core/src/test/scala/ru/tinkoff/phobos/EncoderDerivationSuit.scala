@@ -217,25 +217,26 @@ class EncoderDerivationSuit extends WordSpec with Matchers {
       @ElementCodec
       case class Bar(d: String, foo: SealedClasses.Foo, e: Char)
 
-      val bar1 = Bar("d value", SealedClasses.Foo1("string"), 'e')
+      val bar1 = Bar("d value", SealedClasses.Foo1("string"), 'k')
       val bar2 = Bar("d value", SealedClasses.Foo2(1), 'e')
-      val bar3 = Bar("another one value", SealedClasses.Foo3('c'), 'v')
+      val bar3 = Bar("another one value", SealedClasses.Foo3(1.1234), 'v')
 
       val barEncoder = XmlEncoder.fromElementEncoder[Bar]("bar")
 
       val string1 = barEncoder.encode(bar1)
       val string2 = barEncoder.encode(bar2)
       val string3 = barEncoder.encode(bar3)
+
       assert(
         string1 ==
           """
             | <?xml version='1.0' encoding='UTF-8'?>
             | <bar>
             |   <d>d value</d>
-            |   <foo>
+            |   <foo xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="Foo1">
             |     <a>string</a>
             |   </foo>
-            |   <e>e</e>
+            |   <e>k</e>
             | </bar>
           """.stripMargin.minimized &&
           string2 ==
@@ -243,7 +244,7 @@ class EncoderDerivationSuit extends WordSpec with Matchers {
             | <?xml version='1.0' encoding='UTF-8'?>
             | <bar>
             |   <d>d value</d>
-            |   <foo>
+            |   <foo xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="Foo2">
             |     <b>1</b>
             |   </foo>
             |   <e>e</e>
@@ -254,11 +255,109 @@ class EncoderDerivationSuit extends WordSpec with Matchers {
             | <?xml version='1.0' encoding='UTF-8'?>
             | <bar>
             |   <d>another one value</d>
-            |   <foo>
-            |     <c>c</c>
+            |   <foo xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="Foo3">
+            |     <c>1.1234</c>
             |   </foo>
             |   <e>v</e>
             | </bar>
+          """.stripMargin.minimized)
+    }
+
+    "encode sealed with custom discriminator" in {
+      @ElementCodec
+      case class Qux(d: String, bar: SealedClasses.Bar, e: Char)
+
+      val qux1 = Qux("d value", SealedClasses.Bar1("string"), 'k')
+      val qux2 = Qux("d value", SealedClasses.Bar2(1), 'e')
+      val qux3 = Qux("another one value", SealedClasses.Bar3(1.1234), 'v')
+
+      val quxEncoder = XmlEncoder.fromElementEncoder[Qux]("qux")
+
+      val string1 = quxEncoder.encode(qux1)
+      val string2 = quxEncoder.encode(qux2)
+      val string3 = quxEncoder.encode(qux3)
+
+      assert(
+        string1 ==
+          """
+            | <?xml version='1.0' encoding='UTF-8'?>
+            | <qux>
+            |   <d>d value</d>
+            |   <bar discriminator="Bar1">
+            |     <a>string</a>
+            |   </bar>
+            |   <e>k</e>
+            | </qux>
+          """.stripMargin.minimized &&
+          string2 ==
+            """
+              | <?xml version='1.0' encoding='UTF-8'?>
+              | <qux>
+              |   <d>d value</d>
+              |   <bar discriminator="Bar2">
+              |     <b>1</b>
+              |   </bar>
+              |   <e>e</e>
+              | </qux>
+          """.stripMargin.minimized &&
+          string3 ==
+            """
+              | <?xml version='1.0' encoding='UTF-8'?>
+              | <qux>
+              |   <d>another one value</d>
+              |   <bar discriminator="Bar3">
+              |     <c>1.1234</c>
+              |   </bar>
+              |   <e>v</e>
+              | </qux>
+          """.stripMargin.minimized)
+
+      @ElementCodec
+      case class Quux(d: String, baz: SealedClasses.Baz, e: Char)
+
+      val quux1 = Quux("d value", SealedClasses.Baz1("string"), 'k')
+      val quux2 = Quux("d value", SealedClasses.Baz2(1), 'e')
+      val quux3 = Quux("another one value", SealedClasses.Baz3(1.1234), 'v')
+
+      val quuxEncoder = XmlEncoder.fromElementEncoder[Quux]("quux")
+
+      val string4 = quuxEncoder.encode(quux1)
+      val string5 = quuxEncoder.encode(quux2)
+      val string6 = quuxEncoder.encode(quux3)
+
+      assert(
+        string4 ==
+          """
+            | <?xml version='1.0' encoding='UTF-8'?>
+            | <quux>
+            |   <d>d value</d>
+            |   <baz xmlns:ans1="https://tinkoff.ru" ans1:discriminator="Baz1">
+            |     <a>string</a>
+            |   </baz>
+            |   <e>k</e>
+            | </quux>
+          """.stripMargin.minimized &&
+          string5 ==
+            """
+              | <?xml version='1.0' encoding='UTF-8'?>
+              | <quux>
+              |   <d>d value</d>
+              |   <baz xmlns:ans1="https://tinkoff.ru" ans1:discriminator="Baz2">
+              |     <b>1</b>
+              |   </baz>
+              |   <e>e</e>
+              | </quux>
+          """.stripMargin.minimized &&
+          string6 ==
+            """
+              | <?xml version='1.0' encoding='UTF-8'?>
+              | <quux>
+              |   <d>another one value</d>
+              |   <baz xmlns:ans1="https://tinkoff.ru" ans1:discriminator="Baz3">
+              |     <c>1.1234</c>
+              |   </baz>
+              |   <e>v</e>
+              | </quux>
           """.stripMargin.minimized)
     }
 
