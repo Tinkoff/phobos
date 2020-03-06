@@ -2,6 +2,7 @@ package ru.tinkoff.phobos
 
 import ru.tinkoff.phobos.annotations.ElementCodec
 import ru.tinkoff.phobos.configured.ElementCodecConfig
+import ru.tinkoff.phobos.configured.naming._
 
 object SealedClasses {
   @ElementCodec
@@ -36,4 +37,16 @@ object SealedClasses {
   case class Baz2(b: Int) extends Baz
   @ElementCodec
   case class Baz3(c: Double) extends Baz
+
+
+  @ElementCodec(ElementCodecConfig.default.withConstructorsRenamed(snakeCase))
+  sealed trait Animal {
+    def name: String
+    def strength: Double
+  }
+
+  @ElementCodec
+  case class CanisLupus(name: String, strength: Double, age: Int) extends Animal
+  @ElementCodec
+  case class PantheraLeo(name: String, strength: Double, speed: Double) extends Animal
 }

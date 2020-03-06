@@ -456,14 +456,14 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
                       | </quux>
                     """.stripMargin
       val string5 = """<?xml version='1.0' encoding='UTF-8'?>
-                       | <quux>
-                       |   <d>d value</d>
-                       |   <baz xmlns:ans1="https://tinkoff.ru" ans1:discriminator="Baz2">
-                       |     <b>1</b>
-                       |   </baz>
-                       |   <e>e</e>
-                       | </quux>
-                     """.stripMargin
+                      | <quux>
+                      |   <d>d value</d>
+                      |   <baz xmlns:ans1="https://tinkoff.ru" ans1:discriminator="Baz2">
+                      |     <b>1</b>
+                      |   </baz>
+                      |   <e>e</e>
+                      | </quux>
+                    """.stripMargin
       val string6 = """<?xml version='1.0' encoding='UTF-8'?>
                       | <quux>
                       |   <d>another one value</d>
@@ -483,6 +483,39 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
 
     "decode sealed traits with custom discriminator sync" in decodeSealedTraitsWithCustomDiscriminator(pure)
     "decode sealed traits with custom discriminator async" in decodeSealedTraitsWithCustomDiscriminator(fromIterable)
+
+    def decodeSealedTraitsWithConstructorNamesTransformed(toList: String => List[Array[Byte]]) = {
+      val wolf = SealedClasses.CanisLupus("Igor", 0.2, 20)
+      val lion = SealedClasses.PantheraLeo("Sergey", 0.75, 60.1)
+
+      val animalDecoder = XmlDecoder.fromElementDecoder[SealedClasses.Animal]("animal")
+
+      val string1 = """<?xml version='1.0' encoding='UTF-8'?>
+                      | <animal xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="canis_lupus">
+                      |   <name>Igor</name>
+                      |   <strength>0.2</strength>
+                      |   <age>20</age>
+                      | </animal>
+                    """.stripMargin
+
+      val string2 = """<?xml version='1.0' encoding='UTF-8'?>
+                      | <animal xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="panthera_leo">
+                      |   <name>Sergey</name>
+                      |   <strength>0.75</strength>
+                      |   <speed>60.1</speed>
+                      | </animal>
+                    """.stripMargin
+
+      assert(
+        animalDecoder.decodeFromFoldable(toList(string1)) == Right(wolf) &&
+          animalDecoder.decodeFromFoldable(toList(string2)) == Right(lion)
+      )
+    }
+
+    "decode sealed traits with constructor names transformed sync" in
+      decodeSealedTraitsWithConstructorNamesTransformed(pure)
+    "decode sealed traits with constructor names transformed async" in
+      decodeSealedTraitsWithConstructorNamesTransformed(fromIterable)
 
     def ignoreExtraElements(toList: String => List[Array[Byte]]): Assertion = {
       @XmlCodec("foo")

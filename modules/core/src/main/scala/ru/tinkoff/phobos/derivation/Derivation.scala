@@ -12,13 +12,18 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
 
   import c.universe._
 
-  final case class CaseClassParam(localName: String,
-                                  xmlName: Tree,
-                                  namespaceUri: Tree,
-                                  paramType: Type,
-                                  category: ParamCategory)
+  final case class CaseClassParam(
+      localName: String,
+      xmlName: Tree,
+      namespaceUri: Tree,
+      paramType: Type,
+      category: ParamCategory
+  )
 
-  final case class SealedTraitSubtype(constructorName: String, subtypeType: Type)
+  final case class SealedTraitSubtype(
+      constructorName: Tree,
+      subtypeType: Type
+  )
 
   def searchType[T: c.WeakTypeTag]: Type
 
@@ -94,7 +99,8 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
     def inferCodec: Tree = {
       if (classSymbol.isSealed) {
         val sealedTraitSubtypes = classType.typeSymbol.asClass.knownDirectSubclasses.map { symbol =>
-          SealedTraitSubtype(symbol.name.decodedName.toString, symbol.asType.toType)
+          val constructorName = q"""$config.transformConstructorNames(`${symbol.name.decodedName.toString}`)"""
+          SealedTraitSubtype(constructorName, symbol.asType.toType)
         }
         deriveCoproductCodec(stack)(config, sealedTraitSubtypes)
       } else if (classSymbol.isCaseClass) {

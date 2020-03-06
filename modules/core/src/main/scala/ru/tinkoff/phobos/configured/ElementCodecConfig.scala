@@ -3,6 +3,7 @@ package ru.tinkoff.phobos.configured
 final case class ElementCodecConfig(
     transformAttributeNames: String => String,
     transformElementNames: String => String,
+    transformConstructorNames: String => String,
     discriminatorLocalName: String,
     discriminatorNamespace: Option[String]
 ) {
@@ -11,6 +12,9 @@ final case class ElementCodecConfig(
 
   def withAttributesRenamed(transform: String => String): ElementCodecConfig =
     copy(transformAttributeNames = transform)
+
+  def withConstructorsRenamed(transform: String => String): ElementCodecConfig =
+    copy(transformConstructorNames = transform)
 
   def withStyle(transform: String => String): ElementCodecConfig =
     copy(transformElementNames = transform, transformAttributeNames = transform)
@@ -21,5 +25,5 @@ final case class ElementCodecConfig(
 
 object ElementCodecConfig {
   val default: ElementCodecConfig =
-    ElementCodecConfig(identity, identity, "type", Some("http://www.w3.org/2001/XMLSchema-instance"))
+    ElementCodecConfig(identity, identity, identity, "type", Some("http://www.w3.org/2001/XMLSchema-instance"))
 }

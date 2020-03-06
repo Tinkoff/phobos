@@ -361,6 +361,34 @@ class EncoderDerivationSuit extends WordSpec with Matchers {
           """.stripMargin.minimized)
     }
 
+    "encode sealed traits with constructor names transformed" in {
+      val wolf = SealedClasses.CanisLupus("Igor", 0.2, 20)
+      val lion = SealedClasses.PantheraLeo("Sergey", 0.75, 60.1)
+
+      val animalEncoder = XmlEncoder.fromElementEncoder[SealedClasses.Animal]("animal")
+
+      assert(
+        animalEncoder.encode(wolf) ==
+          """
+          | <?xml version='1.0' encoding='UTF-8'?>
+          | <animal xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="canis_lupus">
+          |   <name>Igor</name>
+          |   <strength>0.2</strength>
+          |   <age>20</age>
+          | </animal>
+          |""".stripMargin.minimized &&
+          animalEncoder.encode(lion) ==
+            """
+              | <?xml version='1.0' encoding='UTF-8'?>
+              | <animal xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="panthera_leo">
+              |   <name>Sergey</name>
+              |   <strength>0.75</strength>
+              |   <speed>60.1</speed>
+              | </animal>
+            """.stripMargin.minimized
+      )
+    }
+
     "encode mixed content" in {
       @XmlCodec("foo")
       case class Foo(count: Int, buz: String, @text text: String)

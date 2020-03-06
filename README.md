@@ -8,6 +8,8 @@ It depends on [cats-core](https://github.com/typelevel/cats) and
 
 Scala 2.12 and 2.13 are supported. Support for Scala 2.11 may be implemented on demand.
 
+:fire: Sealed traits enconding and decoding was implemented in 0.5.0
+
 ## QuickStart
 Add phobos-core to your dependencies:
 

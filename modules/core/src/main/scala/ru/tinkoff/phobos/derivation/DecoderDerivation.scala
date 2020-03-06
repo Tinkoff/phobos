@@ -42,11 +42,12 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 
       preAssignments.append(assigned)
 
-      cq""" `${subtype.constructorName}` =>
-               $ref.decodeAsElement(cursor, localName, namespaceUri).map(d => d: $classType)
+      cq""" 
+        discriminator if discriminator == `${subtype.constructorName}` =>
+           $ref.decodeAsElement(cursor, localName, namespaceUri).map(d => d: $classType)
       """
     }.toBuffer :+
-        cq""" unknown =>
+      cq""" unknown =>
           new $decodingPkg.ElementDecoder.FailedDecoder[$classType](
             cursor.error(s"Unknown type discriminator value: '$${unknown}'")
         )"""
