@@ -263,7 +263,7 @@ class EncoderDerivationSuit extends WordSpec with Matchers {
           """.stripMargin.minimized)
     }
 
-    "encode sealed with custom discriminator" in {
+    "encode sealed traits with custom discriminator" in {
       @ElementCodec
       case class Qux(d: String, bar: SealedClasses.Bar, e: Char)
 

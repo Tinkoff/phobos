@@ -345,6 +345,145 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
     "decode recursive values sync" in decodeRecursiveValues(pure)
     "decode recursive values async" in decodeRecursiveValues(fromIterable)
 
+    def decodeSealedTraits(toList: String => List[Array[Byte]]): Assertion = {
+      @ElementCodec
+      case class Bar(d: String, foo: SealedClasses.Foo, e: Char)
+
+      val bar1 = Bar("d value", SealedClasses.Foo1("string"), 'k')
+      val bar2 = Bar("d value", SealedClasses.Foo2(1), 'e')
+      val bar3 = Bar("another one value", SealedClasses.Foo3(1.1234), 'v')
+
+      val barDecoder = XmlDecoder.fromElementDecoder[Bar]("bar")
+
+      val string1 = """<?xml version='1.0' encoding='UTF-8'?>
+                      | <bar>
+                      |   <d>d value</d>
+                      |   <foo xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="Foo1">
+                      |     <a>string</a>
+                      |   </foo>
+                      |   <e>k</e>
+                      | </bar>
+                    """.stripMargin
+      val string2 = """<?xml version='1.0' encoding='UTF-8'?>
+                      | <bar>
+                      |   <d>d value</d>
+                      |   <foo xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="Foo2">
+                      |     <b>1</b>
+                      |   </foo>
+                      |   <e>e</e>
+                      | </bar>
+                    """.stripMargin
+      val string3 = """<?xml version='1.0' encoding='UTF-8'?>
+                     | <bar>
+                     |   <d>another one value</d>
+                     |   <foo xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="Foo3">
+                     |     <c>1.1234</c>
+                     |   </foo>
+                     |   <e>v</e>
+                     | </bar>
+                   """.stripMargin
+
+      assert(
+        barDecoder.decodeFromFoldable(toList(string1)) == Right(bar1) &&
+          barDecoder.decodeFromFoldable(toList(string2)) == Right(bar2) &&
+          barDecoder.decodeFromFoldable(toList(string3)) == Right(bar3)
+      )
+    }
+
+    "decode sealed traits sync" in decodeSealedTraits(pure)
+    "decode sealed traits async" in decodeSealedTraits(fromIterable)
+
+    def decodeSealedTraitsWithCustomDiscriminator(toList: String => List[Array[Byte]]): Assertion = {
+      @ElementCodec
+      case class Qux(d: String, bar: SealedClasses.Bar, e: Char)
+
+      val qux1 = Qux("d value", SealedClasses.Bar1("string"), 'k')
+      val qux2 = Qux("d value", SealedClasses.Bar2(1), 'e')
+      val qux3 = Qux("another one value", SealedClasses.Bar3(1.1234), 'v')
+
+      val quxDecoder = XmlDecoder.fromElementDecoder[Qux]("qux")
+
+      val string1 = """<?xml version='1.0' encoding='UTF-8'?>
+                      | <qux>
+                      |   <d>d value</d>
+                      |   <bar discriminator="Bar1">
+                      |     <a>string</a>
+                      |   </bar>
+                      |   <e>k</e>
+                      | </qux>
+                    """.stripMargin
+      val string2 = """<?xml version='1.0' encoding='UTF-8'?>
+                      | <qux>
+                      |   <d>d value</d>
+                      |   <bar discriminator="Bar2">
+                      |     <b>1</b>
+                      |   </bar>
+                      |   <e>e</e>
+                      | </qux>
+                    """.stripMargin
+      val string3 = """<?xml version='1.0' encoding='UTF-8'?>
+                      | <qux>
+                      |   <d>another one value</d>
+                      |   <bar discriminator="Bar3">
+                      |     <c>1.1234</c>
+                      |   </bar>
+                      |   <e>v</e>
+                      | </qux>
+                    """.stripMargin
+
+      assert(
+        quxDecoder.decodeFromFoldable(toList(string1)) == Right(qux1) &&
+          quxDecoder.decodeFromFoldable(toList(string2)) == Right(qux2) &&
+          quxDecoder.decodeFromFoldable(toList(string3)) == Right(qux3)
+      )
+
+      @ElementCodec
+      case class Quux(d: String, baz: SealedClasses.Baz, e: Char)
+
+      val quux1 = Quux("d value", SealedClasses.Baz1("string"), 'k')
+      val quux2 = Quux("d value", SealedClasses.Baz2(1), 'e')
+      val quux3 = Quux("another one value", SealedClasses.Baz3(1.1234), 'v')
+
+      val quuxDecoder = XmlDecoder.fromElementDecoder[Quux]("quux")
+
+      val string4 = """<?xml version='1.0' encoding='UTF-8'?>
+                      | <quux>
+                      |   <d>d value</d>
+                      |   <baz xmlns:ans1="https://tinkoff.ru" ans1:discriminator="Baz1">
+                      |     <a>string</a>
+                      |   </baz>
+                      |   <e>k</e>
+                      | </quux>
+                    """.stripMargin
+      val string5 = """<?xml version='1.0' encoding='UTF-8'?>
+                       | <quux>
+                       |   <d>d value</d>
+                       |   <baz xmlns:ans1="https://tinkoff.ru" ans1:discriminator="Baz2">
+                       |     <b>1</b>
+                       |   </baz>
+                       |   <e>e</e>
+                       | </quux>
+                     """.stripMargin
+      val string6 = """<?xml version='1.0' encoding='UTF-8'?>
+                      | <quux>
+                      |   <d>another one value</d>
+                      |   <baz xmlns:ans1="https://tinkoff.ru" ans1:discriminator="Baz3">
+                      |     <c>1.1234</c>
+                      |   </baz>
+                      |   <e>v</e>
+                      | </quux>
+                    """.stripMargin
+
+      assert(
+        quuxDecoder.decodeFromFoldable(toList(string4)) == Right(quux1) &&
+          quuxDecoder.decodeFromFoldable(toList(string5)) == Right(quux2) &&
+          quuxDecoder.decodeFromFoldable(toList(string6)) == Right(quux3)
+      )
+    }
+
+    "decode sealed traits with custom discriminator sync" in decodeSealedTraitsWithCustomDiscriminator(pure)
+    "decode sealed traits with custom discriminator async" in decodeSealedTraitsWithCustomDiscriminator(fromIterable)
+
     def ignoreExtraElements(toList: String => List[Array[Byte]]): Assertion = {
       @XmlCodec("foo")
       case class Foo(das: Int)

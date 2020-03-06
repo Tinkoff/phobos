@@ -45,7 +45,7 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
       """
     }
 
-    val a = q"""
+    q"""
       ..$preAssignments
 
       new _root_.ru.tinkoff.phobos.encoding.ElementEncoder[$classType] {
@@ -61,8 +61,6 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
         }
       }
     """
-    println(a)
-    a
   }
 
   def deriveProductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(params: IndexedSeq[CaseClassParam]): Tree = {
