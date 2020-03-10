@@ -3,7 +3,8 @@ package ru.tinkoff.phobos.derivation
 import ru.tinkoff.phobos.Namespace
 import ru.tinkoff.phobos.configured.ElementCodecConfig
 import ru.tinkoff.phobos.decoding.{AttributeDecoder, ElementDecoder, TextDecoder}
-import ru.tinkoff.phobos.derivation.CompileTimeState.{ProductType, Stack}
+import ru.tinkoff.phobos.derivation.CompileTimeState.{CoproductType, ProductType, Stack}
+
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.reflect.macros.blackbox
@@ -13,12 +14,77 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 
   def searchType[T: c.WeakTypeTag]: Type = appliedType(c.typeOf[ElementDecoder[_]], c.weakTypeOf[T])
 
-  def deriveProductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(params: IndexedSeq[CaseClassParam]): Tree = {
+  val derivationPkg = q"_root_.ru.tinkoff.phobos.derivation"
+  val decodingPkg   = q"_root_.ru.tinkoff.phobos.decoding"
+  val scalaPkg      = q"_root_.scala"
+  val javaPkg       = q"_root_.java.lang"
 
-    val derivationPkg = q"_root_.ru.tinkoff.phobos.derivation"
-    val decodingPkg   = q"_root_.ru.tinkoff.phobos.decoding"
-    val scalaPkg      = q"_root_.scala"
-    val javaPkg       = q"_root_.java.lang"
+  def deriveCoproductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(
+      config: Expr[ElementCodecConfig],
+      subtypes: Iterable[SealedTraitSubtype]
+  ): Tree = {
+    val assignedName = TermName(c.freshName(s"ElementDecoderTypeclass")).encodedName.toTermName
+
+    val elementDecoderType = typeOf[ElementDecoder[_]]
+    val preAssignments     = new ListBuffer[Tree]
+    val classType          = c.weakTypeOf[T]
+
+    val alternatives = subtypes.map { subtype =>
+      val requiredImplicit = appliedType(elementDecoderType, subtype.subtypeType)
+      val path             = CoproductType(weakTypeOf[T].toString)
+      val frame            = stack.Frame(path, appliedType(elementDecoderType, weakTypeOf[T]), assignedName)
+      val derivedImplicit = stack.recurse(frame, requiredImplicit) {
+        typeclassTree(stack)(subtype.subtypeType, elementDecoderType)
+      }
+
+      val ref      = TermName(c.freshName("paramTypeclass"))
+      val assigned = deferredVal(ref, requiredImplicit, derivedImplicit)
+
+      preAssignments.append(assigned)
+
+      cq""" 
+        discriminator if discriminator == `${subtype.constructorName}` =>
+           $ref.decodeAsElement(cursor, localName, namespaceUri).map(d => d: $classType)
+      """
+    }.toBuffer :+
+      cq""" unknown =>
+          new $decodingPkg.ElementDecoder.FailedDecoder[$classType](
+            cursor.error(s"Unknown type discriminator value: '$${unknown}'")
+        )"""
+
+    q"""
+      ..$preAssignments
+      new $decodingPkg.ElementDecoder[$classType] {
+        def decodeAsElement(
+          cursor : $decodingPkg.Cursor,
+          localName: $javaPkg.String,
+          namespaceUri: $scalaPkg.Option[$javaPkg.String],
+        ): $decodingPkg.ElementDecoder[$classType] = {
+          if (cursor.getEventType == _root_.com.fasterxml.aalto.AsyncXMLStreamReader.EVENT_INCOMPLETE) {
+            this
+          } else {
+            val discriminatorIdx = cursor.getAttributeIndex($config.discriminatorNamespace.getOrElse(null), $config.discriminatorLocalName)
+            if (discriminatorIdx > -1) {
+              cursor.getAttributeValue(discriminatorIdx) match {
+                case ..$alternatives
+              }
+            } else {
+              new $decodingPkg.ElementDecoder.FailedDecoder[$classType](
+                cursor.error(s"No type discriminator '$${$config.discriminatorNamespace.fold("")(_ + ":")}$${$config.discriminatorLocalName}' found")
+              )
+            }
+          }
+        }
+        
+        val isCompleted: $scalaPkg.Boolean = false
+
+        def result(history: $scalaPkg.List[$javaPkg.String]): $scalaPkg.Either[$decodingPkg.DecodingError, $classType] =
+          $scalaPkg.Left($decodingPkg.DecodingError("Decoding not complete", history))
+      }
+    """
+  }
+
+  def deriveProductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(params: IndexedSeq[CaseClassParam]): Tree = {
 
     val decoderStateObj = q"$derivationPkg.DecoderDerivation.DecoderState"
 

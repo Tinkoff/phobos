@@ -4,7 +4,6 @@ import java.time.{LocalDate, LocalDateTime, LocalTime, ZonedDateTime}
 import java.util.{Base64, UUID}
 
 import cats.Contravariant
-import org.codehaus.stax2.XMLStreamWriter2
 
 /**
  * Use XmlEncoder for encoding XML documents.
@@ -16,11 +15,11 @@ import org.codehaus.stax2.XMLStreamWriter2
  */
 
 trait TextEncoder[A] { self =>
-  def encodeAsText(a: A, sw: XMLStreamWriter2): Unit
+  def encodeAsText(a: A, sw: PhobosStreamWriter): Unit
 
   def contramap[B](f: B => A): TextEncoder[B] =
     new TextEncoder[B] {
-      def encodeAsText(b: B, sw: XMLStreamWriter2): Unit = self.encodeAsText(f(b), sw)
+      def encodeAsText(b: B, sw: PhobosStreamWriter): Unit = self.encodeAsText(f(b), sw)
     }
 }
 
@@ -35,12 +34,12 @@ object TextEncoder {
     */
   implicit val stringEncoder: TextEncoder[String] =
     new TextEncoder[String] {
-      def encodeAsText(a: String, sw: XMLStreamWriter2): Unit = sw.writeRaw(a)
+      def encodeAsText(a: String, sw: PhobosStreamWriter): Unit = sw.writeRaw(a)
     }
 
   implicit val unitEncoder: TextEncoder[Unit] =
     new TextEncoder[Unit] {
-      def encodeAsText(a: Unit, sw: XMLStreamWriter2): Unit = ()
+      def encodeAsText(a: Unit, sw: PhobosStreamWriter): Unit = ()
     }
 
   implicit val booleanEncoder: TextEncoder[Boolean]                     = stringEncoder.contramap(_.toString)

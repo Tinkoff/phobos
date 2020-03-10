@@ -4,7 +4,6 @@ import java.time.{LocalDate, LocalDateTime, LocalTime, ZonedDateTime}
 import java.util.{Base64, UUID}
 
 import cats.Contravariant
-import org.codehaus.stax2.XMLStreamWriter2
 
 /**
  * Warning! This is an internal API which may change in future.
@@ -18,11 +17,11 @@ import org.codehaus.stax2.XMLStreamWriter2
  * To create new instance use .contramap method of existing instance.
  */
 trait AttributeEncoder[A] { self =>
-  def encodeAsAttribute(a: A, sw: XMLStreamWriter2, localName: String, namespaceUri: Option[String]): Unit
+  def encodeAsAttribute(a: A, sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String]): Unit
 
   def contramap[B](f: B => A): AttributeEncoder[B] =
     new AttributeEncoder[B] {
-      def encodeAsAttribute(b: B, sw: XMLStreamWriter2, localName: String, namespaceUri: Option[String]): Unit =
+      def encodeAsAttribute(b: B, sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String]): Unit =
         self.encodeAsAttribute(f(b), sw, localName, namespaceUri)
     }
 }
@@ -38,13 +37,13 @@ object AttributeEncoder {
     */
   implicit val stringEncoder: AttributeEncoder[String] =
     new AttributeEncoder[String] {
-      def encodeAsAttribute(a: String, sw: XMLStreamWriter2, localName: String, namespaceUri: Option[String]): Unit =
+      def encodeAsAttribute(a: String, sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String]): Unit =
         namespaceUri.fold(sw.writeAttribute(localName, a))(ns => sw.writeAttribute(ns, localName, a))
     }
 
   implicit val unitEncoder: AttributeEncoder[Unit] =
     new AttributeEncoder[Unit] {
-      def encodeAsAttribute(a: Unit, sw: XMLStreamWriter2, localName: String, namespaceUri: Option[String]): Unit = ()
+      def encodeAsAttribute(a: Unit, sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String]): Unit = ()
     }
 
   implicit val booleanEncoder: AttributeEncoder[Boolean]                     = stringEncoder.contramap(_.toString)
@@ -74,7 +73,7 @@ object AttributeEncoder {
 
   implicit def optionEncoder[A](implicit encoder: AttributeEncoder[A]): AttributeEncoder[Option[A]] =
     new AttributeEncoder[Option[A]] {
-      def encodeAsAttribute(a: Option[A], sw: XMLStreamWriter2, localName: String, namespaceUri: Option[String]): Unit =
+      def encodeAsAttribute(a: Option[A], sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String]): Unit =
         a.foreach(encoder.encodeAsAttribute(_, sw, localName, namespaceUri))
     }
 
