@@ -213,182 +213,6 @@ class EncoderDerivationSuit extends WordSpec with Matchers {
           """.stripMargin.minimized)
     }
 
-    "encode sealed traits" in {
-      @ElementCodec
-      case class Bar(d: String, foo: SealedClasses.Foo, e: Char)
-
-      val bar1 = Bar("d value", SealedClasses.Foo1("string"), 'k')
-      val bar2 = Bar("d value", SealedClasses.Foo2(1), 'e')
-      val bar3 = Bar("another one value", SealedClasses.Foo3(1.1234), 'v')
-
-      val barEncoder = XmlEncoder.fromElementEncoder[Bar]("bar")
-
-      val string1 = barEncoder.encode(bar1)
-      val string2 = barEncoder.encode(bar2)
-      val string3 = barEncoder.encode(bar3)
-
-      assert(
-        string1 ==
-          """
-            | <?xml version='1.0' encoding='UTF-8'?>
-            | <bar>
-            |   <d>d value</d>
-            |   <foo xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="Foo1">
-            |     <a>string</a>
-            |   </foo>
-            |   <e>k</e>
-            | </bar>
-          """.stripMargin.minimized &&
-          string2 ==
-            """
-            | <?xml version='1.0' encoding='UTF-8'?>
-            | <bar>
-            |   <d>d value</d>
-            |   <foo xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="Foo2">
-            |     <b>1</b>
-            |   </foo>
-            |   <e>e</e>
-            | </bar>
-          """.stripMargin.minimized &&
-          string3 ==
-            """
-            | <?xml version='1.0' encoding='UTF-8'?>
-            | <bar>
-            |   <d>another one value</d>
-            |   <foo xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="Foo3">
-            |     <c>1.1234</c>
-            |   </foo>
-            |   <e>v</e>
-            | </bar>
-          """.stripMargin.minimized)
-    }
-
-    "encode sealed traits with custom discriminator" in {
-      @ElementCodec
-      case class Qux(d: String, bar: SealedClasses.Bar, e: Char)
-
-      val qux1 = Qux("d value", SealedClasses.Bar1("string"), 'k')
-      val qux2 = Qux("d value", SealedClasses.Bar2(1), 'e')
-      val qux3 = Qux("another one value", SealedClasses.Bar3(1.1234), 'v')
-
-      val quxEncoder = XmlEncoder.fromElementEncoder[Qux]("qux")
-
-      val string1 = quxEncoder.encode(qux1)
-      val string2 = quxEncoder.encode(qux2)
-      val string3 = quxEncoder.encode(qux3)
-
-      assert(
-        string1 ==
-          """
-            | <?xml version='1.0' encoding='UTF-8'?>
-            | <qux>
-            |   <d>d value</d>
-            |   <bar discriminator="Bar1">
-            |     <a>string</a>
-            |   </bar>
-            |   <e>k</e>
-            | </qux>
-          """.stripMargin.minimized &&
-          string2 ==
-            """
-              | <?xml version='1.0' encoding='UTF-8'?>
-              | <qux>
-              |   <d>d value</d>
-              |   <bar discriminator="Bar2">
-              |     <b>1</b>
-              |   </bar>
-              |   <e>e</e>
-              | </qux>
-          """.stripMargin.minimized &&
-          string3 ==
-            """
-              | <?xml version='1.0' encoding='UTF-8'?>
-              | <qux>
-              |   <d>another one value</d>
-              |   <bar discriminator="Bar3">
-              |     <c>1.1234</c>
-              |   </bar>
-              |   <e>v</e>
-              | </qux>
-          """.stripMargin.minimized)
-
-      @ElementCodec
-      case class Quux(d: String, baz: SealedClasses.Baz, e: Char)
-
-      val quux1 = Quux("d value", SealedClasses.Baz1("string"), 'k')
-      val quux2 = Quux("d value", SealedClasses.Baz2(1), 'e')
-      val quux3 = Quux("another one value", SealedClasses.Baz3(1.1234), 'v')
-
-      val quuxEncoder = XmlEncoder.fromElementEncoder[Quux]("quux")
-
-      val string4 = quuxEncoder.encode(quux1)
-      val string5 = quuxEncoder.encode(quux2)
-      val string6 = quuxEncoder.encode(quux3)
-
-      assert(
-        string4 ==
-          """
-            | <?xml version='1.0' encoding='UTF-8'?>
-            | <quux>
-            |   <d>d value</d>
-            |   <baz xmlns:ans1="https://tinkoff.ru" ans1:discriminator="Baz1">
-            |     <a>string</a>
-            |   </baz>
-            |   <e>k</e>
-            | </quux>
-          """.stripMargin.minimized &&
-          string5 ==
-            """
-              | <?xml version='1.0' encoding='UTF-8'?>
-              | <quux>
-              |   <d>d value</d>
-              |   <baz xmlns:ans1="https://tinkoff.ru" ans1:discriminator="Baz2">
-              |     <b>1</b>
-              |   </baz>
-              |   <e>e</e>
-              | </quux>
-          """.stripMargin.minimized &&
-          string6 ==
-            """
-              | <?xml version='1.0' encoding='UTF-8'?>
-              | <quux>
-              |   <d>another one value</d>
-              |   <baz xmlns:ans1="https://tinkoff.ru" ans1:discriminator="Baz3">
-              |     <c>1.1234</c>
-              |   </baz>
-              |   <e>v</e>
-              | </quux>
-          """.stripMargin.minimized)
-    }
-
-    "encode sealed traits with constructor names transformed" in {
-      val wolf = SealedClasses.CanisLupus("Igor", 0.2, 20)
-      val lion = SealedClasses.PantheraLeo("Sergey", 0.75, 60.1)
-
-      val animalEncoder = XmlEncoder.fromElementEncoder[SealedClasses.Animal]("animal")
-
-      assert(
-        animalEncoder.encode(wolf) ==
-          """
-          | <?xml version='1.0' encoding='UTF-8'?>
-          | <animal xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="canis_lupus">
-          |   <name>Igor</name>
-          |   <strength>0.2</strength>
-          |   <age>20</age>
-          | </animal>
-          |""".stripMargin.minimized &&
-          animalEncoder.encode(lion) ==
-            """
-              | <?xml version='1.0' encoding='UTF-8'?>
-              | <animal xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="panthera_leo">
-              |   <name>Sergey</name>
-              |   <strength>0.75</strength>
-              |   <speed>60.1</speed>
-              | </animal>
-            """.stripMargin.minimized
-      )
-    }
-
     "encode mixed content" in {
       @XmlCodec("foo")
       case class Foo(count: Int, buz: String, @text text: String)
@@ -520,6 +344,235 @@ class EncoderDerivationSuit extends WordSpec with Matchers {
             |   <e>e</e>
             | </bar>
           """.stripMargin.minimized)
+    }
+  }
+
+  "Encoder derivation for sealed traits" should {
+    "encode simple sealed traits" in {
+      @ElementCodec
+      case class Bar(d: String, foo: SealedClasses.Foo, e: Char)
+
+      val bar1 = Bar("d value", SealedClasses.Foo1("string"), 'k')
+      val bar2 = Bar("d value", SealedClasses.Foo2(1), 'e')
+      val bar3 = Bar("another one value", SealedClasses.Foo3(1.1234), 'v')
+
+      val barEncoder = XmlEncoder.fromElementEncoder[Bar]("bar")
+
+      val string1 = barEncoder.encode(bar1)
+      val string2 = barEncoder.encode(bar2)
+      val string3 = barEncoder.encode(bar3)
+
+      assert(
+        string1 ==
+          """
+            | <?xml version='1.0' encoding='UTF-8'?>
+            | <bar>
+            |   <d>d value</d>
+            |   <foo xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="Foo1">
+            |     <a>string</a>
+            |   </foo>
+            |   <e>k</e>
+            | </bar>
+          """.stripMargin.minimized &&
+          string2 ==
+            """
+              | <?xml version='1.0' encoding='UTF-8'?>
+              | <bar>
+              |   <d>d value</d>
+              |   <foo xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="Foo2">
+              |     <b>1</b>
+              |   </foo>
+              |   <e>e</e>
+              | </bar>
+          """.stripMargin.minimized &&
+          string3 ==
+            """
+              | <?xml version='1.0' encoding='UTF-8'?>
+              | <bar>
+              |   <d>another one value</d>
+              |   <foo xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="Foo3">
+              |     <c>1.1234</c>
+              |   </foo>
+              |   <e>v</e>
+              | </bar>
+          """.stripMargin.minimized)
+    }
+
+    "encode sealed traits with custom discriminator" in {
+      @ElementCodec
+      case class Qux(d: String, bar: SealedClasses.Bar, e: Char)
+
+      val qux1 = Qux("d value", SealedClasses.Bar1("string"), 'k')
+      val qux2 = Qux("d value", SealedClasses.Bar2(1), 'e')
+      val qux3 = Qux("another one value", SealedClasses.Bar3(1.1234), 'v')
+
+      val quxEncoder = XmlEncoder.fromElementEncoder[Qux]("qux")
+
+      val string1 = quxEncoder.encode(qux1)
+      val string2 = quxEncoder.encode(qux2)
+      val string3 = quxEncoder.encode(qux3)
+
+      assert(
+        string1 ==
+          """
+            | <?xml version='1.0' encoding='UTF-8'?>
+            | <qux>
+            |   <d>d value</d>
+            |   <bar discriminator="Bar1">
+            |     <a>string</a>
+            |   </bar>
+            |   <e>k</e>
+            | </qux>
+          """.stripMargin.minimized &&
+          string2 ==
+            """
+              | <?xml version='1.0' encoding='UTF-8'?>
+              | <qux>
+              |   <d>d value</d>
+              |   <bar discriminator="Bar2">
+              |     <b>1</b>
+              |   </bar>
+              |   <e>e</e>
+              | </qux>
+          """.stripMargin.minimized &&
+          string3 ==
+            """
+              | <?xml version='1.0' encoding='UTF-8'?>
+              | <qux>
+              |   <d>another one value</d>
+              |   <bar discriminator="Bar3">
+              |     <c>1.1234</c>
+              |   </bar>
+              |   <e>v</e>
+              | </qux>
+          """.stripMargin.minimized)
+
+      @ElementCodec
+      case class Quux(d: String, baz: SealedClasses.Baz, e: Char)
+
+      val quux1 = Quux("d value", SealedClasses.Baz1("string"), 'k')
+      val quux2 = Quux("d value", SealedClasses.Baz2(1), 'e')
+      val quux3 = Quux("another one value", SealedClasses.Baz3(1.1234), 'v')
+
+      val quuxEncoder = XmlEncoder.fromElementEncoder[Quux]("quux")
+
+      val string4 = quuxEncoder.encode(quux1)
+      val string5 = quuxEncoder.encode(quux2)
+      val string6 = quuxEncoder.encode(quux3)
+
+      assert(
+        string4 ==
+          """
+            | <?xml version='1.0' encoding='UTF-8'?>
+            | <quux>
+            |   <d>d value</d>
+            |   <baz xmlns:ans1="https://tinkoff.ru" ans1:discriminator="Baz1">
+            |     <a>string</a>
+            |   </baz>
+            |   <e>k</e>
+            | </quux>
+          """.stripMargin.minimized &&
+          string5 ==
+            """
+              | <?xml version='1.0' encoding='UTF-8'?>
+              | <quux>
+              |   <d>d value</d>
+              |   <baz xmlns:ans1="https://tinkoff.ru" ans1:discriminator="Baz2">
+              |     <b>1</b>
+              |   </baz>
+              |   <e>e</e>
+              | </quux>
+          """.stripMargin.minimized &&
+          string6 ==
+            """
+              | <?xml version='1.0' encoding='UTF-8'?>
+              | <quux>
+              |   <d>another one value</d>
+              |   <baz xmlns:ans1="https://tinkoff.ru" ans1:discriminator="Baz3">
+              |     <c>1.1234</c>
+              |   </baz>
+              |   <e>v</e>
+              | </quux>
+          """.stripMargin.minimized)
+    }
+
+    "encode sealed traits with constructor names transformed" in {
+      val wolf = SealedClasses.CanisLupus("Igor", 0.2, 20)
+      val lion = SealedClasses.PantheraLeo("Sergey", 0.75, 60.1)
+
+      val animalEncoder = XmlEncoder.fromElementEncoder[SealedClasses.Mammalia]("animal")
+
+      assert(
+        animalEncoder.encode(wolf) ==
+          """
+            | <?xml version='1.0' encoding='UTF-8'?>
+            | <animal xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="canis_lupus">
+            |   <name>Igor</name>
+            |   <strength>0.2</strength>
+            |   <age>20</age>
+            | </animal>
+          """.stripMargin.minimized &&
+          animalEncoder.encode(lion) ==
+            """
+              | <?xml version='1.0' encoding='UTF-8'?>
+              | <animal xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="panthera_leo">
+              |   <name>Sergey</name>
+              |   <strength>0.75</strength>
+              |   <speed>60.1</speed>
+              | </animal>
+            """.stripMargin.minimized
+      )
+    }
+
+    "encode sealed traits with custom discriminator values" in {
+      val hornet    = SealedClasses.Vespa("Anton", 200.123)
+      val cockroach = SealedClasses.Blattodea("Dmitriy", 5)
+
+      val insectEncoder = XmlEncoder.fromElementEncoder[SealedClasses.Insecta]("insect")
+
+      assert(
+        insectEncoder.encode(hornet) ==
+          """
+            | <?xml version='1.0' encoding='UTF-8'?>
+            | <insect xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="hornet">
+            |   <name>Anton</name>
+            |   <damage>200.123</damage>
+            | </insect>
+          """.stripMargin.minimized &&
+          insectEncoder.encode(cockroach) ==
+            """
+              | <?xml version='1.0' encoding='UTF-8'?>
+              | <insect xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="cockroach">
+              |   <name>Dmitriy</name>
+              |   <legsNumber>5</legsNumber>
+              | </insect>
+            """.stripMargin.minimized)
+    }
+
+    "not transform custom discriminator values" in {
+      val clownFish  = SealedClasses.Amphiprion("Nemo", 1)
+      val whiteShark = SealedClasses.CarcharodonCarcharias("Bill", 20000000000L)
+
+      val fishEncoder = XmlEncoder.fromElementEncoder[SealedClasses.Pisces]("fish")
+
+      assert(
+        fishEncoder.encode(clownFish) ==
+          """
+            | <?xml version='1.0' encoding='UTF-8'?>
+            | <fish xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="ClownFish">
+            |   <name>Nemo</name>
+            |   <finNumber>1</finNumber>
+            | </fish>
+          """.stripMargin.minimized &&
+          fishEncoder.encode(whiteShark) ==
+            """
+              | <?xml version='1.0' encoding='UTF-8'?>
+              | <fish xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="carcharodon_carcharias">
+              |   <name>Bill</name>
+              |   <teethNumber>20000000000</teethNumber>
+              | </fish>
+            """.stripMargin.minimized
+      )
     }
   }
 

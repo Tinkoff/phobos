@@ -5,7 +5,8 @@ import ru.tinkoff.phobos.configured.ElementCodecConfig
 import ru.tinkoff.phobos.derivation.CompileTimeState.{ChainedImplicit, Stack}
 import ru.tinkoff.phobos.derivation.Derivation.DirectlyReentrantException
 import ru.tinkoff.phobos.derivation.auto.Exported
-import ru.tinkoff.phobos.syntax.{attr, renamed, text, xmlns}
+import ru.tinkoff.phobos.syntax.{attr, discriminator, renamed, text, xmlns}
+
 import scala.reflect.macros.blackbox
 
 private[phobos] abstract class Derivation(val c: blackbox.Context) {
@@ -80,12 +81,13 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
     val classType  = weakTypeOf[T]
     val typeSymbol = classType.typeSymbol
     if (!typeSymbol.isClass) error("Don't know how to work with not classes")
-    val classSymbol   = typeSymbol.asClass
-    val namespaceType = typeOf[Namespace[_]]
-    val attrType      = typeOf[attr]
-    val textType      = typeOf[text]
-    val xmlnsType     = weakTypeOf[xmlns[_]]
-    val renamedType   = typeOf[renamed]
+    val classSymbol       = typeSymbol.asClass
+    val namespaceType     = typeOf[Namespace[_]]
+    val attrType          = typeOf[attr]
+    val textType          = typeOf[text]
+    val xmlnsType         = weakTypeOf[xmlns[_]]
+    val renamedType       = typeOf[renamed]
+    val discriminatorType = typeOf[discriminator]
 
     val expandDeferred = new Transformer {
       override def transform(tree: Tree) = tree match {
@@ -100,7 +102,15 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
       if (classSymbol.isSealed) {
         val sealedTraitSubtypes = classType.typeSymbol.asClass.knownDirectSubclasses.map { symbol =>
           val constructorName = q"""$config.transformConstructorNames(`${symbol.name.decodedName.toString}`)"""
-          SealedTraitSubtype(constructorName, symbol.asType.toType)
+          val discriminatorValue = symbol.annotations.collectFirst {
+            case annot if annot.tree.tpe =:= discriminatorType =>
+              annot.tree.children.tail.collectFirst {
+                case t @ Literal(Constant(_: String)) => t
+              }.getOrElse {
+                error("@discriminator is only allowed to be used with string literals")
+              }
+          }.getOrElse(constructorName)
+          SealedTraitSubtype(discriminatorValue, symbol.asType.toType)
         }
         deriveCoproductCodec(stack)(config, sealedTraitSubtypes)
       } else if (classSymbol.isCaseClass) {
