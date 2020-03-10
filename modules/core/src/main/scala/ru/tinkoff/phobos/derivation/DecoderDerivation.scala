@@ -60,15 +60,19 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
           localName: $javaPkg.String,
           namespaceUri: $scalaPkg.Option[$javaPkg.String],
         ): $decodingPkg.ElementDecoder[$classType] = {
-          val discriminatorIdx = cursor.getAttributeIndex($config.discriminatorNamespace.getOrElse(null), $config.discriminatorLocalName)
-          if (discriminatorIdx > -1) {
-            cursor.getAttributeValue(discriminatorIdx) match {
-              case ..$alternatives
-            }
+          if (cursor.getEventType == _root_.com.fasterxml.aalto.AsyncXMLStreamReader.EVENT_INCOMPLETE) {
+            this
           } else {
-            new $decodingPkg.ElementDecoder.FailedDecoder[$classType](
-              cursor.error(s"No type discriminator '$${$config.discriminatorNamespace.fold("")(_ + ":")}$${$config.discriminatorLocalName}' found")
-            )
+            val discriminatorIdx = cursor.getAttributeIndex($config.discriminatorNamespace.getOrElse(null), $config.discriminatorLocalName)
+            if (discriminatorIdx > -1) {
+              cursor.getAttributeValue(discriminatorIdx) match {
+                case ..$alternatives
+              }
+            } else {
+              new $decodingPkg.ElementDecoder.FailedDecoder[$classType](
+                cursor.error(s"No type discriminator '$${$config.discriminatorNamespace.fold("")(_ + ":")}$${$config.discriminatorLocalName}' found")
+              )
+            }
           }
         }
         
