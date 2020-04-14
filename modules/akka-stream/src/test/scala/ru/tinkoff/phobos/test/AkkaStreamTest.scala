@@ -10,10 +10,7 @@ import org.scalatest.wordspec.AsyncWordSpecLike
 import ru.tinkoff.phobos.akka_stream._
 import ru.tinkoff.phobos.annotations.{ElementCodec, XmlCodec}
 import ru.tinkoff.phobos.syntax.text
-
-import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.util.Failure
 
 class AkkaStreamTest
     extends TestKit(ActorSystem("akka-stream-test")) with AsyncWordSpecLike with ScalaFutures with BeforeAndAfterAll {
