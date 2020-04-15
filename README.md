@@ -14,7 +14,7 @@ Scala 2.12 and 2.13 are supported. Support for Scala 2.11 may be implemented on 
 Add phobos-core to your dependencies:
 
 ```
-libraryDependencies += "ru.tinkoff" %% "phobos-core" % "0.5.1"
+libraryDependencies += "ru.tinkoff" %% "phobos-core" % "0.6.0"
 ```
 
 Then try this code out in `sbt console` or in a separate source file:
@@ -67,13 +67,14 @@ Performance details can be found out in [phobos-benchmark repository](https://gi
 There are several additional modules for some specific cases. 
 These modules could be added with command below:
 ```
-libraryDependencies += "ru.tinkoff" %% "phobos-<module>" % "0.5.1"
+libraryDependencies += "ru.tinkoff" %% "phobos-<module>" % "0.6.0"
 ```
 Where `<module>` is module name.
 
 | Module name  | Functionality  |
 |--------------|----------------|
-| akka         | Marshallers and unmarshallers for [akka-http](https://github.com/akka/akka-http) |
+| akka-http    | Marshallers and unmarshallers for [akka-http](https://doc.akka.io/docs/akka-http/current/) |
+| akka-streams | Streaming decoding support for [akka-streams](https://doc.akka.io/docs/akka/current/stream/index.html)|
 | derevo       | Separate derivation of encoders and decoders separately using [derevo](https://github.com/manatki/derevo) annotations (e.g. `@derive(xmlEncoder("foo"))`)
 | enumeratum   | Support for [enumeratum](https://github.com/lloydmeta/enumeratum#manual-override-of-name) enums |
 | fs2          | Streaming decoding support (`Stream[F, Array[Byte]] => G[A]`) |
