@@ -1,0 +1,30 @@
+package ru.tinkoff.phobos.ast
+
+import ru.tinkoff.phobos.encoding.{ElementEncoder, PhobosStreamWriter}
+
+private[phobos] object XmlEntryElementEncoder extends ElementEncoder[XmlEntry] {
+
+  override def encodeAsElement(
+      entry: XmlEntry,
+      sw: PhobosStreamWriter,
+      localName: String,
+      namespaceUri: Option[String]
+  ): Unit = {
+    entry match {
+      case leaf: XmlEntry.Leaf =>
+        leaf.companion.elementEncoder.encodeAsElement(leaf.value, sw, localName, namespaceUri)
+
+      case XmlEntry.Node(attributes, children) =>
+        namespaceUri.fold(sw.writeStartElement(localName))(sw.writeStartElement(_, localName))
+        attributes.foreach {
+          case (attrName, attrValue) =>
+            attrValue.companion.attributeEncoder.encodeAsAttribute(attrValue.value, sw, attrName, namespaceUri = None)
+        }
+        children foreach {
+          case (childName, child) =>
+            encodeAsElement(child, sw, childName, namespaceUri = None)
+        }
+        sw.writeEndElement()
+    }
+  }
+}

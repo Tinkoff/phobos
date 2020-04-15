@@ -2,6 +2,7 @@ package ru.tinkoff.phobos.ast
 
 import ru.tinkoff.phobos.decoding.{AttributeDecoder, ElementDecoder}
 import ru.tinkoff.phobos.encoding.{AttributeEncoder, ElementEncoder, TextEncoder}
+import ru.tinkoff.phobos.traverse.GenericElementDecoder
 
 sealed trait XmlEntry
 object XmlEntry {
@@ -104,17 +105,13 @@ object XmlEntry {
   case object True  extends Bool(true)
   case object False extends Bool(false)
 
-  sealed trait Node extends XmlEntry {
-    def attributes: List[(String, Leaf)]
-  }
-  case class TextNode(attributes: List[(String, Leaf)], text: Leaf) extends Node
-  case class ParentNode(
+  case class Node(
       attributes: List[(String, Leaf)],
       children: List[(String, XmlEntry)]
-  ) extends Node
+  ) extends XmlEntry
 
-  implicit val xmlEntryEncoder: ElementEncoder[XmlEntry] = impl.XmlEntryElementEncoder
+  implicit val xmlEntryEncoder: ElementEncoder[XmlEntry] = XmlEntryElementEncoder
 
   implicit val xmlEntryDecoder: ElementDecoder[XmlEntry] =
-    traverse.GenericElementDecoder(traverse.AstTraversingLogic.instance)
+    GenericElementDecoder(AstTraversingLogic.instance)
 }

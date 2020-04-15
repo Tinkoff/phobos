@@ -1,20 +1,15 @@
-package ru.tinkoff.phobos.ast.traverse
+package ru.tinkoff.phobos.traverse
 
-import cats.instances.list._
 import cats.syntax.either._
-import cats.syntax.traverse._
 import com.fasterxml.aalto.AsyncXMLStreamReader
-import ru.tinkoff.phobos.ast.impl.XmlEntryElementDecoder
-import ru.tinkoff.phobos.ast.impl.XmlEntryElementDecoder.DecoderState
 import ru.tinkoff.phobos.ast.{Leaf, Node, XmlEntry}
 import ru.tinkoff.phobos.decoding.{Cursor, DecodingError, ElementDecoder, TextDecoder}
 import scala.annotation.tailrec
 import scala.util.Try
+import GenericElementDecoder.DecoderState
 
 class GenericElementDecoder[Acc, Result] private (state: DecoderState, logic: TraversingLogic[Acc, Result])
     extends ElementDecoder[Result] {
-
-  import XmlEntryElementDecoder._
 
   override def decodeAsElement(cursor: Cursor,
                                localName: String,
@@ -46,13 +41,16 @@ class GenericElementDecoder[Acc, Result] private (state: DecoderState, logic: Tr
             }
 
           case DecoderState.DecodingSelf =>
-            val parsedText = parseLeaf {
-              TextDecoder.stringDecoder
-                .decodeAsText(cursor, localName, namespaceUri)
-                .result(cursor.history)
-                .valueOr(throw _)
-            }
-            val newAcc = logic.onText(acc, parsedText)
+            val newAcc: Acc = TextDecoder.stringDecoder
+              .decodeAsText(cursor, localName, namespaceUri)
+              .result(cursor.history)
+              .map(parseLeaf)
+              .map {
+                case XmlEntry.Text("") => acc
+                case other             => logic.onText(acc, localName, other)
+              }
+              .getOrElse(acc)
+
             if (cursor.isStartElement) {
               go(DecoderState.DecodingElement(cursor.getLocalName), newAcc)
             } else if (cursor.isEndElement) {
@@ -69,18 +67,25 @@ class GenericElementDecoder[Acc, Result] private (state: DecoderState, logic: Tr
 
           case DecoderState.DecodingElement(field) =>
             val element = {
-              if (cursor.isStartElement) decodeAsElement(cursor, field, None)
+              if (cursor.isStartElement)
+                decodeAsElement(cursor, field, None)
+                  .map(logic.combine(acc, field, _))
               else
-                XmlEntry.Text.elementDecoder.decodeAsElement(cursor, field, None).map(parseLeaf)
+//                XmlEntry.Text.elementDecoder
+//                  .decodeAsElement(cursor, field, None)
+//                  .map(parseLeaf)
+//                  .map {
+//                    case XmlEntry.Text("") => acc
+//                    case other             => logic.onText(acc, field, other)
+//                  }
+                new ElementDecoder.ConstDecoder(acc)
             }
 
             println(s"Element name=$field encoded as $element")
             if (element.isCompleted) {
               element.result(cursor.history) match {
-                case Right(node: Node) =>
-                  go(DecoderState.DecodingSelf, logic.onNode(acc, field, node))
-                case Right(other) =>
-                  fail(cursor, s"Expected $field no be xml node, got $other")
+                case Right(newAcc) =>
+                  go(DecoderState.DecodingSelf, newAcc)
                 case Left(error) => fail(error)
               }
             } else {
@@ -124,4 +129,11 @@ class GenericElementDecoder[Acc, Result] private (state: DecoderState, logic: Tr
 object GenericElementDecoder {
   def apply[Acc, Result](logic: TraversingLogic[Acc, Result]): GenericElementDecoder[Acc, Result] =
     new GenericElementDecoder(DecoderState.New, logic)
+
+  sealed trait DecoderState
+  object DecoderState {
+    case object New                           extends DecoderState
+    case object DecodingSelf                  extends DecoderState
+    case class DecodingElement(field: String) extends DecoderState
+  }
 }

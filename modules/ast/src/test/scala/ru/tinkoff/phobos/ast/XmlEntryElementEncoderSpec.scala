@@ -11,7 +11,7 @@ class XmlEntryElementEncoderSpec extends AnyWordSpec with Matchers {
       val ast = XmlNode
         .withAttributes("foo" -> 5)
         .withChildren(
-          "bar" -> XmlNode.withAttributes().withText("bazz")
+          "bar" -> "bazz"
         )
 
       val result =
@@ -30,17 +30,17 @@ class XmlEntryElementEncoderSpec extends AnyWordSpec with Matchers {
       val ast = XmlNode
         .withAttributes("foo" -> 5)
         .withChildren(
-          "bar" -> XmlNode.asText("bazz"),
+          "bar" -> "bazz",
           "array" -> XmlNode
             .withAttributes("foo2" -> true, "foo3" -> false)
             .withChildren(
-              "elem" -> XmlNode.asText(11111111111111L),
-              "elem" -> XmlNode.asText(11111111111112L)
+              "elem" -> 11111111111111L,
+              "elem" -> 11111111111112L
             ),
           "nested" -> XmlNode
-            .asParent(
-              "scala"   -> XmlNode.asText(2.13),
-              "dotty"   -> XmlNode.asText(0.13),
+            .withChildren(
+              "scala"   -> 2.13,
+              "dotty"   -> 0.13,
               "scala-4" -> XmlNode.empty
             )
         )

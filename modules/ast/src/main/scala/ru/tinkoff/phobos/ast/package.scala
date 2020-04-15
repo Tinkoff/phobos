@@ -23,21 +23,15 @@ package object ast {
 
   object XmlNode {
     class PartiallyApplied(private val attrs: Seq[(String, Leaf)]) extends AnyVal {
-      def withChildren(xs: (String, Node)*): Node = XmlEntry.ParentNode(
+      def withChildren(xs: (String, XmlEntry)*): Node = XmlEntry.Node(
         attributes = attrs.toList,
         children = xs.toList
-      )
-
-      def withText(value: Leaf): Node = XmlEntry.TextNode(
-        attributes = attrs.toList,
-        text = value
       )
     }
 
     def withAttributes(xs: (String, Leaf)*): PartiallyApplied = new PartiallyApplied(xs)
 
-    def asText(value: Leaf): Node           = withAttributes().withText(value)
-    def asParent(xs: (String, Node)*): Node = withAttributes().withChildren(xs: _*)
+    def withChildren(xs: (String, XmlEntry)*): Node = withAttributes().withChildren(xs: _*)
 
     val empty: Node = withAttributes().withChildren()
   }
