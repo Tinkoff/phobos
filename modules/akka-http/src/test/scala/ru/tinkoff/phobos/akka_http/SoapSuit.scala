@@ -1,4 +1,4 @@
-package ru.tinkoff.phobos.akka
+package ru.tinkoff.phobos.akka_http
 
 import org.scalatest._
 
