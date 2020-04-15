@@ -210,7 +210,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
       q"($scalaPkg.Right(new $classType()): $scalaPkg.Either[$decodingPkg.DecodingError, $classType])"
     }
 
-    val t = q"""
+    q"""
       ..$preAssignments
       class $decoderName(
         state: $derivationPkg.DecoderDerivation.DecoderState,
@@ -307,10 +307,6 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 
       new $decoderName($decoderStateObj.New, ..${allParams.map(_.defaultValue)})
     """
-
-    println(t)
-
-    t
   }
 
   def xml[T: c.WeakTypeTag](localName: Tree): Tree =

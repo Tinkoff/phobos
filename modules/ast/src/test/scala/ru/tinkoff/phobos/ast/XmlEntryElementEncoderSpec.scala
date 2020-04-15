@@ -3,16 +3,15 @@ package ru.tinkoff.phobos.ast
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import ru.tinkoff.phobos.Namespace
-import ru.tinkoff.phobos.ast.syntax._
 import ru.tinkoff.phobos.encoding.XmlEncoder
 
 class XmlEntryElementEncoderSpec extends AnyWordSpec with Matchers {
   "XmlEntry encoder" should {
     "encodes simple Xml ast correctly" in {
       val ast = XmlNode
-        .attributes("foo" -> 5)
-        .children(
-          "bar" -> "bazz"
+        .withAttributes("foo" -> 5)
+        .withChildren(
+          "bar" -> XmlNode.withAttributes().withText("bazz")
         )
 
       val result =
@@ -29,19 +28,19 @@ class XmlEntryElementEncoderSpec extends AnyWordSpec with Matchers {
       }
 
       val ast = XmlNode
-        .attributes("foo" -> 5)
-        .children(
-          "bar" -> "bazz",
+        .withAttributes("foo" -> 5)
+        .withChildren(
+          "bar" -> XmlNode.asText("bazz"),
           "array" -> XmlNode
-            .attributes("foo2" -> true, "foo3" -> false)
-            .children(
-              "elem" -> 11111111111111L,
-              "elem" -> 11111111111112L
+            .withAttributes("foo2" -> true, "foo3" -> false)
+            .withChildren(
+              "elem" -> XmlNode.asText(11111111111111L),
+              "elem" -> XmlNode.asText(11111111111112L)
             ),
-          "nested" -> XmlNode.withoutAttributes
-            .children(
-              "scala"   -> 2.13,
-              "dotty"   -> 0.13,
+          "nested" -> XmlNode
+            .asParent(
+              "scala"   -> XmlNode.asText(2.13),
+              "dotty"   -> XmlNode.asText(0.13),
               "scala-4" -> XmlNode.empty
             )
         )
