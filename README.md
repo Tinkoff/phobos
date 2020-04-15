@@ -74,7 +74,7 @@ Where `<module>` is module name.
 | Module name  | Functionality  |
 |--------------|----------------|
 | akka-http    | Marshallers and unmarshallers for [akka-http](https://doc.akka.io/docs/akka-http/current/) |
-| akka-streams | Streaming decoding support for [akka-streams](https://doc.akka.io/docs/akka/current/stream/index.html)|
+| akka-stream  | Streaming decoding support for [akka-stream](https://doc.akka.io/docs/akka/current/stream/index.html)|
 | derevo       | Separate derivation of encoders and decoders separately using [derevo](https://github.com/manatki/derevo) annotations (e.g. `@derive(xmlEncoder("foo"))`)
 | enumeratum   | Support for [enumeratum](https://github.com/lloydmeta/enumeratum#manual-override-of-name) enums |
 | fs2          | Streaming decoding support (`Stream[F, Array[Byte]] => G[A]`) |
