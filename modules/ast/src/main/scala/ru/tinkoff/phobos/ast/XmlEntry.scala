@@ -1,114 +1,117 @@
 package ru.tinkoff.phobos.ast
 
+import ru.tinkoff.phobos.ast.impl.{Attr, NodePair, XmlBuildingBlock}
 import ru.tinkoff.phobos.decoding.{AttributeDecoder, ElementDecoder}
 import ru.tinkoff.phobos.encoding.{AttributeEncoder, ElementEncoder, TextEncoder}
 import ru.tinkoff.phobos.traverse.GenericElementDecoder
 
 sealed trait XmlEntry
-object XmlEntry {
+object XmlEntry extends impl.CatsInstances {
 
-  sealed trait Leaf extends XmlEntry {
-    private[phobos] type Self <: Leaf
-    val companion: XmlLeafCompanion[Self]
+  object impl {
 
-    final type ScalaType = companion.ScalaType
-    def value: ScalaType
+    sealed trait Leaf extends XmlEntry {
+      private[phobos] type Self <: Leaf
+      type ScalaType
+
+      val companion: XmlLeafCompanion[Self, ScalaType]
+      def value: ScalaType
+    }
+
+    sealed trait XmlLeafCompanion[E <: Leaf, ScalaType] {
+      def apply(value: ScalaType): E
+
+      private[phobos] val attributeEncoder: AttributeEncoder[ScalaType]
+      private[phobos] val attributeDecoder: AttributeDecoder[ScalaType]
+
+      private[phobos] val elementEncoder: ElementEncoder[ScalaType]
+      private[phobos] val elementDecoder: ElementDecoder[ScalaType]
+
+      private[phobos] val textEncoder: TextEncoder[ScalaType]
+    }
+
+    sealed trait Number extends Leaf
+
+    object IntegralNumber extends XmlLeafCompanion[IntegralNumber, Long] {
+      override private[phobos] val attributeEncoder = AttributeEncoder.longEncoder
+      override private[phobos] val attributeDecoder = AttributeDecoder.longDecoder
+      override private[phobos] val elementEncoder   = ElementEncoder.longEncoder
+      override private[phobos] val elementDecoder   = ElementDecoder.longDecoder
+      override private[phobos] val textEncoder      = TextEncoder.longEncoder
+    }
+
+    final case class IntegralNumber(value: Long) extends Number {
+      override type Self      = IntegralNumber
+      override type ScalaType = Long
+      override val companion = IntegralNumber
+    }
+
+    object DoubleNumber extends XmlLeafCompanion[DoubleNumber, Double] {
+      override private[phobos] val attributeEncoder = AttributeEncoder.doubleEncoder
+      override private[phobos] val attributeDecoder = AttributeDecoder.doubleDecoder
+      override private[phobos] val elementEncoder   = ElementEncoder.doubleEncoder
+      override private[phobos] val elementDecoder   = ElementDecoder.doubleDecoder
+      override private[phobos] val textEncoder      = TextEncoder.doubleEncoder
+    }
+
+    final case class DoubleNumber(value: Double) extends Number {
+      override type Self      = DoubleNumber
+      override type ScalaType = Double
+      override val companion = DoubleNumber
+    }
+
+    object Text extends XmlLeafCompanion[Text, String] {
+      override private[phobos] val attributeEncoder = AttributeEncoder.stringEncoder
+      override private[phobos] val attributeDecoder = AttributeDecoder.stringDecoder
+      override private[phobos] val elementEncoder   = ElementEncoder.stringEncoder
+      override private[phobos] val elementDecoder   = ElementDecoder.stringDecoder
+      override private[phobos] val textEncoder      = TextEncoder.stringEncoder
+    }
+
+    final case class Text(value: String) extends Leaf {
+      override type Self      = Text
+      override type ScalaType = String
+      override val companion = Text
+    }
+
+    object Bool extends XmlLeafCompanion[Bool, Boolean] {
+      override private[phobos] val attributeEncoder = AttributeEncoder.booleanEncoder
+      override private[phobos] val attributeDecoder = AttributeDecoder.booleanDecoder
+      override private[phobos] val elementEncoder   = ElementEncoder.booleanEncoder
+      override private[phobos] val elementDecoder   = ElementDecoder.booleanDecoder
+      override private[phobos] val textEncoder      = TextEncoder.booleanEncoder
+
+      override def apply(value: Boolean): Bool = if (value) True else False
+    }
+
+    sealed abstract class Bool(override val value: Boolean) extends Leaf {
+      final override type Self      = Bool
+      final override type ScalaType = Boolean
+      final override val companion = Bool
+    }
+
+    case object True extends Bool(true)
+
+    case object False extends Bool(false)
+
+    final case class Node(
+        attributes: List[(String, Leaf)],
+        children: List[(String, XmlEntry)]
+    ) extends XmlEntry {
+
+      def apply(more: XmlBuildingBlock*): Node = {
+        val attrs = more.collect {
+          case attr: Attr => attr.name -> attr.value
+        }.toList
+        val children2 = more.collect {
+          case node: NodePair => node.name -> node.value
+        }.toList
+
+        Node(attributes ++ attrs, children ++ children2)
+      }
+    }
+
   }
-
-  sealed trait XmlLeafCompanion[E <: Leaf] {
-    type ScalaType
-    def apply(value: ScalaType): E
-
-    private[phobos] val attributeEncoder: AttributeEncoder[ScalaType]
-    private[phobos] val attributeDecoder: AttributeDecoder[ScalaType]
-
-    private[phobos] val elementEncoder: ElementEncoder[ScalaType]
-    private[phobos] val elementDecoder: ElementDecoder[ScalaType]
-
-    private[phobos] val textEncoder: TextEncoder[ScalaType]
-  }
-
-  sealed trait Number extends Leaf
-
-  object IntNumber extends XmlLeafCompanion[IntNumber] {
-    final override type ScalaType = Int
-
-    override private[phobos] val attributeEncoder = AttributeEncoder.intEncoder
-    override private[phobos] val attributeDecoder = AttributeDecoder.intDecoder
-    override private[phobos] val elementEncoder   = ElementEncoder.intEncoder
-    override private[phobos] val elementDecoder   = ElementDecoder.intDecoder
-    override private[phobos] val textEncoder      = TextEncoder.intEncoder
-  }
-  case class IntNumber(value: Int) extends Number {
-    final override type Self = IntNumber
-    final override val companion = IntNumber
-  }
-
-  object LongNumber extends XmlLeafCompanion[LongNumber] {
-    final override type ScalaType = Long
-
-    override private[phobos] val attributeEncoder = AttributeEncoder.longEncoder
-    override private[phobos] val attributeDecoder = AttributeDecoder.longDecoder
-    override private[phobos] val elementEncoder   = ElementEncoder.longEncoder
-    override private[phobos] val elementDecoder   = ElementDecoder.longDecoder
-    override private[phobos] val textEncoder      = TextEncoder.longEncoder
-  }
-  case class LongNumber(value: Long) extends Number {
-    final override type Self = LongNumber
-    final override val companion = LongNumber
-  }
-
-  object DoubleNumber extends XmlLeafCompanion[DoubleNumber] {
-    final override type ScalaType = Double
-
-    override private[phobos] val attributeEncoder = AttributeEncoder.doubleEncoder
-    override private[phobos] val attributeDecoder = AttributeDecoder.doubleDecoder
-    override private[phobos] val elementEncoder   = ElementEncoder.doubleEncoder
-    override private[phobos] val elementDecoder   = ElementDecoder.doubleDecoder
-    override private[phobos] val textEncoder      = TextEncoder.doubleEncoder
-  }
-  case class DoubleNumber(value: Double) extends Number {
-    final override type Self = DoubleNumber
-    final override val companion = DoubleNumber
-  }
-
-  object Text extends XmlLeafCompanion[Text] {
-    final override type ScalaType = String
-
-    override private[phobos] val attributeEncoder = AttributeEncoder.stringEncoder
-    override private[phobos] val attributeDecoder = AttributeDecoder.stringDecoder
-    override private[phobos] val elementEncoder   = ElementEncoder.stringEncoder
-    override private[phobos] val elementDecoder   = ElementDecoder.stringDecoder
-    override private[phobos] val textEncoder      = TextEncoder.stringEncoder
-  }
-  case class Text(value: String) extends Leaf {
-    final override type Self = Text
-    final override val companion = Text
-  }
-
-  object Bool extends XmlLeafCompanion[Bool] {
-    final override type ScalaType = Boolean
-
-    override private[phobos] val attributeEncoder = AttributeEncoder.booleanEncoder
-    override private[phobos] val attributeDecoder = AttributeDecoder.booleanDecoder
-    override private[phobos] val elementEncoder   = ElementEncoder.booleanEncoder
-    override private[phobos] val elementDecoder   = ElementDecoder.booleanDecoder
-    override private[phobos] val textEncoder      = TextEncoder.booleanEncoder
-
-    override def apply(value: Boolean): Bool = if (value) True else False
-  }
-  sealed abstract class Bool(override val value: Boolean) extends Leaf {
-    final override type Self = Bool
-    final override val companion = Bool
-  }
-
-  case object True  extends Bool(true)
-  case object False extends Bool(false)
-
-  case class Node(
-      attributes: List[(String, Leaf)],
-      children: List[(String, XmlEntry)]
-  ) extends XmlEntry
 
   implicit val xmlEntryEncoder: ElementEncoder[XmlEntry] = XmlEntryElementEncoder
 

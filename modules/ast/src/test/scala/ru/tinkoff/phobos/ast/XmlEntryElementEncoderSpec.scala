@@ -1,18 +1,15 @@
 package ru.tinkoff.phobos.ast
 
+import com.softwaremill.diffx.scalatest.DiffMatcher
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import ru.tinkoff.phobos.Namespace
 import ru.tinkoff.phobos.encoding.XmlEncoder
 
-class XmlEntryElementEncoderSpec extends AnyWordSpec with Matchers {
+class XmlEntryElementEncoderSpec extends AnyWordSpec with DiffMatcher with Matchers {
   "XmlEntry encoder" should {
     "encodes simple Xml ast correctly" in {
-      val ast = XmlNode
-        .withAttributes("foo" -> 5)
-        .withChildren(
-          "bar" -> "bazz"
-        )
+      val ast = xml(attr("foo") := 5, node("bar") := "bazz")
 
       val result =
         XmlEncoder
@@ -27,23 +24,21 @@ class XmlEntryElementEncoderSpec extends AnyWordSpec with Matchers {
         implicit val ns: Namespace[tinkoff.type] = Namespace.mkInstance("https://tinkoff.ru")
       }
 
-      val ast = XmlNode
-        .withAttributes("foo" -> 5)
-        .withChildren(
-          "bar" -> "bazz",
-          "array" -> XmlNode
-            .withAttributes("foo2" -> true, "foo3" -> false)
-            .withChildren(
-              "elem" -> 11111111111111L,
-              "elem" -> 11111111111112L
-            ),
-          "nested" -> XmlNode
-            .withChildren(
-              "scala"   -> 2.13,
-              "dotty"   -> 0.13,
-              "scala-4" -> XmlNode.empty
-            )
+      val ast = xml(attr("foo") := 5)(
+        node("bar") := "bazz",
+        node("array") := xml(
+          attr("foo2") := true,
+          attr("foo3") := false
+        )(
+          node("elem") := 11111111111111L,
+          node("elem") := 11111111111112L
+        ),
+        node("nested") := xml(
+          node("scala") := 2.13,
+          node("dotty") := 0.13,
+          node("scala-4") := xml.empty
         )
+      )
 
       val result =
         XmlEncoder

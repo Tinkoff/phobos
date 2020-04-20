@@ -11,10 +11,10 @@ private[phobos] object XmlEntryElementEncoder extends ElementEncoder[XmlEntry] {
       namespaceUri: Option[String]
   ): Unit = {
     entry match {
-      case leaf: XmlEntry.Leaf =>
+      case leaf: XmlLeaf =>
         leaf.companion.elementEncoder.encodeAsElement(leaf.value, sw, localName, namespaceUri)
 
-      case XmlEntry.Node(attributes, children) =>
+      case XmlNode(attributes, children) =>
         namespaceUri.fold(sw.writeStartElement(localName))(sw.writeStartElement(_, localName))
         attributes.foreach {
           case (attrName, attrValue) =>
