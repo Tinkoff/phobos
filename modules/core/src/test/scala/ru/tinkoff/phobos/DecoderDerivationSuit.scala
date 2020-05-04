@@ -393,6 +393,28 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
     "decode mixed content sync" in decodeMixedContent(pure)
     "decode mixed content async" in decodeMixedContent(fromIterable)
 
+    def decodeMixedContentForElementsWithSameName(toList: String => List[Array[Byte]]): Assertion = {
+      @ElementCodec
+      case class Element2(@text text: String)
+      @ElementCodec
+      case class Element1(element: Element2, @text text: String)
+      @XmlCodec("document")
+      case class Document(element: Element1)
+
+      val string = """<?xml version='1.0' encoding='UTF-8'?>
+                     |<document><element>text1<element>text2</element></element></document>
+                   """.stripMargin
+
+      val decoded = XmlDecoder[Document].decodeFromFoldable(toList(string))
+
+      assert(
+        decoded == Right(Document(Element1(Element2("text2"), "text1")))
+      )
+    }
+
+    "decode mixed content for elements with same name sync" in decodeMixedContentForElementsWithSameName(pure)
+    "decode mixed content for elements with same name async" in decodeMixedContentForElementsWithSameName(fromIterable)
+
     def escapeCharacters(toList: String => List[Array[Byte]]): Assertion = {
       @XmlCodec("foo")
       case class Foo(@attr baz: String, bar: String)
