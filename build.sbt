@@ -43,12 +43,13 @@ def phobosModule(id: String) =
 lazy val core = phobosModule("core")
 lazy val derevo = phobosModule("derevo") dependsOn (core % "compile->compile;test->test")
 lazy val enumeratum = phobosModule("enumeratum") dependsOn (core % "compile->compile;test->test")
-lazy val akka = phobosModule("akka") dependsOn (core % "compile->compile;test->test")
+lazy val `akka-http` = phobosModule("akka-http") dependsOn (core % "compile->compile;test->test")
+lazy val `akka-stream` = phobosModule("akka-stream") dependsOn (core % "compile->compile;test->test")
 lazy val monix = phobosModule("monix") dependsOn (core % "compile->compile;test->test")
 lazy val fs2 = phobosModule("fs2") dependsOn (core % "compile->compile;test->test")
 lazy val ast = phobosModule("ast") dependsOn (core % "compile->compile;test->test")
 
-lazy val modules: List[ProjectReference] = List(core, akka, derevo, enumeratum, monix, fs2, ast)
+lazy val modules: List[ProjectReference] = List(core, `akka-http`, derevo, enumeratum, monix, fs2, `akka-stream`, ast)
 
 
 lazy val phobos = project

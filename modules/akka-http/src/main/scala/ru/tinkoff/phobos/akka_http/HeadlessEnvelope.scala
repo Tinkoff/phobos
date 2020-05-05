@@ -1,4 +1,4 @@
-package ru.tinkoff.phobos.akka
+package ru.tinkoff.phobos.akka_http
 
 import ru.tinkoff.phobos.decoding.{ElementDecoder, XmlDecoder}
 import ru.tinkoff.phobos.derivation.semiauto._
