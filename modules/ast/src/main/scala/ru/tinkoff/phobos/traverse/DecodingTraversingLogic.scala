@@ -9,7 +9,7 @@ trait DecodingTraversingLogic[Acc, Result] {
 
   def onText(acc: Acc, elemName: String, text: XmlLeaf): Acc = acc
 
-  def combine(acc: Acc, field: String, temporalResult: Result): Acc = acc
+  def combine(acc: Acc, field: String, temporalResult: Result): Acc
 
   def onFinish(acc: Acc): Result
 }

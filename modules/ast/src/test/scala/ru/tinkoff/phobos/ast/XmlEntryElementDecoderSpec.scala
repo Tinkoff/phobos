@@ -47,7 +47,7 @@ class XmlEntryElementDecoderSpec extends AnyWordSpec with Matchers with DiffMatc
       decodedAst should matchTo(expectedResult)
     }
 
-    "test" in {
+    "works fine when for elements with same name" in {
 
       val n: XmlEntry = xml(
         node("k") :=
@@ -58,7 +58,6 @@ class XmlEntryElementDecoderSpec extends AnyWordSpec with Matchers with DiffMatc
 
       val encoded = ru.tinkoff.phobos.encoding.XmlEncoder.fromElementEncoder[XmlEntry]("ast").encode(n)
 
-      println(encoded)
       val result = XmlDecoder
         .fromElementDecoder[XmlEntry]("ast")
         .decode(

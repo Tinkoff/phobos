@@ -17,8 +17,6 @@ class GenericElementDecoder[Acc, Result] private (state: DecoderState, logic: De
 
     @tailrec
     def go(currentState: DecoderState, acc: Acc): ElementDecoder[Result] = {
-      println(s"decoding entry name=$localName history=${cursor.history.reverse
-        .mkString("{ ", " -> ", " }")} state=$currentState acc = $acc")
       if (cursor.getEventType == AsyncXMLStreamReader.EVENT_INCOMPLETE) {
         cursor.next()
         new GenericElementDecoder(currentState, logic)
@@ -42,10 +40,9 @@ class GenericElementDecoder[Acc, Result] private (state: DecoderState, logic: De
             }
 
           case DecoderState.DecodingSelf =>
-//            println(s"DECODING SELF localname=$localName cursor.getLocalName=${cursor.getLocalName}")
-            val newAcc: Acc = {
-              val tmp = TextDecoder.stringDecoder
-                .decodeAsText(cursor, localName, namespaceUri)
+            val newAcc: Acc =
+              TextDecoder.stringDecoder
+                .decodeAsText(cursor)
                 .result(cursor.history)
                 .map(parseLeaf)
                 .map {
@@ -53,12 +50,9 @@ class GenericElementDecoder[Acc, Result] private (state: DecoderState, logic: De
                   case other =>
                     logic.onText(acc, localName, other)
                 }
-              println(s"DECODING text FOR localname=$localName result=$tmp")
-              tmp.getOrElse(acc)
-            }
+                .getOrElse(acc)
 
             val field = cursor.getLocalName
-            println(s"DECODING SELF 2 localname=$localName cursor.getLocalName=$field")
 
             if (cursor.isStartElement) {
               val element = decodeAsElement(cursor, field, None)
@@ -97,12 +91,6 @@ class GenericElementDecoder[Acc, Result] private (state: DecoderState, logic: De
     }
 
     go(state, logic.newAcc())
-  }
-
-  private implicit class Ops[U](self: ElementDecoder[XmlEntry]) {
-    def orAttempt(that: => ElementDecoder[XmlEntry]): ElementDecoder[XmlEntry] =
-      if (self.result(Nil).isRight) self
-      else that
   }
 
   private val parseLeaf: String => XmlLeaf = {

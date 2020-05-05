@@ -17,6 +17,12 @@ class CodecProperties extends Properties("Ast codecs") {
       encoder.encode(entry)
     ) == Right(entry)
   }
+
+  property("encode(decode(xmlAst)) === xmlAst") = forAll { entry: XmlEntry =>
+    val encoded = encoder.encode(entry)
+
+    decoder.decode(encoded).map(encoder.encode(_)) == Right(encoded)
+  }
 }
 
 object CodecProperties {
@@ -53,7 +59,7 @@ object CodecProperties {
   class Depth(val value: Int) extends AnyVal
 
   def arbitraryXmlNode(depth: Depth): Arbitrary[XmlNode] = Arbitrary {
-    val arbInt           = Gen.choose(0, 3)
+    val arbInt           = Gen.choose(0, 5)
     def arbNames(n: Int) = Gen.containerOfN[Set, String](n, arbNonEmptyString.arbitrary)
 
     def arbLeafs(n: Int) =
@@ -63,7 +69,7 @@ object CodecProperties {
       } yield names.toList zip leafs
 
     val arbNodes: Gen[List[(String, XmlEntry)]] = arbInt.flatMap { n =>
-      if (depth.value > 2) arbLeafs(n)
+      if (depth.value > 3) arbLeafs(n)
       else {
         val depth2: Depth = new Depth(depth.value + 1)
         val arbEntries = Gen

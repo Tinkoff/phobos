@@ -14,26 +14,17 @@ class AstTraversingLogic private () extends DecodingTraversingLogic[Accumulator,
     acc match {
       case acc: Accumulator.ParentNode =>
         acc.attributes ++= attributes
-      case other =>
-        println(s"WARN ignoring attrs for $other")
+      case _ =>
     }
     acc
   }
 
   override def onText(acc: Accumulator, elemName: String, text: XmlLeaf): Accumulator = {
     acc match {
-      case acc: Accumulator.TextNode =>
-        acc.text = Some(text)
-        acc
-
       case acc: Accumulator.ParentNode if acc.attributes.isEmpty && acc.children.isEmpty =>
-        Accumulator.TextNode(Some(text))
-//        Accumulator.ParentNode(children = ChildrenBuilder() += (elemName -> text))
+        Accumulator.TextNode(text)
 
-      case acc: Accumulator.ParentNode =>
-        println(s"[WARN] Got $acc while having $text name=$elemName")
-        acc.children += (elemName -> text)
-        acc
+      case _ => acc
     }
   }
 
@@ -42,7 +33,6 @@ class AstTraversingLogic private () extends DecodingTraversingLogic[Accumulator,
       case acc: Accumulator.ParentNode =>
         acc.children += (field -> entry)
       case _ =>
-        println(s"[WARN] don't now how to combine $acc with name=$field entry=$entry")
     }
     acc
   }
@@ -60,13 +50,9 @@ object AstTraversingLogic {
   sealed trait Accumulator {
     def toEntry: XmlEntry
   }
-  object Accumulator {
-    case class TextNode(var text: Option[XmlLeaf] = None) extends Accumulator {
 
-      override def toEntry: XmlLeaf = text.getOrElse {
-        throw DecodingError("TextNode.text was empty while traversing xml", Nil)
-      }
-    }
+  object Accumulator {
+    case class TextNode(toEntry: XmlLeaf) extends Accumulator
 
     case class ParentNode(attributes: AttributeBuilder = AttributeBuilder(),
                           children: ChildrenBuilder = ChildrenBuilder())
@@ -76,13 +62,6 @@ object AstTraversingLogic {
         XmlNode(attributes.toList, children.toList)
       }
     }
-
-//    case class Both(textName: String, textNode: TextNode, parentNode: ParentNode) extends Accumulator {
-//      override def toEntry: XmlEntry = XmlNode(
-//        Nil,
-//        List(textName -> textNode.toEntry) ++ parentNode.toEntry
-//      )
-//    }
 
   }
 }
