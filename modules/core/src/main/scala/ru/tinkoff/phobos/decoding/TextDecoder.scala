@@ -22,7 +22,7 @@ import scala.annotation.tailrec
  * To create new instance use .map or .emap method of existing instance.
  */
 trait TextDecoder[A] { self =>
-  def decodeAsText(c: Cursor, localName: String, namespaceUri: Option[String]): TextDecoder[A]
+  def decodeAsText(c: Cursor): TextDecoder[A]
   def result(history: List[String]): Either[DecodingError, A]
   def isCompleted: Boolean
 
@@ -35,8 +35,8 @@ object TextDecoder {
 
   class MappedDecoder[A, B](fa: TextDecoder[A], f: A => B) extends TextDecoder[B] {
 
-    def decodeAsText(c: Cursor, localName: String, namespaceUri: Option[String]): TextDecoder[B] =
-      new MappedDecoder[A, B](fa.decodeAsText(c, localName, namespaceUri), f)
+    def decodeAsText(c: Cursor): TextDecoder[B] =
+      new MappedDecoder[A, B](fa.decodeAsText(c), f)
 
     def result(history: List[String]): Either[DecodingError, B] = fa.result(history).map(f)
 
@@ -48,8 +48,8 @@ object TextDecoder {
   final class EMappedDecoder[A, B](fa: TextDecoder[A], f: (List[String], A) => Either[DecodingError, B])
       extends TextDecoder[B] {
 
-    def decodeAsText(c: Cursor, localName: String, namespaceUri: Option[String]): TextDecoder[B] =
-      new EMappedDecoder(fa.decodeAsText(c, localName, namespaceUri), f)
+    def decodeAsText(c: Cursor): TextDecoder[B] =
+      new EMappedDecoder(fa.decodeAsText(c), f)
 
     def result(history: List[String]): Either[DecodingError, B] = fa.result(history) match {
       case Right(a)    => f(history, a)
@@ -65,7 +65,7 @@ object TextDecoder {
     }
 
   final class ConstDecoder[A](a: A) extends TextDecoder[A] {
-    def decodeAsText(c: Cursor, localName: String, namespaceUri: Option[String]): TextDecoder[A] = this
+    def decodeAsText(c: Cursor): TextDecoder[A] = this
 
     def result(history: List[String]): Either[DecodingError, A] = Right(a)
 
@@ -75,7 +75,7 @@ object TextDecoder {
   }
 
   final class FailedDecoder[A](decodingError: DecodingError) extends TextDecoder[A] {
-    def decodeAsText(c: Cursor, localName: String, namespaceUri: Option[String]): TextDecoder[A] = this
+    def decodeAsText(c: Cursor): TextDecoder[A] = this
 
     def result(history: List[String]): Either[DecodingError, A] = Left(decodingError)
 
@@ -88,7 +88,7 @@ object TextDecoder {
     * Instances
     */
   class StringDecoder(string: String = "") extends TextDecoder[String] {
-    def decodeAsText(c: Cursor, localName: String, namespaceUri: Option[String]): TextDecoder[String] = {
+    def decodeAsText(c: Cursor): TextDecoder[String] = {
       val stringBuilder = new StringBuilder(string)
       @tailrec
       def go(): TextDecoder[String] = {
@@ -96,29 +96,17 @@ object TextDecoder {
           stringBuilder.append(c.getText)
           c.next()
           go()
-        } else if (c.isStartElement) {
-          if (c.getLocalName == localName) {
-            c.next()
-            go()
-          } else {
-            new StringDecoder(stringBuilder.mkString)
-          }
-        } else if (c.getEventType == AsyncXMLStreamReader.EVENT_INCOMPLETE) {
-          c.next()
-          new StringDecoder(stringBuilder.mkString)
-        } else if (c.isEndElement) {
-          new ConstDecoder(stringBuilder.mkString)
         } else {
-          new FailedDecoder(c.error(s"Unexpected event: '${c.getEventType}'"))
+          new StringDecoder(stringBuilder.mkString)
         }
       }
       go()
     }
 
     def result(history: List[String]): Either[DecodingError, String] =
-      Left(DecodingError("Decoding not complete", history))
+      Right(string)
 
-    val isCompleted: Boolean = false
+    val isCompleted: Boolean = true
 
     override def toString: String = s"StringDecoder($string)"
   }

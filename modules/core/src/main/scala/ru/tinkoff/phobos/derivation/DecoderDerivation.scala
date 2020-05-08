@@ -199,7 +199,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
               classConstructorParam = q"$forName"
             )
           )
-          decodeText.append(q"$tempName = $tempName.decodeAsText(cursor, localName, namespaceUri)")
+          decodeText.append(q"$tempName = $tempName.decodeAsText(cursor)")
       }
     }
 
