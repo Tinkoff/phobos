@@ -54,33 +54,7 @@ class RefinedDecodersSpec extends AnyWordSpec with Matchers {
       XmlDecoder[Qux].decode(sampleXml) shouldEqual Right(expectedResult)
     }
 
-    "provide errors with minimal verbosity by default" in {
-      val sampleXml0 = """
-        | <?xml version='1.0' encoding='UTF-8'?>
-        | <test>
-        |   <x>2</x>
-        |   <y>1</y>
-        | </test>
-          """.stripMargin.minimized
-
-      XmlDecoder[Test].decode(sampleXml0).left.get.text shouldEqual """Predicate failed: "1".matches("[0-9]{2,}")."""
-
-      val sampleXml1 =
-        """
-          | <?xml version='1.0' encoding='UTF-8'?>
-          | <qux>
-          |   <str>42</str>
-          |   <foo bar="42">-1000</foo>
-          | </qux>
-          """.stripMargin.minimized
-
-      XmlDecoder[Qux].decode(sampleXml1).left.get.text shouldEqual """Predicate (-1000 < 0) did not fail."""
-    }
-
-    "provide errors with maximum verbosity when special import present" in {
-      import ru.tinkoff.phobos.refined.decoding.maxVerbosity._
-
-      implicitly[ru.tinkoff.phobos.decoding.TextDecoder[Refined[String, NumericAtLeastTo]]]
+    "provide verbose errorst" in {
 
       @XmlCodec("test")
       case class Test2(x: Int, y: Refined[String, NumericAtLeastTo])
@@ -100,8 +74,9 @@ class RefinedDecodersSpec extends AnyWordSpec with Matchers {
       XmlDecoder[Test2]
         .decode(sampleXml0)
         .left
-        .get
-        .text shouldEqual """Failed to verify RefinedDecodersSpec.this.NumericAtLeastTo refinement for value=1 of raw type String: Predicate failed: "1".matches("[0-9]{2,}")."""
+        .map(_.text) shouldEqual Left(
+        """Failed to verify RefinedDecodersSpec.this.NumericAtLeastTo refinement for value=1 of raw type String: Predicate failed: "1".matches("[0-9]{2,}")."""
+      )
 
       val sampleXml1 =
         """
@@ -115,8 +90,9 @@ class RefinedDecodersSpec extends AnyWordSpec with Matchers {
       XmlDecoder[Qux2]
         .decode(sampleXml1)
         .left
-        .get
-        .text shouldEqual """Failed to verify eu.timepit.refined.numeric.NonNegative refinement for value=-1000 of raw type Long: Predicate (-1000 < 0) did not fail."""
+        .map(_.text) shouldEqual Left(
+        """Failed to verify eu.timepit.refined.numeric.NonNegative refinement for value=-1000 of raw type Long: Predicate (-1000 < 0) did not fail."""
+      )
 
     }
   }
