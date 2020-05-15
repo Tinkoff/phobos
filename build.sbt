@@ -47,8 +47,9 @@ lazy val `akka-http` = phobosModule("akka-http") dependsOn (core % "compile->com
 lazy val `akka-stream` = phobosModule("akka-stream") dependsOn (core % "compile->compile;test->test")
 lazy val monix = phobosModule("monix") dependsOn (core % "compile->compile;test->test")
 lazy val fs2 = phobosModule("fs2") dependsOn (core % "compile->compile;test->test")
+lazy val refined = phobosModule("refined") dependsOn (core % "compile->compile;test->test")
 
-lazy val modules: List[ProjectReference] = List(core, `akka-http`, derevo, enumeratum, monix, fs2, `akka-stream`)
+lazy val modules: List[ProjectReference] = List(core, `akka-http`, derevo, enumeratum, monix, fs2, `akka-stream`, refined)
 
 
 lazy val phobos = project
