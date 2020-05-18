@@ -5,6 +5,9 @@ import ru.tinkoff.phobos.decoding.{AttributeDecoder, ElementDecoder}
 import ru.tinkoff.phobos.encoding.{AttributeEncoder, ElementEncoder, TextEncoder}
 import ru.tinkoff.phobos.traverse.GenericElementDecoder
 
+/**
+  * Base type for XML nodes, elements and attributes values
+  * */
 sealed trait XmlEntry
 object XmlEntry extends impl.CatsInstances {
 
@@ -99,6 +102,10 @@ object XmlEntry extends impl.CatsInstances {
         children: List[(String, XmlEntry)]
     ) extends XmlEntry {
 
+      /**
+        * @param more - new attributes and child nodes
+        * @return - new [[XmlNode]] with given attributes and children added
+        * */
       def apply(more: XmlBuildingBlock*): Node = {
         val attrs = more.collect {
           case attr: Attr => attr.name -> attr.value
@@ -116,5 +123,5 @@ object XmlEntry extends impl.CatsInstances {
   implicit val xmlEntryEncoder: ElementEncoder[XmlEntry] = XmlEntryElementEncoder
 
   implicit val xmlEntryDecoder: ElementDecoder[XmlEntry] =
-    GenericElementDecoder(AstTraversingLogic.instance)
+    GenericElementDecoder(AstTraversalLogic.instance)
 }

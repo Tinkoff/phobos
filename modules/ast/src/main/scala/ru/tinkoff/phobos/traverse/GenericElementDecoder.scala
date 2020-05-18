@@ -1,6 +1,8 @@
 package ru.tinkoff.phobos.traverse
 
-import cats.syntax.either._
+import cats.syntax.traverse._
+import cats.instances.either._
+import cats.instances.list._
 import com.fasterxml.aalto.AsyncXMLStreamReader
 import ru.tinkoff.phobos.ast._
 import ru.tinkoff.phobos.decoding.{Cursor, DecodingError, ElementDecoder, TextDecoder}
@@ -8,7 +10,14 @@ import scala.annotation.tailrec
 import scala.util.Try
 import GenericElementDecoder.DecoderState
 
-class GenericElementDecoder[Acc, Result] private (state: DecoderState, logic: DecodingTraversingLogic[Acc, Result])
+/**
+  * An encoder allowing to arbitrarily encode a XML element with provided traversal logic.
+  *
+  * @tparam Acc - accumulator
+  * @tparam Result - decoding result
+  * @param logic - see [[DecodingTraversalLogic]]
+  * */
+class GenericElementDecoder[Acc, Result] private (state: DecoderState, logic: DecodingTraversalLogic[Acc, Result])
     extends ElementDecoder[Result] {
 
   override def decodeAsElement(cursor: Cursor,
@@ -24,17 +33,21 @@ class GenericElementDecoder[Acc, Result] private (state: DecoderState, logic: De
         currentState match {
           case DecoderState.New =>
             if (cursor.isStartElement) {
-              val attributes = List
+              val attributesEither = List
                 .tabulate(cursor.getAttributeCount) { idx =>
                   val name = cursor.getAttributeName(idx).getLocalPart
-                  name -> parseLeaf {
-                    XmlText.attributeDecoder
-                      .decodeAsAttribute(cursor, name, None)
-                      .valueOr(throw _)
-                  }
+                  XmlText.attributeDecoder
+                    .decodeAsAttribute(cursor, name, None)
+                    .map(str => name -> parseLeaf(str))
                 }
-              cursor.next()
-              go(DecoderState.DecodingSelf, logic.onAttributes(acc, attributes))
+                .sequence
+              attributesEither match {
+                case Right(attrs) =>
+                  cursor.next()
+                  go(DecoderState.DecodingSelf, logic.onAttributes(acc, attrs))
+                case Left(e) =>
+                  fail(e)
+              }
             } else {
               fail(cursor, s"Illegal state: expected START_ELEMENT, got ${cursor.getEventType}")
             }
@@ -116,7 +129,16 @@ class GenericElementDecoder[Acc, Result] private (state: DecoderState, logic: De
 }
 
 object GenericElementDecoder {
-  def apply[Acc, Result](logic: DecodingTraversingLogic[Acc, Result]): GenericElementDecoder[Acc, Result] =
+
+  /**
+    * Allows to create a [[GenericElementDecoder]] based on providing traversal logic
+    *
+    * @tparam Acc - accumulator
+    * @tparam Result - decoding result
+    * @param logic - see [[DecodingTraversalLogic]]
+    * @return - an [[ElementDecoder]] for [[Result]]
+    * */
+  def apply[Acc, Result](logic: DecodingTraversalLogic[Acc, Result]): ElementDecoder[Result] =
     new GenericElementDecoder(DecoderState.New, logic)
 
   sealed trait DecoderState

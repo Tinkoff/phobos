@@ -5,7 +5,8 @@ import org.scalatest.EitherValues
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import ru.tinkoff.phobos.Namespace
-import ru.tinkoff.phobos.decoding.XmlDecoder
+import ru.tinkoff.phobos.decoding.{DecodingError, XmlDecoder}
+import cats.syntax.either._
 
 class XmlEntryElementDecoderSpec extends AnyWordSpec with Matchers with DiffMatcher with EitherValues {
 
@@ -27,7 +28,7 @@ class XmlEntryElementDecoderSpec extends AnyWordSpec with Matchers with DiffMatc
       val sampleXml =
         """<?xml version='1.0' encoding='UTF-8'?><ans1:ast xmlns:ans1="https://tinkoff.ru" foo="5"><bar>bazz</bar><array foo2="true" foo3="false"><elem>11111111111111</elem><elem>11111111111112</elem></array><nested><scala>2.13</scala><dotty>0.13</dotty><scala-4/></nested></ans1:ast>"""
 
-      val decodedAst = XmlDecoder.fromElementDecoderNs[XmlEntry, tinkoff.ns]("ast").decode(sampleXml).right.value
+      val decodedAst = XmlDecoder.fromElementDecoderNs[XmlEntry, tinkoff.ns]("ast").decode(sampleXml)
       val expectedResult: XmlEntry = xml(attr("foo") := 5)(
         node("bar") := "bazz",
         node("array") := xml(
@@ -44,7 +45,7 @@ class XmlEntryElementDecoderSpec extends AnyWordSpec with Matchers with DiffMatc
         )
       )
 
-      decodedAst should matchTo(expectedResult)
+      decodedAst should matchTo(expectedResult.asRight[DecodingError])
     }
 
     "works fine when for elements with same name" in {
@@ -52,7 +53,7 @@ class XmlEntryElementDecoderSpec extends AnyWordSpec with Matchers with DiffMatc
       val n: XmlEntry = xml(
         node("k") :=
           xml(
-            node("k") := "gbq" // when node name != parent node name - everything works fine
+            node("k") := "gbq"
           )
       )
 
@@ -63,11 +64,9 @@ class XmlEntryElementDecoderSpec extends AnyWordSpec with Matchers with DiffMatc
         .decode(
           encoded
         )
-        .right
-        .get
 
-      util.AstTransformer.sortNodeValues(result) should matchTo(
-        util.AstTransformer.sortNodeValues(n)
+      result.map(util.AstTransformer.sortNodeValues) should matchTo(
+        util.AstTransformer.sortNodeValues(n).asRight[DecodingError]
       )
     }
   }

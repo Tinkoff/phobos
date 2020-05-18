@@ -1,18 +1,18 @@
 package ru.tinkoff.phobos.raw
 
 import ru.tinkoff.phobos.ast.XmlLeaf
-import ru.tinkoff.phobos.raw.ElementsFlattenTraversingLogic.Accumulator
-import ru.tinkoff.phobos.traverse.DecodingTraversingLogic
+import ru.tinkoff.phobos.raw.ElementsFlattenTraversalLogic.Accumulator
+import ru.tinkoff.phobos.traverse.DecodingTraversalLogic
 import scala.collection.mutable.ListBuffer
 
-class ElementsFlattenTraversingLogic private () extends DecodingTraversingLogic[Accumulator, ElementsFlatten] {
+class ElementsFlattenTraversalLogic private () extends DecodingTraversalLogic[Accumulator, ElementsFlatten] {
   override def newAcc(): Accumulator = Accumulator()
 
   override def onFinish(acc: Accumulator): ElementsFlatten =
     ElementsFlatten(acc.elements.toList: _*)
 
-  override def combine(acc: Accumulator, field: String, temporalResult: ElementsFlatten): Accumulator = {
-    acc.elements ++= temporalResult.elems
+  override def combine(acc: Accumulator, field: String, intermediateResult: ElementsFlatten): Accumulator = {
+    acc.elements ++= intermediateResult.elems
     acc
   }
 
@@ -22,8 +22,8 @@ class ElementsFlattenTraversingLogic private () extends DecodingTraversingLogic[
   }
 }
 
-object ElementsFlattenTraversingLogic {
+object ElementsFlattenTraversalLogic {
   case class Accumulator(elements: ListBuffer[(String, XmlLeaf)] = ListBuffer.empty)
 
-  val instance = new ElementsFlattenTraversingLogic()
+  val instance = new ElementsFlattenTraversalLogic()
 }

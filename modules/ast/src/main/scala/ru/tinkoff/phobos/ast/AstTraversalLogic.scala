@@ -1,11 +1,11 @@
 package ru.tinkoff.phobos.ast
 
-import ru.tinkoff.phobos.traverse.DecodingTraversingLogic
-import AstTraversingLogic._
+import ru.tinkoff.phobos.traverse.DecodingTraversalLogic
+import AstTraversalLogic._
 import ru.tinkoff.phobos.decoding.DecodingError
 import scala.collection.mutable
 
-class AstTraversingLogic private () extends DecodingTraversingLogic[Accumulator, XmlEntry] {
+class AstTraversalLogic private () extends DecodingTraversalLogic[Accumulator, XmlEntry] {
   override def newAcc(): Accumulator = Accumulator.ParentNode()
 
   override def onFinish(acc: Accumulator): XmlEntry = acc.toEntry
@@ -28,18 +28,18 @@ class AstTraversingLogic private () extends DecodingTraversingLogic[Accumulator,
     }
   }
 
-  override def combine(acc: Accumulator, field: String, entry: XmlEntry): Accumulator = {
+  override def combine(acc: Accumulator, field: String, intermediateResult: XmlEntry): Accumulator = {
     acc match {
       case acc: Accumulator.ParentNode =>
-        acc.children += (field -> entry)
+        acc.children += (field -> intermediateResult)
       case _ =>
     }
     acc
   }
 }
 
-object AstTraversingLogic {
-  val instance: AstTraversingLogic = new AstTraversingLogic()
+object AstTraversalLogic {
+  val instance: AstTraversalLogic = new AstTraversalLogic()
 
   type AttributeBuilder = mutable.ListBuffer[(String, XmlLeaf)]
   def AttributeBuilder(): AttributeBuilder = mutable.ListBuffer.empty

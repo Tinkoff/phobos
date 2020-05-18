@@ -12,7 +12,7 @@ class GenericElementDecoderSpec extends AnyWordSpec with Matchers with DiffMatch
   import GenericElementDecoderSpec._
   "GenericElementDecoder" should {
     "work correctly with immutable accumulators" in {
-      implicit val decodeAllAttributes: ElementDecoder[Acc] = GenericElementDecoder(ImmutableTraversingLogic)
+      implicit val decodeAllAttributes: ElementDecoder[Acc] = GenericElementDecoder(ImmutableTraversalLogic)
       val xmlDecoder = XmlDecoder
         .fromElementDecoder[Acc]("ast")
 
@@ -43,7 +43,7 @@ class GenericElementDecoderSpec extends AnyWordSpec with Matchers with DiffMatch
 object GenericElementDecoderSpec {
   case class Acc(attributes: Map[String, String])
 
-  object ImmutableTraversingLogic extends DecodingTraversingLogic[Acc, Acc] {
+  object ImmutableTraversalLogic extends DecodingTraversalLogic[Acc, Acc] {
     override def newAcc(): Acc = Acc(Map.empty)
 
     override def onFinish(acc: Acc): Acc = acc
@@ -54,8 +54,8 @@ object GenericElementDecoderSpec {
       )
     }
 
-    override def combine(acc: Acc, field: String, temporalResult: Acc): Acc = {
-      acc.copy(attributes = acc.attributes ++ temporalResult.attributes)
+    override def combine(acc: Acc, field: String, intermediateResult: Acc): Acc = {
+      acc.copy(attributes = acc.attributes ++ intermediateResult.attributes)
     }
   }
 }
