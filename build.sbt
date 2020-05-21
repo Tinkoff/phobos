@@ -13,6 +13,14 @@ lazy val commonDependencies =
     "org.scalatest" %% "scalatest" % "3.1.1" % "test",
   )
 
+def onScalaVersion[B](`on-2-12`: => B, `on-2-13`: => B): Def.Initialize[B] =
+  Def.setting {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, 13)) => `on-2-13`
+      case _ => `on-2-12`
+    }
+  }
+
 def configuration(id: String)(project: Project): Project =
   project.settings(
     moduleName := s"phobos-$id",
@@ -21,12 +29,15 @@ def configuration(id: String)(project: Project): Project =
     commonDependencies,
     scalacOptions ++= List(
       "-language:experimental.macros",
-    ),
+    ) ++ onScalaVersion(
+      `on-2-13` = Nil,
+      `on-2-12` = List("-Ypartial-unification")
+    ).value,
     libraryDependencies ++= {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, 13)) => Nil
-        case _ => List(compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.patch))
-      }
+      onScalaVersion(
+        `on-2-13` = Nil,
+        `on-2-12` = List(compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.patch))
+      ).value
     },
     scalacOptions ++= {
       CrossVersion.partialVersion(scalaVersion.value) match {
@@ -48,8 +59,9 @@ lazy val `akka-stream` = phobosModule("akka-stream") dependsOn (core % "compile-
 lazy val monix = phobosModule("monix") dependsOn (core % "compile->compile;test->test")
 lazy val fs2 = phobosModule("fs2") dependsOn (core % "compile->compile;test->test")
 lazy val refined = phobosModule("refined") dependsOn (core % "compile->compile;test->test")
+lazy val ast = phobosModule("ast") dependsOn (core % "compile->compile;test->test")
 
-lazy val modules: List[ProjectReference] = List(core, `akka-http`, derevo, enumeratum, monix, fs2, `akka-stream`, refined)
+lazy val modules: List[ProjectReference] = List(core, `akka-http`, derevo, enumeratum, monix, fs2, `akka-stream`, refined, ast)
 
 
 lazy val phobos = project
