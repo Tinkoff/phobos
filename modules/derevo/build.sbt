@@ -1,3 +1,3 @@
 libraryDependencies ++= Seq(
-  "org.manatki" %% "derevo-core" % "0.11.0",
+  "org.manatki" %% "derevo-core" % "0.11.3",
 )

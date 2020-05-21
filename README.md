@@ -14,7 +14,7 @@ Scala 2.12 and 2.13 are supported. Support for Scala 2.11 may be implemented on 
 Add phobos-core to your dependencies:
 
 ```
-libraryDependencies += "ru.tinkoff" %% "phobos-core" % "0.6.0"
+libraryDependencies += "ru.tinkoff" %% "phobos-core" % "0.7.0"
 ```
 
 Then try this code out in `sbt console` or in a separate source file:
@@ -67,7 +67,7 @@ Performance details can be found out in [phobos-benchmark repository](https://gi
 There are several additional modules for some specific cases. 
 These modules could be added with command below:
 ```
-libraryDependencies += "ru.tinkoff" %% "phobos-<module>" % "0.6.0"
+libraryDependencies += "ru.tinkoff" %% "phobos-<module>" % "0.7.0"
 ```
 Where `<module>` is module name.
 
@@ -79,6 +79,7 @@ Where `<module>` is module name.
 | enumeratum   | Support for [enumeratum](https://github.com/lloydmeta/enumeratum#manual-override-of-name) enums |
 | fs2          | Streaming decoding support (`Stream[F, Array[Byte]] => G[A]`) |
 | monix        | Streaming decoding support (`Observable[Array[Byte]] => Task[A]`)  |
+| refined      | Support for [refined](https://github.com/fthomas/refined) |
 
 ## XSD and WSDL code-generation support
 It will be soon implemented in [deimos](https://github.com/TinkoffCreditSystems/deimos) library.

@@ -1,3 +1,3 @@
 libraryDependencies ++= Seq(
-  "io.monix" %% "monix" % "3.1.0"
+  "io.monix" %% "monix" % "3.2.1"
 )
