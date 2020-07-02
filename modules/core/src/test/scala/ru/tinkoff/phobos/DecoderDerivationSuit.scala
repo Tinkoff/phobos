@@ -4,7 +4,7 @@ import cats.syntax.option._
 import cats.instances.list._
 import org.scalatest._
 import ru.tinkoff.phobos.annotations.{ElementCodec, XmlCodec, XmlCodecNs, XmlnsDef}
-import ru.tinkoff.phobos.decoding.{AttributeDecoder, ElementDecoder, TextDecoder, XmlDecoder}
+import ru.tinkoff.phobos.decoding.{AttributeDecoder, DecodingError, ElementDecoder, TextDecoder, XmlDecoder}
 import ru.tinkoff.phobos.syntax._
 import ru.tinkoff.phobos.configured.naming._
 import ru.tinkoff.phobos.configured.ElementCodecConfig
@@ -137,6 +137,35 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
 
     "decode options sync" in decodeOptions(pure)
     "decode options async" in decodeOptions(fromIterable)
+
+    "decoding malformed XML results in Left informing you where the error occurred" in {
+      @ElementCodec
+      case class Foo(a: Int, @attr b: String)
+      @XmlCodec("Wrapper")
+      case class Wrapper(foo: List[Foo])
+
+      val invalidXmlStringAtFoo =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <Wrapper>
+          |   <foo>iufeiuf<foo>
+          | </Wrapper>""".stripMargin
+
+      val totallyInvalidXml = "LOL"
+
+      val decodedResultInvalidFoo   = XmlDecoder[Wrapper].decode(invalidXmlStringAtFoo)
+      val decodedResultInvalidTotal = XmlDecoder[Wrapper].decode(totallyInvalidXml)
+
+      assert(
+        decodedResultInvalidFoo == Left(
+          DecodingError("Unexpected end tag: expected </foo>\n at [row,col {unknown-source}]: [3,8]",
+                        List("foo", "foo", "Wrapper"))))
+
+      assert(
+        decodedResultInvalidTotal == Left(
+          DecodingError("Unexpected character 'L' (code 76) in prolog\n at [row,col {unknown-source}]: [1,2]", Nil)
+        )
+      )
+    }
 
     def decodeNilValues(toList: String => List[Array[Byte]]): Assertion = {
       @ElementCodec
