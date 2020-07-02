@@ -1,8 +1,8 @@
 ThisBuild / name := "phobos"
 
-ThisBuild / scalaVersion := "2.13.1"
+ThisBuild / scalaVersion := "2.13.3"
 
-lazy val supportedVersions = List("2.12.10", "2.13.1")
+lazy val supportedVersions = List("2.12.11", "2.13.2", "2.13.3")
 
 lazy val commonDependencies =
   libraryDependencies ++= List(
