@@ -46,11 +46,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
         discriminator if discriminator == `${subtype.constructorName}` =>
            $ref.decodeAsElement(cursor, localName, namespaceUri).map(d => d: $classType)
       """
-    }.toBuffer :+
-      cq""" unknown =>
-          new $decodingPkg.ElementDecoder.FailedDecoder[$classType](
-            cursor.error(s"Unknown type discriminator value: '$${unknown}'")
-        )"""
+    }.toBuffer
 
     q"""
       ..$preAssignments
@@ -63,16 +59,28 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
           if (cursor.getEventType == _root_.com.fasterxml.aalto.AsyncXMLStreamReader.EVENT_INCOMPLETE) {
             this
           } else {
-            val discriminatorIdx = cursor.getAttributeIndex($config.discriminatorNamespace.getOrElse(null), $config.discriminatorLocalName)
-            if (discriminatorIdx > -1) {
-              cursor.getAttributeValue(discriminatorIdx) match {
-                case ..$alternatives
+            val discriminator =
+              if ($config.useElementNameAsDiscriminator) {
+                $scalaPkg.Right(cursor.getLocalName)
+              } else {
+                val discriminatorIdx = cursor.getAttributeIndex($config.discriminatorNamespace.getOrElse(null), $config.discriminatorLocalName)
+                if (discriminatorIdx > -1) {
+                  $scalaPkg.Right(cursor.getAttributeValue(discriminatorIdx))
+                } else {
+                  $scalaPkg.Left(
+                    new $decodingPkg.ElementDecoder.FailedDecoder[$classType](
+                      cursor.error(s"No type discriminator '$${$config.discriminatorNamespace.fold("")(_ + ":")}$${$config.discriminatorLocalName}' found")
+                    )
+                  )
+                }
               }
-            } else {
-              new $decodingPkg.ElementDecoder.FailedDecoder[$classType](
-                cursor.error(s"No type discriminator '$${$config.discriminatorNamespace.fold("")(_ + ":")}$${$config.discriminatorLocalName}' found")
-              )
-            }
+            discriminator.fold(identity, {
+              case ..$alternatives
+              case unknown =>
+                new $decodingPkg.ElementDecoder.FailedDecoder[$classType](
+                  cursor.error(s"Unknown type discriminator value: '$${unknown}'")
+                )
+            })
           }
         }
         
