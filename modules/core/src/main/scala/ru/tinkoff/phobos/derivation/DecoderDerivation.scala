@@ -378,9 +378,9 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 object DecoderDerivation {
   sealed trait DecoderState
   object DecoderState {
-    case object New                                       extends DecoderState
-    case object DecodingSelf                              extends DecoderState
-    case class DecodingElement(name: String)             extends DecoderState
+    case object New                                                                 extends DecoderState
+    case object DecodingSelf                                                        extends DecoderState
+    case class DecodingElement(name: String)                                        extends DecoderState
     case class IgnoringElement(name: String, namespace: Option[String], depth: Int) extends DecoderState
   }
 }
