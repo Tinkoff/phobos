@@ -5,7 +5,7 @@ import ru.tinkoff.phobos.configured.ElementCodecConfig
 import ru.tinkoff.phobos.derivation.CompileTimeState.{ChainedImplicit, Stack}
 import ru.tinkoff.phobos.derivation.Derivation.DirectlyReentrantException
 import ru.tinkoff.phobos.derivation.auto.Exported
-import ru.tinkoff.phobos.syntax.{attr, discriminator, renamed, text, xmlns}
+import ru.tinkoff.phobos.syntax.{attr, default, discriminator, renamed, text, xmlns}
 
 import scala.reflect.macros.blackbox
 
@@ -85,6 +85,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
     val namespaceType     = typeOf[Namespace[_]]
     val attrType          = typeOf[attr]
     val textType          = typeOf[text]
+    val defaultType       = typeOf[default]
     val xmlnsType         = weakTypeOf[xmlns[_]]
     val renamedType       = typeOf[renamed]
     val discriminatorType = typeOf[discriminator]
@@ -118,9 +119,10 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
         def fetchGroup(param: TermSymbol): ParamCategory = {
           param.annotations.foldLeft[List[ParamCategory]](Nil)((acc, annotation) =>
             annotation.tree.tpe match {
-              case tpe if tpe == attrType => ParamCategory.attribute :: acc
-              case tpe if tpe == textType => ParamCategory.text :: acc
-              case _                      => acc
+              case tpe if tpe == attrType    => ParamCategory.attribute :: acc
+              case tpe if tpe == textType    => ParamCategory.text :: acc
+              case tpe if tpe == defaultType => ParamCategory.default :: acc
+              case _                         => acc
           }) match {
             case List(group) => group
             case Nil         => ParamCategory.element
@@ -189,9 +191,11 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
         val attributeParamsNumber = params.count(_.category == ParamCategory.attribute)
         val regularParamsNumber   = params.count(_.category == ParamCategory.element)
         val textParamsNumber      = params.count(_.category == ParamCategory.text)
+        val defaultParamsNumber   = params.count(_.category == ParamCategory.default)
 
-        (attributeParamsNumber, regularParamsNumber, textParamsNumber) match {
-          case (_, _, l) if l > 1 => error(s"Multiple @text parameters in one class")
+        (attributeParamsNumber, regularParamsNumber, textParamsNumber, defaultParamsNumber) match {
+          case (_, _, t, _) if t > 1 => error("Multiple @text parameters are not allowed")
+          case (_, _, _, d) if d > 1 => error("Mutiple @default parameters are not allowed")
           case _                  => deriveProductCodec(stack)(params)
         }
       } else error(s"$classSymbol is not case class or sealed trait")

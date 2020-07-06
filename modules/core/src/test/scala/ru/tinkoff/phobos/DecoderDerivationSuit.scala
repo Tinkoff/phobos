@@ -579,6 +579,39 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
 
     "decode with @renamed having priority over naming sync" in decodeRenamedPriority(pure)
     "decode with @renamed having priority over naming async" in decodeRenamedPriority(fromIterable)
+
+    def decodeWithDefaultDecoders(toList: String => List[Array[Byte]]): Assertion = {
+      @ElementCodec
+      case class Default(a: Option[Int], b: Option[String], c: Option[Double])
+      @XmlCodec("foo")
+      case class Foo(a: Int, b: String, @default defaults: List[Default])
+
+      val foo =
+        Foo(
+          1,
+          "b value",
+          List(
+            Default(Some(100), None, None),
+            Default(None, Some("default string"), None),
+            Default(None, None, Some(12.3))
+          )
+        )
+      val string = """<?xml version='1.0' encoding='UTF-8'?>
+                     |<foo>
+                     |  <default1><a>100</a></default1>
+                     |  <a>1</a>
+                     |  <default2><b>default string</b></default2>
+                     |  <b>b value</b>
+                     |  <default3><c>12.3</c></default3>
+                     |</foo>
+                   """.stripMargin
+
+      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
+      assert(decoded == Right(foo))
+    }
+
+    "decode with default decoders sync" in decodeWithDefaultDecoders(pure)
+    "decode with default decoders async" in decodeWithDefaultDecoders(fromIterable)
   }
 
   "Decoder derivation for sealed traits" should {
