@@ -73,4 +73,17 @@ object SealedClasses {
 
   @ElementCodec
   case class CarcharodonCarcharias(name: String, teethNumber: Long) extends Pisces
+
+
+  @ElementCodec(ElementCodecConfig.default.usingElementNamesAsDiscriminator.withConstructorsRenamed(snakeCase))
+  sealed trait Animal
+
+  @ElementCodec
+  case class Cat(meow: String) extends Animal
+
+  @ElementCodec
+  case class Dog(woof: Int) extends Animal
+
+  @ElementCodec
+  case class Cow(moo: Double) extends Animal
 }

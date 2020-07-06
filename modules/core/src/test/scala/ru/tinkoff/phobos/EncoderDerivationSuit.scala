@@ -2,6 +2,7 @@ package ru.tinkoff.phobos
 
 import cats.syntax.option._
 import org.scalatest._
+import ru.tinkoff.phobos.SealedClasses.{Animal, Cat, Cow, Dog}
 import ru.tinkoff.phobos.annotations.{ElementCodec, XmlCodec, XmlCodecNs, XmlnsDef}
 import ru.tinkoff.phobos.encoding.{AttributeEncoder, ElementEncoder, TextEncoder, XmlEncoder}
 import ru.tinkoff.phobos.testString._
@@ -573,6 +574,30 @@ class EncoderDerivationSuit extends WordSpec with Matchers {
               | </fish>
             """.stripMargin.minimized
       )
+    }
+
+    "use element name as discriminator if configured" in {
+      @XmlCodec("zoo")
+      case class Zoo(@default animals: List[Animal])
+      val string =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <zoo>
+          |   <cow>
+          |     <moo>12.432</moo>
+          |   </cow>
+          |   <cat>
+          |     <meow>meow</meow>
+          |   </cat>
+          |   <dog>
+          |     <woof>1234</woof>
+          |   </dog>
+          |   <cat>
+          |     <meow>nya</meow>
+          |   </cat>
+          | </zoo>
+                    """.stripMargin.minimized
+      val zoo = Zoo(List(Cow(12.432), Cat("meow"), Dog(1234), Cat("nya")))
+      XmlEncoder[Zoo].encode(zoo) shouldBe string
     }
   }
 

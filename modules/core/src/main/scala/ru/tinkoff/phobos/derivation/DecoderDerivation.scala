@@ -46,11 +46,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
         discriminator if discriminator == `${subtype.constructorName}` =>
            $ref.decodeAsElement(cursor, localName, namespaceUri).map(d => d: $classType)
       """
-    }.toBuffer :+
-      cq""" unknown =>
-          new $decodingPkg.ElementDecoder.FailedDecoder[$classType](
-            cursor.error(s"Unknown type discriminator value: '$${unknown}'")
-        )"""
+    }.toBuffer
 
     q"""
       ..$preAssignments
@@ -63,16 +59,28 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
           if (cursor.getEventType == _root_.com.fasterxml.aalto.AsyncXMLStreamReader.EVENT_INCOMPLETE) {
             this
           } else {
-            val discriminatorIdx = cursor.getAttributeIndex($config.discriminatorNamespace.getOrElse(null), $config.discriminatorLocalName)
-            if (discriminatorIdx > -1) {
-              cursor.getAttributeValue(discriminatorIdx) match {
-                case ..$alternatives
+            val discriminator =
+              if ($config.useElementNameAsDiscriminator) {
+                $scalaPkg.Right(cursor.getLocalName)
+              } else {
+                val discriminatorIdx = cursor.getAttributeIndex($config.discriminatorNamespace.getOrElse(null), $config.discriminatorLocalName)
+                if (discriminatorIdx > -1) {
+                  $scalaPkg.Right(cursor.getAttributeValue(discriminatorIdx))
+                } else {
+                  $scalaPkg.Left(
+                    new $decodingPkg.ElementDecoder.FailedDecoder[$classType](
+                      cursor.error(s"No type discriminator '$${$config.discriminatorNamespace.fold("")(_ + ":")}$${$config.discriminatorLocalName}' found")
+                    )
+                  )
+                }
               }
-            } else {
-              new $decodingPkg.ElementDecoder.FailedDecoder[$classType](
-                cursor.error(s"No type discriminator '$${$config.discriminatorNamespace.fold("")(_ + ":")}$${$config.discriminatorLocalName}' found")
-              )
-            }
+            discriminator.fold(identity, {
+              case ..$alternatives
+              case unknown =>
+                new $decodingPkg.ElementDecoder.FailedDecoder[$classType](
+                  cursor.error(s"Unknown type discriminator value: '$${unknown}'")
+                )
+            })
           }
         }
         
@@ -103,12 +111,13 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
                      classConstructionForEnum: Tree,
                      decoderConstructionParam: Tree)
 
-    val allParams: mutable.ListBuffer[Param]       = mutable.ListBuffer.empty
-    val decodeAttributes: mutable.ListBuffer[Tree] = mutable.ListBuffer.empty
-    val decodeElements: mutable.ListBuffer[Tree]   = mutable.ListBuffer.empty
-    val decodeText: mutable.ListBuffer[Tree]       = mutable.ListBuffer.empty
-    val elementNames: mutable.ListBuffer[Tree]     = mutable.ListBuffer.empty
-    val preAssignments                             = new ListBuffer[Tree]
+    val allParams        = mutable.ListBuffer.empty[Param]
+    val decodeAttributes = mutable.ListBuffer.empty[Tree]
+    val decodeElements   = mutable.ListBuffer.empty[Tree]
+    val decodeText       = mutable.ListBuffer.empty[Tree]
+    val decodeDefault    = mutable.ListBuffer.empty[(Tree, Tree) => Tree]
+    val elementNames     = mutable.ListBuffer.empty[Tree]
+    val preAssignments   = new ListBuffer[Tree]
 
     params.foreach { param =>
       val tempName   = TermName(c.freshName(param.localName))
@@ -200,10 +209,45 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
             )
           )
           decodeText.append(q"$tempName = $tempName.decodeAsText(cursor)")
+
+        case ParamCategory.default =>
+          val defaultDecoder = appliedType(elementDecoderType, param.paramType)
+          val path           = ProductType(param.localName, weakTypeOf[T].toString)
+          val frame          = stack.Frame(path, appliedType(elementDecoderType, weakTypeOf[T]), assignedName)
+          val derivedImplicit = stack.recurse(frame, defaultDecoder) {
+            typeclassTree(stack)(param.paramType, elementDecoderType)
+          }
+          val ref      = TermName(c.freshName("paramTypeclass"))
+          val assigned = deferredVal(ref, defaultDecoder, derivedImplicit)
+
+          preAssignments.append(assigned)
+
+          allParams.append(
+            Param(
+              decoderParamAssignment = q"private[this] val $paramName: $derivationPkg.CallByNeed[$defaultDecoder]",
+              defaultValue = q"$derivationPkg.CallByNeed[$defaultDecoder]($ref)",
+              goAssignment = q"var $tempName: $defaultDecoder = $paramName.value",
+              decoderConstructionParam = q"$derivationPkg.CallByNeed[$defaultDecoder]($tempName)",
+              classConstructionForEnum = fq"$forName <- $tempName.result(cursor.history)",
+              classConstructorParam = q"$forName"
+            ))
+
+          decodeDefault.append((elementName: Tree, elementNamespace: Tree) => q"""
+              $tempName = $tempName.decodeAsElement(cursor, $elementName, $elementNamespace)
+              if ($tempName.isCompleted) {
+                $tempName.result(cursor.history) match {
+                  case $scalaPkg.Right(_) => go($decoderStateObj.DecodingSelf)
+                  case $scalaPkg.Left(error) => new $decodingPkg.ElementDecoder.FailedDecoder[$classType](error)
+                }
+              } else {
+                go($decoderStateObj.IgnoringElement($elementName, $elementNamespace, 0))
+              }
+             """)
       }
     }
 
-    val parseTextParam = decodeText.headOption.getOrElse(q"")
+    val parseTextParam    = decodeText.headOption.getOrElse(q"")
+    val parseDefaultParam = decodeDefault.headOption
     val classConstruction = if (allParams.nonEmpty) {
       q"(for (..${allParams.map(_.classConstructionForEnum)}) yield new $classType(..${allParams.map(_.classConstructorParam)}))"
     } else {
@@ -246,15 +290,22 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
                 $parseTextParam
                 if (cursor.isStartElement) {
                   cursor.getLocalName match {
-                    case ..${decodeElements :+
-      cq"""field =>
-                        cursor.next()
-                        go($decoderStateObj.IgnoringElement(field, 0))
-                      """}
+                    case ..$decodeElements
+                    case ${parseDefaultParam.fold(cq"""
+                        _ =>
+                          val state = $decoderStateObj.IgnoringElement(cursor.getLocalName, Option(cursor.getNamespaceURI).filter(_.nonEmpty), 0)
+                          cursor.next()
+                          go(state)
+                        """)(handler => cq"""
+                        _ =>
+                          val name = cursor.getLocalName
+                          val namespace = Option(cursor.getNamespaceURI).filter(_.nonEmpty)
+                          ${handler(q"name", q"namespace")}
+                        """)}
                   }
                 } else if (cursor.isEndElement) {
                   cursor.getLocalName match {
-                    case field if field == localName =>
+                    case name if name == localName =>
                       $classConstruction match {
                         case $scalaPkg.Right(result) =>
                           cursor.next()
@@ -273,26 +324,28 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
                   go($decoderStateObj.DecodingSelf)
                 }
 
-              case $decoderStateObj.DecodingElement(field) =>
-                field match {
+              case $decoderStateObj.DecodingElement(name) =>
+                name match {
                   case ..$decodeElements
                 }
 
-              case $decoderStateObj.IgnoringElement(field, depth) =>
-                if (cursor.isEndElement && cursor.getLocalName == field) {
-                  cursor.next()
-                  if (depth == 0) {
-                    go($decoderStateObj.DecodingSelf)
+              case $decoderStateObj.IgnoringElement(name, namespace, depth) =>
+                ${parseDefaultParam.fold[Tree](q"""
+                  if (cursor.isEndElement && cursor.getLocalName == name && cursor.getNamespaceURI == namespace.getOrElse("")) {
+                    cursor.next()
+                    if (depth == 0) {
+                      go($decoderStateObj.DecodingSelf)
+                    } else {
+                      go($decoderStateObj.IgnoringElement(name, namespace, depth - 1))
+                    }
+                  } else if (cursor.isStartElement && cursor.getLocalName == name && cursor.getNamespaceURI == namespace.getOrElse("")) {
+                    cursor.next()
+                    go($decoderStateObj.IgnoringElement(name, namespace, depth + 1))
                   } else {
-                    go($decoderStateObj.IgnoringElement(field, depth - 1))
+                    cursor.next()
+                    go(currentState)
                   }
-                } else if (cursor.isStartElement && cursor.getLocalName == field) {
-                  cursor.next()
-                  go($decoderStateObj.IgnoringElement(field, depth + 1))
-                } else {
-                  cursor.next()
-                  go(currentState)
-                }
+                """)(handler => handler(q"name", q"namespace"))}
             }
           }
 
@@ -333,9 +386,9 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 object DecoderDerivation {
   sealed trait DecoderState
   object DecoderState {
-    case object New                                       extends DecoderState
-    case object DecodingSelf                              extends DecoderState
-    case class DecodingElement(field: String)             extends DecoderState
-    case class IgnoringElement(field: String, depth: Int) extends DecoderState
+    case object New                                                                 extends DecoderState
+    case object DecodingSelf                                                        extends DecoderState
+    case class DecodingElement(name: String)                                        extends DecoderState
+    case class IgnoringElement(name: String, namespace: Option[String], depth: Int) extends DecoderState
   }
 }

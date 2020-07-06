@@ -3,6 +3,7 @@ package ru.tinkoff.phobos
 import cats.syntax.option._
 import cats.instances.list._
 import org.scalatest._
+import ru.tinkoff.phobos.SealedClasses.{Animal, Cat, Cow, Dog}
 import ru.tinkoff.phobos.annotations.{ElementCodec, XmlCodec, XmlCodecNs, XmlnsDef}
 import ru.tinkoff.phobos.decoding.{AttributeDecoder, DecodingError, ElementDecoder, TextDecoder, XmlDecoder}
 import ru.tinkoff.phobos.syntax._
@@ -608,6 +609,39 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
 
     "decode with @renamed having priority over naming sync" in decodeRenamedPriority(pure)
     "decode with @renamed having priority over naming async" in decodeRenamedPriority(fromIterable)
+
+    def decodeWithDefaultDecoders(toList: String => List[Array[Byte]]): Assertion = {
+      @ElementCodec
+      case class Default(a: Option[Int], b: Option[String], c: Option[Double])
+      @XmlCodec("foo")
+      case class Foo(a: Int, b: String, @default defaults: List[Default])
+
+      val foo =
+        Foo(
+          1,
+          "b value",
+          List(
+            Default(Some(100), None, None),
+            Default(None, Some("default string"), None),
+            Default(None, None, Some(12.3))
+          )
+        )
+      val string = """<?xml version='1.0' encoding='UTF-8'?>
+                     |<foo>
+                     |  <default1><a>100</a></default1>
+                     |  <a>1</a>
+                     |  <default2><b>default string</b></default2>
+                     |  <b>b value</b>
+                     |  <default3><c>12.3</c></default3>
+                     |</foo>
+                   """.stripMargin
+
+      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
+      assert(decoded == Right(foo))
+    }
+
+    "decode with default decoders sync" in decodeWithDefaultDecoders(pure)
+    "decode with default decoders async" in decodeWithDefaultDecoders(fromIterable)
   }
 
   "Decoder derivation for sealed traits" should {
@@ -843,6 +877,32 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
       notTransformCustomDiscriminatorValues(pure)
     "not transform custom discriminator values async" in
       notTransformCustomDiscriminatorValues(fromIterable)
+
+    def useElementNameAsDiscriminatorIfConfigured(toList: String => List[Array[Byte]]): Assertion = {
+      @XmlCodec("zoo")
+      case class Zoo(@default animals: List[Animal])
+      val string = """<?xml version='1.0' encoding='UTF-8'?>
+                      | <zoo>
+                      |   <cow>
+                      |     <moo>12.432</moo>
+                      |   </cow>
+                      |   <cat>
+                      |     <meow>meow</meow>
+                      |   </cat>
+                      |   <dog>
+                      |     <woof>1234</woof>
+                      |   </dog>
+                      |   <cat>
+                      |     <meow>nya</meow>
+                      |   </cat>
+                      | </zoo>
+                    """.stripMargin
+      val zoo = Zoo(List(Cow(12.432), Cat("meow"), Dog(1234), Cat("nya")))
+      XmlDecoder[Zoo].decodeFromFoldable(toList(string)) shouldBe Right(zoo)
+    }
+
+    "use element name as discriminator if configured sync" in useElementNameAsDiscriminatorIfConfigured(pure)
+    "use element name as discriminator if configured async" in useElementNameAsDiscriminatorIfConfigured(fromIterable)
   }
 
   "Decoder derivation with namespaces" should {

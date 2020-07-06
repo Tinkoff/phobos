@@ -12,9 +12,17 @@ object syntax {
   final class attr() extends StaticAnnotation
 
   /**
-    * Case class params with @text annotation are treated as text inside elements.
+    * Case class param with @text annotation is treated as text inside elements.
     */
   final class text() extends StaticAnnotation
+
+  /**
+    * Case class param with @default annotation is used for decoding elements
+    * which do not fit for other params.
+    *
+    * Params with this annotation are ignored during decoding.
+    */
+  final class default() extends StaticAnnotation
 
   /**
     * Annotation @xmlns adds namespace to case class parameter if implicit Namespace[T] exists.

@@ -6,4 +6,5 @@ object ParamCategory {
   case object element extends ParamCategory
   case object attribute extends ParamCategory
   case object text extends ParamCategory
+  case object default extends ParamCategory
 }

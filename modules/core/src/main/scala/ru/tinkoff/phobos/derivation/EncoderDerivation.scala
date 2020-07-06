@@ -40,8 +40,12 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
       preAssignments.append(assigned)
 
       cq"""sub: ${subtype.subtypeType.resultType} =>
-             sw.memorizeDiscriminator($config.discriminatorNamespace, $config.discriminatorLocalName, ${subtype.constructorName})
-             $ref.encodeAsElement(sub, sw, localName, namespaceUri)
+             if ($config.useElementNameAsDiscriminator) {
+               $ref.encodeAsElement(sub, sw, ${subtype.constructorName}, $scalaPkg.None)
+             } else {
+               sw.memorizeDiscriminator($config.discriminatorNamespace, $config.discriminatorLocalName, ${subtype.constructorName})
+               $ref.encodeAsElement(sub, sw, localName, namespaceUri)
+             }
       """
     }
 
@@ -98,22 +102,26 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
       q"$textEncoderInstance.encodeAsText(a.${TermName(param.localName)}, sw)"
     }
 
-    val encodeElements = groups.getOrElse(ParamCategory.element, Nil).map { param =>
-      val requiredImplicit = appliedType(elementEncoderType, param.paramType)
-      val paramName        = param.localName
-      val path             = ProductType(paramName, weakTypeOf[T].toString)
-      val frame            = stack.Frame(path, appliedType(elementEncoderType, weakTypeOf[T]), assignedName)
-      val derivedImplicit = stack.recurse(frame, requiredImplicit) {
-        typeclassTree(stack)(param.paramType, elementEncoderType)
+    val encodeElements =
+      (
+        groups.getOrElse(ParamCategory.element, Nil) ++
+          groups.getOrElse(ParamCategory.default, Nil)
+      ).map { param =>
+        val requiredImplicit = appliedType(elementEncoderType, param.paramType)
+        val paramName        = param.localName
+        val path             = ProductType(paramName, weakTypeOf[T].toString)
+        val frame            = stack.Frame(path, appliedType(elementEncoderType, weakTypeOf[T]), assignedName)
+        val derivedImplicit = stack.recurse(frame, requiredImplicit) {
+          typeclassTree(stack)(param.paramType, elementEncoderType)
+        }
+
+        val ref      = TermName(c.freshName("paramTypeclass"))
+        val assigned = deferredVal(ref, requiredImplicit, derivedImplicit)
+
+        preAssignments.append(assigned)
+
+        q"$ref.encodeAsElement(a.${TermName(param.localName)}, sw, ${param.xmlName}, ${param.namespaceUri})"
       }
-
-      val ref      = TermName(c.freshName("paramTypeclass"))
-      val assigned = deferredVal(ref, requiredImplicit, derivedImplicit)
-
-      preAssignments.append(assigned)
-
-      q"$ref.encodeAsElement(a.${TermName(param.localName)}, sw, ${param.xmlName}, ${param.namespaceUri})"
-    }
 
     q"""
      ..$preAssignments

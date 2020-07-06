@@ -5,7 +5,8 @@ final case class ElementCodecConfig(
     transformElementNames: String => String,
     transformConstructorNames: String => String,
     discriminatorLocalName: String,
-    discriminatorNamespace: Option[String]
+    discriminatorNamespace: Option[String],
+    useElementNameAsDiscriminator: Boolean,
 ) {
   def withElementsRenamed(transform: String => String): ElementCodecConfig =
     copy(transformElementNames = transform)
@@ -21,9 +22,20 @@ final case class ElementCodecConfig(
 
   def withDiscriminator(localName: String, namespace: Option[String]): ElementCodecConfig =
     copy(discriminatorLocalName = localName, discriminatorNamespace = namespace)
+
+  def usingElementNamesAsDiscriminator: ElementCodecConfig =
+    copy(useElementNameAsDiscriminator = true)
+
 }
 
 object ElementCodecConfig {
   val default: ElementCodecConfig =
-    ElementCodecConfig(identity, identity, identity, "type", Some("http://www.w3.org/2001/XMLSchema-instance"))
+    ElementCodecConfig(
+      transformAttributeNames = identity,
+      transformElementNames = identity,
+      transformConstructorNames = identity,
+      discriminatorLocalName = "type",
+      discriminatorNamespace = Some("http://www.w3.org/2001/XMLSchema-instance"),
+      useElementNameAsDiscriminator = false,
+    )
 }
