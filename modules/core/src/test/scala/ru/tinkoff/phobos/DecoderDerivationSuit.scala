@@ -897,12 +897,37 @@ class DecoderDerivationSuit extends WordSpec with Matchers {
                       |   </cat>
                       | </zoo>
                     """.stripMargin
-      val zoo = Zoo(List(Cow(12.432), Cat("meow"), Dog(1234), Cat("nya")))
+      val zoo    = Zoo(List(Cow(12.432), Cat("meow"), Dog(1234), Cat("nya")))
       XmlDecoder[Zoo].decodeFromFoldable(toList(string)) shouldBe Right(zoo)
     }
 
     "use element name as discriminator if configured sync" in useElementNameAsDiscriminatorIfConfigured(pure)
     "use element name as discriminator if configured async" in useElementNameAsDiscriminatorIfConfigured(fromIterable)
+
+    def overrideElementNameWithDiscriminatorInXmlDecoderIfConfigured(toList: String => List[Array[Byte]]): Assertion = {
+      // "animal" must be ignored if useElementNamesAsDiscriminator is set to true
+      val animalXmlDecoder: XmlDecoder[Animal] = XmlDecoder.fromElementDecoder("animal")
+      val catString =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          |<cat>
+          |  <meow>meow</meow>
+          |</cat>
+          |""".stripMargin
+      val dogString =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          |<dog>
+          |  <woof>1234</woof>
+          |</dog>
+          |""".stripMargin
+
+      animalXmlDecoder.decode(catString) shouldBe Right(Cat("meow"))
+      animalXmlDecoder.decode(dogString) shouldBe Right(Dog(1234))
+    }
+
+    "override element name with discriminator in xml decoder if configured sync" in
+      overrideElementNameWithDiscriminatorInXmlDecoderIfConfigured(pure)
+    "override element name with discriminator in xml decoder if configured async" in
+      overrideElementNameWithDiscriminatorInXmlDecoderIfConfigured(fromIterable)
   }
 
   "Decoder derivation with namespaces" should {

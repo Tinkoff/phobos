@@ -599,6 +599,27 @@ class EncoderDerivationSuit extends WordSpec with Matchers {
       val zoo = Zoo(List(Cow(12.432), Cat("meow"), Dog(1234), Cat("nya")))
       XmlEncoder[Zoo].encode(zoo) shouldBe string
     }
+
+    "override element name with discriminator in xml encoder if configured" in {
+      // "animal" must be ignored if useElementNamesAsDiscriminator is set to true
+      val animalXmlEncoder: XmlEncoder[Animal] = XmlEncoder.fromElementEncoder("animal")
+      val cat = Cat("meow")
+      val catString =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <cat>
+          |  <meow>meow</meow>
+          | </cat>
+          |""".stripMargin.minimized
+      val dog = Dog(1234)
+      val dogString =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <dog>
+          |  <woof>1234</woof>
+          | </dog>
+          |""".stripMargin.minimized
+      animalXmlEncoder.encode(cat) shouldBe catString
+      animalXmlEncoder.encode(dog) shouldBe dogString
+    }
   }
 
   "Encoder derivation with namespaces" should {

@@ -44,7 +44,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 
       cq""" 
         discriminator if discriminator == `${subtype.constructorName}` =>
-           $ref.decodeAsElement(cursor, localName, namespaceUri).map(d => d: $classType)
+           $ref.decodeAsElement(cursor, cursor.getLocalName, Option(cursor.getNamespaceURI).filter(_.nonEmpty)).map(d => d: $classType)
       """
     }.toBuffer
 

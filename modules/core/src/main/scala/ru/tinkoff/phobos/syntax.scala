@@ -13,6 +13,8 @@ object syntax {
 
   /**
     * Case class param with @text annotation is treated as text inside elements.
+    *
+    * Only one @text param is allowed per case class.
     */
   final class text() extends StaticAnnotation
 
@@ -20,17 +22,21 @@ object syntax {
     * Case class param with @default annotation is used for decoding elements
     * which do not fit for other params.
     *
-    * Params with this annotation are ignored during decoding.
+    * Params with this annotation are encoded as regular elements.
+    *
+    * Only one @default param is allowed per case class.
     */
   final class default() extends StaticAnnotation
 
   /**
     * Annotation @xmlns adds namespace to case class parameter if implicit Namespace[T] exists.
+    *
+    * This annotation can be used both for elements and attributes.
     */
   final class xmlns[T](ns: T) extends StaticAnnotation
 
   /**
-    * Allows to rename xml tag or attribute name while encoding and decoding
+    * Allows to rename xml element or attribute name while encoding and decoding
     */
   final class renamed(to: String) extends StaticAnnotation
 
