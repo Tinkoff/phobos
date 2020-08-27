@@ -4,7 +4,7 @@ import java.util.concurrent.Executors
 
 import monix.execution.Scheduler
 import monix.reactive.Observable
-import org.scalatest.AsyncWordSpec
+import org.scalatest.wordspec.AsyncWordSpec
 import ru.tinkoff.phobos.annotations.{ElementCodec, XmlCodec}
 import ru.tinkoff.phobos.decoding.XmlDecoder
 import ru.tinkoff.phobos.syntax.text

@@ -1,7 +1,8 @@
 package ru.tinkoff.phobos
 
 import cats.syntax.option._
-import org.scalatest._
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers
 import ru.tinkoff.phobos.SealedClasses.{Animal, Cat, Cow, Dog}
 import ru.tinkoff.phobos.annotations.{ElementCodec, XmlCodec, XmlCodecNs, XmlnsDef}
 import ru.tinkoff.phobos.encoding.{AttributeEncoder, ElementEncoder, TextEncoder, XmlEncoder}
@@ -10,7 +11,7 @@ import ru.tinkoff.phobos.syntax._
 import ru.tinkoff.phobos.configured.naming._
 import ru.tinkoff.phobos.configured.ElementCodecConfig
 
-class EncoderDerivationSuit extends WordSpec with Matchers {
+class EncoderDerivationSuit extends AnyWordSpec with Matchers {
 
   "Encoder derivation without namespaces" should {
     "encode simple case classes" in {

@@ -2,7 +2,9 @@ package ru.tinkoff.phobos
 
 import cats.syntax.option._
 import cats.instances.list._
-import org.scalatest._
+import org.scalatest.Assertion
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers
 import ru.tinkoff.phobos.SealedClasses.{Animal, Cat, Cow, Dog}
 import ru.tinkoff.phobos.annotations.{ElementCodec, XmlCodec, XmlCodecNs, XmlnsDef}
 import ru.tinkoff.phobos.decoding.{AttributeDecoder, DecodingError, ElementDecoder, TextDecoder, XmlDecoder}
@@ -10,7 +12,7 @@ import ru.tinkoff.phobos.syntax._
 import ru.tinkoff.phobos.configured.naming._
 import ru.tinkoff.phobos.configured.ElementCodecConfig
 
-class DecoderDerivationSuit extends WordSpec with Matchers {
+class DecoderDerivationSuit extends AnyWordSpec with Matchers {
   def pure(str: String): List[Array[Byte]] =
     List(str.getBytes("UTF-8"))
 

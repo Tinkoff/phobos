@@ -1,6 +1,6 @@
 package ru.tinkoff.phobos.test
 
-import org.scalatest.AsyncWordSpec
+import org.scalatest.wordspec.AsyncWordSpec
 import ru.tinkoff.phobos.annotations.{ElementCodec, XmlCodec}
 import ru.tinkoff.phobos.decoding.XmlDecoder
 import ru.tinkoff.phobos.syntax.text
@@ -8,7 +8,7 @@ import ru.tinkoff.phobos.fs2._
 import fs2.Stream
 import cats.effect.IO
 
-class Fs2Test extends AsyncWordSpec{
+class Fs2Test extends AsyncWordSpec {
 
   "Fs2 decoder" should {
     "decode case classes correctly" in {

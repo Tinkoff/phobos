@@ -1,9 +1,10 @@
 package ru.tinkoff.phobos
 
 import ru.tinkoff.phobos.testString._
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers
 
-class AutoDerivationTest extends WordSpec with Matchers {
+class AutoDerivationTest extends AnyWordSpec with Matchers {
   "Automatic derivation" should {
     "derive codecs" in {
       """

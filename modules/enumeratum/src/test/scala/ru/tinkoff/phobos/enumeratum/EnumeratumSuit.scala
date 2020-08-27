@@ -2,14 +2,16 @@ package ru.tinkoff.phobos.enumeratum
 
 import enumeratum._
 import cats.instances.list._
-import org.scalatest._
+import org.scalatest.Assertion
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers
 import ru.tinkoff.phobos.annotations.XmlCodec
 import ru.tinkoff.phobos.decoding.XmlDecoder
 import ru.tinkoff.phobos.encoding.XmlEncoder
 import ru.tinkoff.phobos.syntax._
 import ru.tinkoff.phobos.testString._
 
-class EnumeratumSuit extends WordSpec with Matchers {
+class EnumeratumSuit extends AnyWordSpec with Matchers {
   "Enum codecs" should {
     "encode enums" in {
       sealed trait Foo extends EnumEntry with Product with Serializable

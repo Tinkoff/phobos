@@ -1,10 +1,11 @@
 package ru.tinkoff.phobos
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers
 import ru.tinkoff.phobos.annotations.XmlCodec
 import ru.tinkoff.phobos.encoding.XmlEncoder
 
-class XmlEncoderTest extends WordSpec with Matchers {
+class XmlEncoderTest extends AnyWordSpec with Matchers {
   "XmlEncoder with config" should {
     "ignore prolog if configured" in {
       @XmlCodec("Foo")
