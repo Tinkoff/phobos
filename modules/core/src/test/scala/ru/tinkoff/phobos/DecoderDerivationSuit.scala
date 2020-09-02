@@ -1146,6 +1146,135 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
 
     "decode snake_case sync" in decodeSnakeCase(pure)
     "decode snake_case async" in decodeSnakeCase(fromIterable)
+
+    def decodeWithDefaultElementNamespaces(toList: String => List[Array[Byte]]): Assertion = {
+      @XmlnsDef("tinkoff.ru")
+      case object tkf
+
+      val defaultNamespaceConfig = ElementCodecConfig.default.withElementsDefaultNamespace(tkf)
+      @ElementCodec
+      case class Foo(a: Int, b: String, c: Double)
+      @XmlCodecNs("bar", tkf, defaultNamespaceConfig)
+      case class Bar(@attr d: String, foo: Foo, e: Char)
+
+      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val string =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <ans1:bar xmlns:ans1="tinkoff.ru" d="d value">
+          |   <ans1:foo>
+          |     <a>1</a>
+          |     <b>b value</b>
+          |     <c>3.0</c>
+          |   </ans1:foo>
+          |  <ans1:e>e</ans1:e>
+          | </ans1:bar>
+        """.stripMargin
+      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
+
+      assert(decoded == Right(bar))
+    }
+
+    "decode with default element namespaces sync" in decodeWithDefaultElementNamespaces(pure)
+    "decode with default element namespaces async" in decodeWithDefaultElementNamespaces(fromIterable)
+
+    def overrideDefaultElementNamespaceWithNamespaceFromAnnotation(toList: String => List[Array[Byte]]): Assertion = {
+      @XmlnsDef("tinkoff.ru")
+      case object tkf
+
+      @XmlnsDef("tcsbank.ru")
+      case object tcs
+
+      val defaultNamespaceConfig = ElementCodecConfig.default.withElementsDefaultNamespace(tkf)
+      @ElementCodec
+      case class Foo(a: Int, b: String, c: Double)
+      @XmlCodecNs("bar", tkf, defaultNamespaceConfig)
+      case class Bar(@attr d: String, @xmlns(tcs) foo: Foo, e: Char)
+
+      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val string =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <ans1:bar xmlns:ans1="tinkoff.ru" d="d value">
+          |   <ans2:foo xmlns:ans2="tcsbank.ru">
+          |     <a>1</a>
+          |     <b>b value</b>
+          |     <c>3.0</c>
+          |   </ans2:foo>
+          |  <ans1:e>e</ans1:e>
+          | </ans1:bar>
+        """.stripMargin
+
+      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
+
+      assert(decoded == Right(bar))
+    }
+
+    "override default element namespace with namespace from annotation sync" in
+      overrideDefaultElementNamespaceWithNamespaceFromAnnotation(pure)
+    "override default element namespace with namespace from annotation async" in
+      overrideDefaultElementNamespaceWithNamespaceFromAnnotation(fromIterable)
+
+    def decodeWithDefaultAttributeNamespaces(toList: String => List[Array[Byte]]): Assertion = {
+      @XmlnsDef("tinkoff.ru")
+      case object tkf
+
+      val defaultNamespaceConfig = ElementCodecConfig.default.withAttributesDefaultNamespace(tkf)
+      @ElementCodec
+      case class Foo(a: Int, b: String, c: Double)
+      @XmlCodecNs("bar", tkf, defaultNamespaceConfig)
+      case class Bar(@attr d: String, foo: Foo, @attr e: Char)
+
+      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val string =
+        """<?xml version='1.0' encoding='UTF-8'?>
+        | <ans1:bar xmlns:ans1="tinkoff.ru" ans1:d="d value" ans1:e="e">
+        |   <foo>
+        |     <a>1</a>
+        |     <b>b value</b>
+        |     <c>3.0</c>
+        |   </foo>
+        | </ans1:bar>
+      """.stripMargin
+      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
+
+      assert(decoded == Right(bar))
+    }
+
+    "decode with default attribute namespaces sync" in decodeWithDefaultAttributeNamespaces(pure)
+    "decode with default attribute namespaces async" in decodeWithDefaultAttributeNamespaces(fromIterable)
+
+    def overrideDefaultAttributeNamespaceWithNamespaceFromAnnotation(toList: String => List[Array[Byte]]): Assertion ={
+      @XmlnsDef("tinkoff.ru")
+      case object tkf
+
+      @XmlnsDef("tcsbank.ru")
+      case object tcs
+
+      val defaultNamespaceConfig = ElementCodecConfig.default.withAttributesDefaultNamespace(tkf)
+      @ElementCodec
+      case class Foo(a: Int, b: String, c: Double)
+      @XmlCodecNs("bar", tkf, defaultNamespaceConfig)
+      case class Bar(@attr d: String, foo: Foo, @attr @xmlns(tcs) e: Char)
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val string =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <ans1:bar xmlns:ans1="tinkoff.ru" ans1:d="d value" xmlns:ans2="tcsbank.ru" ans2:e="e">
+          |   <foo>
+          |     <a>1</a>
+          |     <b>b value</b>
+          |     <c>3.0</c>
+          |   </foo>
+          | </ans1:bar>
+        """.stripMargin
+      val decoded = XmlDecoder[Bar].decode(string)
+
+      assert(decoded == Right(bar))
+    }
+
+    "override default attribute namespace with namespace from annotation sync" in
+      overrideDefaultAttributeNamespaceWithNamespaceFromAnnotation(pure)
+    "override default attribute namespace with namespace from annotation async" in
+      overrideDefaultAttributeNamespaceWithNamespaceFromAnnotation(fromIterable)
   }
 
   "Decoder derivation compilation" should {
