@@ -604,7 +604,7 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
     "override element name with discriminator in xml encoder if configured" in {
       // "animal" must be ignored if useElementNamesAsDiscriminator is set to true
       val animalXmlEncoder: XmlEncoder[Animal] = XmlEncoder.fromElementEncoder("animal")
-      val cat = Cat("meow")
+      val cat                                  = Cat("meow")
       val catString =
         """<?xml version='1.0' encoding='UTF-8'?>
           | <cat>
@@ -841,6 +841,118 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             |   <e>e</e>
             | </bar>
           """.stripMargin.minimized)
+    }
+
+    "encode with default element namespaces" in {
+      @XmlnsDef("tinkoff.ru")
+      case object tkf
+
+      val defaultNamespaceConfig = ElementCodecConfig.default.withElementsDefaultNamespace(tkf)
+      @ElementCodec
+      case class Foo(a: Int, b: String, c: Double)
+      @XmlCodecNs("bar", tkf, defaultNamespaceConfig)
+      case class Bar(@attr d: String, foo: Foo, e: Char)
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val string = XmlEncoder[Bar].encode(bar)
+
+      assert(
+        string ==
+          """<?xml version='1.0' encoding='UTF-8'?>
+          | <ans1:bar xmlns:ans1="tinkoff.ru" d="d value">
+          |   <ans1:foo>
+          |     <a>1</a>
+          |     <b>b value</b>
+          |     <c>3.0</c>
+          |   </ans1:foo>
+          |  <ans1:e>e</ans1:e>
+          | </ans1:bar>
+      """.stripMargin.minimized)
+    }
+
+    "override default element namespace with namespace from annotation" in {
+      @XmlnsDef("tinkoff.ru")
+      case object tkf
+
+      @XmlnsDef("tcsbank.ru")
+      case object tcs
+
+      val defaultNamespaceConfig = ElementCodecConfig.default.withElementsDefaultNamespace(tkf)
+      @ElementCodec
+      case class Foo(a: Int, b: String, c: Double)
+      @XmlCodecNs("bar", tkf, defaultNamespaceConfig)
+      case class Bar(@attr d: String, @xmlns(tcs) foo: Foo, e: Char)
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val string = XmlEncoder[Bar].encode(bar)
+
+      assert(
+        string ==
+          """<?xml version='1.0' encoding='UTF-8'?>
+            | <ans1:bar xmlns:ans1="tinkoff.ru" d="d value">
+            |   <ans2:foo xmlns:ans2="tcsbank.ru">
+            |     <a>1</a>
+            |     <b>b value</b>
+            |     <c>3.0</c>
+            |   </ans2:foo>
+            |  <ans1:e>e</ans1:e>
+            | </ans1:bar>
+      """.stripMargin.minimized)
+    }
+
+    "encode with default attribute namespaces" in {
+      @XmlnsDef("tinkoff.ru")
+      case object tkf
+
+      val defaultNamespaceConfig = ElementCodecConfig.default.withAttributesDefaultNamespace(tkf)
+      @ElementCodec
+      case class Foo(a: Int, b: String, c: Double)
+      @XmlCodecNs("bar", tkf, defaultNamespaceConfig)
+      case class Bar(@attr d: String, foo: Foo, @attr e: Char)
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val string = XmlEncoder[Bar].encode(bar)
+
+      assert(
+        string ==
+          """<?xml version='1.0' encoding='UTF-8'?>
+            | <ans1:bar xmlns:ans1="tinkoff.ru" ans1:d="d value" ans1:e="e">
+            |   <foo>
+            |     <a>1</a>
+            |     <b>b value</b>
+            |     <c>3.0</c>
+            |   </foo>
+            | </ans1:bar>
+      """.stripMargin.minimized)
+    }
+
+    "override default attribute namespace with namespace from annotation" in {
+      @XmlnsDef("tinkoff.ru")
+      case object tkf
+
+      @XmlnsDef("tcsbank.ru")
+      case object tcs
+
+      val defaultNamespaceConfig = ElementCodecConfig.default.withAttributesDefaultNamespace(tkf)
+      @ElementCodec
+      case class Foo(a: Int, b: String, c: Double)
+      @XmlCodecNs("bar", tkf, defaultNamespaceConfig)
+      case class Bar(@attr d: String, foo: Foo, @attr @xmlns(tcs) e: Char)
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val string = XmlEncoder[Bar].encode(bar)
+
+      assert(
+        string ==
+          """<?xml version='1.0' encoding='UTF-8'?>
+            | <ans1:bar xmlns:ans1="tinkoff.ru" ans1:d="d value" xmlns:ans2="tcsbank.ru" ans2:e="e">
+            |   <foo>
+            |     <a>1</a>
+            |     <b>b value</b>
+            |     <c>3.0</c>
+            |   </foo>
+            | </ans1:bar>
+      """.stripMargin.minimized)
     }
   }
 

@@ -116,7 +116,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
         deriveCoproductCodec(stack)(config, sealedTraitSubtypes)
       } else if (classSymbol.isCaseClass) {
 
-        def fetchGroup(param: TermSymbol): ParamCategory = {
+        def fetchCategory(param: TermSymbol): ParamCategory = {
           param.annotations.foldLeft[List[ParamCategory]](Nil)((acc, annotation) =>
             annotation.tree.tpe match {
               case tpe if tpe == attrType    => ParamCategory.attribute :: acc
@@ -124,20 +124,24 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
               case tpe if tpe == defaultType => ParamCategory.default :: acc
               case _                         => acc
           }) match {
-            case List(group) => group
-            case Nil         => ParamCategory.element
-            case groups =>
-              error(s"Parameter ${param.name} must not have multiple xml annotations (${groups.mkString(", ")})")
+            case List(category) => category
+            case Nil            => ParamCategory.element
+            case categories =>
+              error(s"Parameter ${param.name} must not have multiple xml annotations (${categories.mkString(", ")})")
           }
         }
 
-        def fetchNamespace(param: TermSymbol): Tree =
+        def fetchNamespace(param: TermSymbol, paramCategory: ParamCategory): Tree =
           param.annotations.collectFirst {
             case annot if annot.tree.tpe <:< xmlnsType =>
               Option(c.inferImplicitValue(appliedType(namespaceType, annot.tree.tpe.typeArgs.head))).map { tree =>
                 q"_root_.scala.Some($tree.getNamespace)"
               }.getOrElse(error(s"Namespace typeclass not found for ${annot.tree.tpe.typeArgs.head}"))
-          }.getOrElse(q"_root_.scala.None")
+          }.getOrElse(paramCategory match {
+            case ParamCategory.element   => q"""$config.elementsDefaultNamespace"""
+            case ParamCategory.attribute => q"""$config.attributesDefaultNamespace"""
+            case _                       => q"_root_.scala.None"
+          })
 
         val repeatedParamClass = definitions.RepeatedParamClass
         val scalaSeqType       = typeOf[Seq[_]].typeConstructor
@@ -164,9 +168,8 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
 
         val params = caseParams.zip(annotations).map {
           case (paramType, param) =>
-            fetchNamespace(param)
-            val namespace = fetchNamespace(param)
-            val group     = fetchGroup(param)
+            val category  = fetchCategory(param)
+            val namespace = fetchNamespace(param, category)
             val localName = param.name.decodedName.toString
             val xmlName: Tree = param.annotations.collectFirst {
               case annotation if annotation.tree.tpe =:= renamedType =>
@@ -177,7 +180,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
                 }
             } getOrElse {
               val localNameTree = q"""$localName"""
-              group match {
+              category match {
                 case ParamCategory.attribute =>
                   q"""$config.transformAttributeNames($localNameTree)"""
                 case ParamCategory.element =>
@@ -185,7 +188,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
                 case _ => localNameTree
               }
             }
-            CaseClassParam(localName, xmlName, namespace, paramType, group)
+            CaseClassParam(localName, xmlName, namespace, paramType, category)
         }
 
         val attributeParamsNumber = params.count(_.category == ParamCategory.attribute)
@@ -196,7 +199,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
         (attributeParamsNumber, regularParamsNumber, textParamsNumber, defaultParamsNumber) match {
           case (_, _, t, _) if t > 1 => error("Multiple @text parameters are not allowed")
           case (_, _, _, d) if d > 1 => error("Mutiple @default parameters are not allowed")
-          case _                  => deriveProductCodec(stack)(params)
+          case _                     => deriveProductCodec(stack)(params)
         }
       } else error(s"$classSymbol is not case class or sealed trait")
     }

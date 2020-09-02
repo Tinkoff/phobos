@@ -1,5 +1,7 @@
 package ru.tinkoff.phobos.configured
 
+import ru.tinkoff.phobos.Namespace
+
 final case class ElementCodecConfig(
     transformAttributeNames: String => String,
     transformElementNames: String => String,
@@ -7,6 +9,8 @@ final case class ElementCodecConfig(
     discriminatorLocalName: String,
     discriminatorNamespace: Option[String],
     useElementNameAsDiscriminator: Boolean,
+    attributesDefaultNamespace: Option[String] = None,
+    elementsDefaultNamespace: Option[String] = None,
 ) {
   def withElementsRenamed(transform: String => String): ElementCodecConfig =
     copy(transformElementNames = transform)
@@ -25,6 +29,18 @@ final case class ElementCodecConfig(
 
   def usingElementNamesAsDiscriminator: ElementCodecConfig =
     copy(useElementNameAsDiscriminator = true)
+
+  def withAttributesDefaultNamespace(namespace: String): ElementCodecConfig =
+    copy(attributesDefaultNamespace = Some(namespace))
+
+  def withAttributesDefaultNamespace[NS](namespace: NS)(implicit ns: Namespace[NS]): ElementCodecConfig =
+    copy(attributesDefaultNamespace = Some(ns.getNamespace))
+
+  def withElementsDefaultNamespace(namespace: String): ElementCodecConfig =
+    copy(elementsDefaultNamespace = Some(namespace))
+
+  def withElementsDefaultNamespace[NS](namespace: NS)(implicit ns: Namespace[NS]): ElementCodecConfig =
+    copy(elementsDefaultNamespace = Some(ns.getNamespace))
 
 }
 
