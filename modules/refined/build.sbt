@@ -1,3 +1,3 @@
 libraryDependencies ++= Seq(
-  "eu.timepit" %% "refined" % "0.9.15"
+  "eu.timepit" %% "refined" % "0.9.17"
 )

@@ -6,11 +6,11 @@ lazy val supportedVersions = List("2.12.11", "2.13.2", "2.13.3")
 
 lazy val commonDependencies =
   libraryDependencies ++= List(
-    "org.typelevel" %% "cats-core" % "2.1.1",
+    "org.typelevel" %% "cats-core" % "2.2.0",
     "com.fasterxml" % "aalto-xml" % "1.2.2",
     "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-    "org.scalactic" %% "scalactic" % "3.2.0" % "test",
-    "org.scalatest" %% "scalatest" % "3.2.0" % "test",
+    "org.scalactic" %% "scalactic" % "3.2.2" % "test",
+    "org.scalatest" %% "scalatest" % "3.2.2" % "test",
   )
 
 def onScalaVersion[B](`on-2-12`: => B, `on-2-13`: => B): Def.Initialize[B] =
