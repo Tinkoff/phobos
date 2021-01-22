@@ -1,5 +1,6 @@
 package ru.tinkoff.phobos.ast
 
+import com.softwaremill.diffx.generic.auto._
 import com.softwaremill.diffx.scalatest.DiffMatcher
 import org.scalatest.EitherValues
 import org.scalatest.matchers.should.Matchers

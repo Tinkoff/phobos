@@ -2,6 +2,7 @@ package ru.tinkoff.phobos.traverse
 
 import cats.syntax.either._
 import com.softwaremill.diffx.scalatest.DiffMatcher
+import com.softwaremill.diffx.generic.auto._
 import org.scalatest.EitherValues
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
