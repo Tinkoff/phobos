@@ -69,10 +69,10 @@ trait XmlDecoder[A] {
 }
 
 object XmlDecoder {
+  private lazy val factory = new InputFactoryImpl
 
   def createStreamReader(charset: String): XmlStreamReader = {
-    val inputFactory = new InputFactoryImpl
-    val cfg          = inputFactory.getNonSharedConfig(null, null, null, false, false)
+    val cfg = XmlDecoder.factory.getNonSharedConfig(null, null, null, false, false)
     cfg.setActualEncoding(charset)
     cfg.doReportCData(false)
     new AsyncStreamReaderImpl[AsyncByteArrayFeeder](new AsyncByteArrayScanner(cfg))

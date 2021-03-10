@@ -28,10 +28,9 @@ trait XmlEncoder[A] {
     new String(encodeToBytes(a, charset), charset)
 
   def encodeToBytes(a: A, charset: String = "UTF-8"): Array[Byte] = {
-    val os      = new ByteArrayOutputStream
-    val factory = new OutputFactoryImpl
-    factory.setProperty("javax.xml.stream.isRepairingNamespaces", true)
-    val sw = new PhobosStreamWriter(factory.createXMLStreamWriter(os, charset).asInstanceOf[XMLStreamWriter2])
+    val os = new ByteArrayOutputStream
+    val sw =
+      new PhobosStreamWriter(XmlEncoder.factory.createXMLStreamWriter(os, charset).asInstanceOf[XMLStreamWriter2])
     sw.writeStartDocument()
     elementencoder.encodeAsElement(a, sw, localname, namespaceuri)
     sw.writeEndDocument()
@@ -44,10 +43,9 @@ trait XmlEncoder[A] {
     new String(encodeToBytesWithConfig(a, config), config.encoding)
 
   def encodeToBytesWithConfig(a: A, config: XmlEncoderConfig): Array[Byte] = {
-    val os      = new ByteArrayOutputStream
-    val factory = new OutputFactoryImpl
-    factory.setProperty("javax.xml.stream.isRepairingNamespaces", true)
-    val sw = new PhobosStreamWriter(factory.createXMLStreamWriter(os, config.encoding).asInstanceOf[XMLStreamWriter2])
+    val os = new ByteArrayOutputStream
+    val sw =
+      new PhobosStreamWriter(XmlEncoder.factory.createXMLStreamWriter(os, config.encoding).asInstanceOf[XMLStreamWriter2])
     if (config.writeProlog) {
       sw.writeStartDocument(config.encoding, config.version)
     }
@@ -63,6 +61,12 @@ trait XmlEncoder[A] {
 }
 
 object XmlEncoder {
+
+  private lazy val factory = {
+    val factory = new OutputFactoryImpl
+    factory.setProperty("javax.xml.stream.isRepairingNamespaces", true)
+    factory
+  }
 
   def apply[A](implicit instance: XmlEncoder[A]): XmlEncoder[A] = instance
 
