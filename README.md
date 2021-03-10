@@ -1,5 +1,6 @@
 # phobos
 [![Maven Central](https://img.shields.io/maven-central/v/ru.tinkoff/phobos-core_2.13.svg)](https://search.maven.org/search?q=ru.tinkoff.phobos-core)
+[![build](https://github.com/TinkoffCreditSystems/phobos/actions/workflows/scala.yml/badge.svg)](https://github.com/TinkoffCreditSystems/phobos/actions/workflows/scala.yml)
 [![Discord](https://img.shields.io/badge/chat-discord%20(en%2Fru)-blue)](https://discord.gg/S9Ad88t)
 
 Phobos is an XML data-binding library based on stream parsing. 
