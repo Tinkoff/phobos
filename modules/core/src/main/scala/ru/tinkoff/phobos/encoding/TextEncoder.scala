@@ -23,7 +23,7 @@ trait TextEncoder[A] { self =>
     }
 }
 
-object TextEncoder {
+object TextEncoder extends TextLiteralInstances {
   implicit val encoderContravariant: Contravariant[TextEncoder] =
     new Contravariant[TextEncoder] {
       def contramap[A, B](fa: TextEncoder[A])(f: B => A): TextEncoder[B] = fa.contramap(f)
