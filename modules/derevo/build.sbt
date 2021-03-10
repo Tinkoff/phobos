@@ -1,3 +1,3 @@
 libraryDependencies ++= Seq(
-  "org.manatki" %% "derevo-core" % "0.11.6",
+  "tf.tofu" %% "derevo-core" % "0.12.1",
 )
