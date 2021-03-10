@@ -954,6 +954,113 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             | </ans1:bar>
       """.stripMargin.minimized)
     }
+
+    "define namespaces from config" in {
+      @XmlnsDef("tinkoff.ru")
+      case object tkf
+
+      @XmlnsDef("tcsbank.ru")
+      case object tcs
+
+      val config = ElementCodecConfig.default.withNamespaceDefined(tkf).withNamespaceDefined(tcs)
+
+      @XmlCodec("foo", config)
+      final case class Foo(
+          @xmlns(tcs) a: Int,
+          @xmlns(tcs) b: String,
+          @xmlns(tcs) c: Double,
+      )
+
+      val foo = Foo(1, "b value", 3.0)
+      val string = XmlEncoder[Foo].encode(foo)
+
+      assert(
+        string ==
+          """<?xml version='1.0' encoding='UTF-8'?>
+            | <foo xmlns:ans1="tcsbank.ru" xmlns:ans2="tinkoff.ru">
+            |   <ans1:a>1</ans1:a>
+            |   <ans1:b>b value</ans1:b>
+            |   <ans1:c>3.0</ans1:c>
+            | </foo>
+      """.stripMargin.minimized)
+    }
+
+    "define namespaces with not bounded prefixes" in {
+      @XmlnsDef("tinkoff.ru")
+      case object tkf
+
+      @XmlnsDef("tcsbank.ru")
+      case object tcs
+
+      val config =
+        List
+          .range(10, 2, -1)
+          .foldLeft(ElementCodecConfig.default)((config, i) => config.withNamespaceDefined(s"example.com/$i"))
+
+      @ElementCodec(config)
+      final case class Foo(
+                            a: Int,
+                            b: String,
+                            c: Double,
+                          )
+
+      @XmlCodecNs("bar", tkf)
+      final case class Bar(
+        @xmlns(tcs) foo: Foo,
+      )
+
+      val bar = Bar(Foo(1, "b value", 3.0))
+      val string = XmlEncoder[Bar].encode(bar)
+      // \u0020 - space, for .minimize to work correctly
+      assert(
+        string ==
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <ans1:bar xmlns:ans1="tinkoff.ru">
+          |   <ans2:foo xmlns:ans2="tcsbank.ru" xmlns:ans3="example.com/3" xmlns:ans4="example.com/4"\u0020
+          |             xmlns:ans5="example.com/5" xmlns:ans6="example.com/6" xmlns:ans7="example.com/7"\u0020
+          |             xmlns:ans8="example.com/8" xmlns:ans9="example.com/9" xmlns:ans10="example.com/10">
+          |     <a>1</a>
+          |     <b>b value</b>
+          |     <c>3.0</c>
+          |   </ans2:foo>
+          | </ans1:bar>
+      """.stripMargin.minimized)
+    }
+
+    "not define already defined namespaces" in {
+      @XmlnsDef("tinkoff.ru")
+      case object tkf
+
+      @XmlnsDef("tcsbank.ru")
+      case object tcs
+
+      val config = ElementCodecConfig.default.withNamespaceDefined(tkf).withNamespaceDefined(tcs)
+      @ElementCodec(config)
+      final case class Foo(
+                            a: Int,
+                            b: String,
+                            c: Double,
+                          )
+
+      @XmlCodecNs("bar", tkf)
+      final case class Bar(
+                            foo: Foo,
+                          )
+
+      val bar = Bar(Foo(1, "b value", 3.0))
+      val string = XmlEncoder[Bar].encode(bar)
+      assert(
+        string ==
+          """<?xml version='1.0' encoding='UTF-8'?>
+            | <ans1:bar xmlns:ans1="tinkoff.ru">
+            |   <foo xmlns:ans2="tcsbank.ru">
+            |     <a>1</a>
+            |     <b>b value</b>
+            |     <c>3.0</c>
+            |   </foo>
+            | </ans1:bar>
+      """.stripMargin.minimized)
+    }
   }
 
   "Encoder derivation compilation" should {

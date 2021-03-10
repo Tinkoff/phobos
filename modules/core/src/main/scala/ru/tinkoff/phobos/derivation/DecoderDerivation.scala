@@ -92,7 +92,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
     """
   }
 
-  def deriveProductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(params: IndexedSeq[CaseClassParam]): Tree = {
+  def deriveProductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(config: Expr[ElementCodecConfig], params: IndexedSeq[CaseClassParam]): Tree = {
 
     val decoderStateObj = q"$derivationPkg.DecoderDerivation.DecoderState"
 

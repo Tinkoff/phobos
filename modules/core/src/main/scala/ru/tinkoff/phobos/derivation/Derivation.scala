@@ -33,7 +33,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
       subtypes: Iterable[SealedTraitSubtype]
   ): Tree
 
-  def deriveProductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(params: IndexedSeq[CaseClassParam]): Tree
+  def deriveProductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(config: Expr[ElementCodecConfig], params: IndexedSeq[CaseClassParam]): Tree
 
   def error(msg: String): Nothing = c.abort(c.enclosingPosition, msg)
 
@@ -199,7 +199,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
         (attributeParamsNumber, regularParamsNumber, textParamsNumber, defaultParamsNumber) match {
           case (_, _, t, _) if t > 1 => error("Multiple @text parameters are not allowed")
           case (_, _, _, d) if d > 1 => error("Mutiple @default parameters are not allowed")
-          case _                     => deriveProductCodec(stack)(params)
+          case _                     => deriveProductCodec(stack)(config, params)
         }
       } else error(s"$classSymbol is not case class or sealed trait")
     }
