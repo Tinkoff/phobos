@@ -32,7 +32,6 @@ class AutoDerivationTest extends AnyWordSpec with Matchers {
         |""".stripMargin shouldNot compile
     }
 
-
     "not derive decoder if not imported" in {
       """
         | import ru.tinkoff.phobos.decoding._
@@ -58,10 +57,10 @@ class AutoDerivationTest extends AnyWordSpec with Matchers {
       val baz = Baz(
         foo = Foo(42, 144.12, "keke"),
         bars = List(Bar(1), Bar(2), Bar(3)),
-        maybebar = Some(Bar(4))
+        maybebar = Some(Bar(4)),
       )
       val bazXml =
-      """<?xml version='1.0' encoding='UTF-8'?>
+        """<?xml version='1.0' encoding='UTF-8'?>
        | <baz>
        |     <foo bar="42" baz="144.12">keke</foo>
        |     <bars><foo>1.0</foo></bars>

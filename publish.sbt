@@ -13,16 +13,16 @@ ThisBuild / publishMavenStyle := true
 
 ThisBuild / publishTo :=
   (if (!isSnapshot.value) {
-    sonatypePublishToBundle.value
-  } else {
-    Some(Opts.resolver.sonatypeSnapshots)
-  })
+     sonatypePublishToBundle.value
+   } else {
+     Some(Opts.resolver.sonatypeSnapshots)
+   })
 
 ThisBuild / scmInfo := Some(
   ScmInfo(
     url("https://github.com/TinkoffCreditSystems/phobos"),
-    "git@github.com:TinkoffCreditSystems/phobos"
-  )
+    "git@github.com:TinkoffCreditSystems/phobos",
+  ),
 )
 
 ThisBuild / developers := List(
@@ -30,8 +30,8 @@ ThisBuild / developers := List(
     id = "valentiay",
     name = "Alexander Valentinov",
     email = "a.valentinov@tinkoff.ru",
-    url = url("https://github.com/valentiay")
-  )
+    url = url("https://github.com/valentiay"),
+  ),
 )
 
 ThisBuild / description := "Fast xml data binding library"

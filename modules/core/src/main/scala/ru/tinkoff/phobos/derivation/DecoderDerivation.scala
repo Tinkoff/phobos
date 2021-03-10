@@ -21,7 +21,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 
   def deriveCoproductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(
       config: Expr[ElementCodecConfig],
-      subtypes: Iterable[SealedTraitSubtype]
+      subtypes: Iterable[SealedTraitSubtype],
   ): Tree = {
     val assignedName = TermName(c.freshName(s"ElementDecoderTypeclass")).encodedName.toTermName
 
@@ -92,7 +92,9 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
     """
   }
 
-  def deriveProductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(config: Expr[ElementCodecConfig], params: IndexedSeq[CaseClassParam]): Tree = {
+  def deriveProductCodec[T: c.WeakTypeTag](
+      stack: Stack[c.type],
+  )(config: Expr[ElementCodecConfig], params: IndexedSeq[CaseClassParam]): Tree = {
 
     val decoderStateObj = q"$derivationPkg.DecoderDerivation.DecoderState"
 
@@ -104,12 +106,14 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
     val decoderName  = TypeName(c.freshName("ElementDecoder"))
     val assignedName = TermName(c.freshName(s"ElementDecoderTypeclass")).encodedName.toTermName
 
-    case class Param(classConstructorParam: Tree,
-                     defaultValue: Tree,
-                     decoderParamAssignment: Tree,
-                     goAssignment: Tree,
-                     classConstructionForEnum: Tree,
-                     decoderConstructionParam: Tree)
+    case class Param(
+        classConstructorParam: Tree,
+        defaultValue: Tree,
+        decoderParamAssignment: Tree,
+        goAssignment: Tree,
+        classConstructionForEnum: Tree,
+        decoderConstructionParam: Tree,
+    )
 
     val allParams        = mutable.ListBuffer.empty[Param]
     val decodeAttributes = mutable.ListBuffer.empty[Tree]
@@ -125,7 +129,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
       val forName    = TermName(c.freshName(param.localName))
       val xmlNameVal = TermName(c.freshName(param.localName))
       elementNames.append(
-        q"""val $xmlNameVal = ${param.xmlName}"""
+        q"""val $xmlNameVal = ${param.xmlName}""",
       )
       param.category match {
         case ParamCategory.element =>
@@ -147,8 +151,9 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
               goAssignment = q"var $tempName: $elementDecoder = $paramName.value",
               decoderConstructionParam = q"$derivationPkg.CallByNeed[$elementDecoder]($tempName)",
               classConstructionForEnum = fq"$forName <- $tempName.result(cursor.history)",
-              classConstructorParam = q"$forName"
-            ))
+              classConstructorParam = q"$forName",
+            ),
+          )
 
           decodeElements.append(
             cq"""
@@ -162,7 +167,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
                 } else {
                   go($decoderStateObj.DecodingElement($xmlNameVal))
                 }
-            """
+            """,
           )
 
         case ParamCategory.attribute =>
@@ -182,8 +187,9 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
                 """,
               decoderConstructionParam = q"$tempName",
               classConstructionForEnum = fq"$forName <- $tempName.get",
-              classConstructorParam = q"$forName"
-            ))
+              classConstructorParam = q"$forName",
+            ),
+          )
 
           decodeAttributes.append(
             q"""
@@ -205,8 +211,8 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
               goAssignment = q"var $tempName: $textDecoder = $paramName",
               decoderConstructionParam = q"$tempName",
               classConstructionForEnum = fq"$forName <- $tempName.result(cursor.history)",
-              classConstructorParam = q"$forName"
-            )
+              classConstructorParam = q"$forName",
+            ),
           )
           decodeText.append(q"$tempName = $tempName.decodeAsText(cursor)")
 
@@ -229,8 +235,9 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
               goAssignment = q"var $tempName: $defaultDecoder = $paramName.value",
               decoderConstructionParam = q"$derivationPkg.CallByNeed[$defaultDecoder]($tempName)",
               classConstructionForEnum = fq"$forName <- $tempName.result(cursor.history)",
-              classConstructorParam = q"$forName"
-            ))
+              classConstructorParam = q"$forName",
+            ),
+          )
 
           decodeDefault.append((elementName: Tree, elementNamespace: Tree) => q"""
               $tempName = $tempName.decodeAsElement(cursor, $elementName, $elementNamespace)
@@ -366,20 +373,24 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
     xmlConfigured[T](localName, defaultConfig)
 
   def xmlConfigured[T: c.WeakTypeTag](localName: Tree, config: Expr[ElementCodecConfig]): Tree =
-    q"""_root_.ru.tinkoff.phobos.decoding.XmlDecoder.fromElementDecoder[${weakTypeOf[T]}]($localName)(${elementConfigured[
-      T](config)})"""
+    q"""_root_.ru.tinkoff.phobos.decoding.XmlDecoder.fromElementDecoder[${weakTypeOf[
+      T,
+    ]}]($localName)(${elementConfigured[T](config)})"""
 
   def xmlNs[T: c.WeakTypeTag, NS: c.WeakTypeTag](localName: Tree, ns: Tree): Tree =
     xmlNsConfigured[T, NS](localName, ns, defaultConfig)
 
-  def xmlNsConfigured[T: c.WeakTypeTag, NS: c.WeakTypeTag](localName: Tree,
-                                                           ns: Tree,
-                                                           config: Expr[ElementCodecConfig]): Tree = {
+  def xmlNsConfigured[T: c.WeakTypeTag, NS: c.WeakTypeTag](
+      localName: Tree,
+      ns: Tree,
+      config: Expr[ElementCodecConfig],
+  ): Tree = {
     val nsInstance = Option(c.inferImplicitValue(appliedType(weakTypeOf[Namespace[_]], weakTypeOf[NS])))
       .filter(_.nonEmpty)
       .getOrElse(error(s"Could not find Namespace instance for $ns"))
-    q"""_root_.ru.tinkoff.phobos.decoding.XmlDecoder.fromElementDecoderNs[${weakTypeOf[T]}, ${weakTypeOf[NS]}]($localName, $ns)(${elementConfigured[
-      T](config)}, $nsInstance)"""
+    q"""_root_.ru.tinkoff.phobos.decoding.XmlDecoder.fromElementDecoderNs[${weakTypeOf[T]}, ${weakTypeOf[
+      NS,
+    ]}]($localName, $ns)(${elementConfigured[T](config)}, $nsInstance)"""
   }
 }
 

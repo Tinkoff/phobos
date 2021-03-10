@@ -160,13 +160,17 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
 
       assert(
         decodedResultInvalidFoo == Left(
-          DecodingError("Unexpected end tag: expected </foo>\n at [row,col {unknown-source}]: [3,8]",
-                        List("foo", "foo", "Wrapper"))))
+          DecodingError(
+            "Unexpected end tag: expected </foo>\n at [row,col {unknown-source}]: [3,8]",
+            List("foo", "foo", "Wrapper"),
+          ),
+        ),
+      )
 
       assert(
         decodedResultInvalidTotal == Left(
-          DecodingError("Unexpected character 'L' (code 76) in prolog\n at [row,col {unknown-source}]: [1,2]", Nil)
-        )
+          DecodingError("Unexpected character 'L' (code 76) in prolog\n at [row,col {unknown-source}]: [1,2]", Nil),
+        ),
       )
     }
 
@@ -214,10 +218,13 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
       @XmlCodec("foos")
       case class Foos(foo: List[Foo])
       val bar1 = Foos(
-        List(Foo(1, "b value".some, 3.0.some),
-             Foo(2, None, 4.0.some),
-             Foo(3, "It's three".some, None),
-             Foo(4, None, None)))
+        List(
+          Foo(1, "b value".some, 3.0.some),
+          Foo(2, None, 4.0.some),
+          Foo(3, "It's three".some, None),
+          Foo(4, None, None),
+        ),
+      )
       val bar2 = Foos(List())
 
       val string1 = """<?xml version='1.0' encoding='UTF-8'?>
@@ -261,11 +268,13 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
       case class FooBars(foo: List[Foo], bar: List[Bar])
 
       val bar1 = FooBars(
-        List(Foo(1, "b value".some, 3.0.some),
-             Foo(2, None, 4.0.some),
-             Foo(3, "It's three".some, None),
-             Foo(4, None, None)),
-        List(Bar("str", 5), Bar("str2", 6))
+        List(
+          Foo(1, "b value".some, 3.0.some),
+          Foo(2, None, 4.0.some),
+          Foo(3, "It's three".some, None),
+          Foo(4, None, None),
+        ),
+        List(Bar("str", 5), Bar("str2", 6)),
       )
       val bar2 = FooBars(List(), List())
 
@@ -440,7 +449,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
       val decoded = XmlDecoder[Document].decodeFromFoldable(toList(string))
 
       assert(
-        decoded == Right(Document(Element1(Element2("text2"), "text1")))
+        decoded == Right(Document(Element1(Element2("text2"), "text1"))),
       )
     }
 
@@ -625,8 +634,8 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
           List(
             Default(Some(100), None, None),
             Default(None, Some("default string"), None),
-            Default(None, None, Some(12.3))
-          )
+            Default(None, None, Some(12.3)),
+          ),
         )
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      |<foo>
@@ -688,7 +697,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
       assert(
         barDecoder.decodeFromFoldable(toList(string1)) == Right(bar1) &&
           barDecoder.decodeFromFoldable(toList(string2)) == Right(bar2) &&
-          barDecoder.decodeFromFoldable(toList(string3)) == Right(bar3)
+          barDecoder.decodeFromFoldable(toList(string3)) == Right(bar3),
       )
     }
 
@@ -736,7 +745,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
       assert(
         quxDecoder.decodeFromFoldable(toList(string1)) == Right(qux1) &&
           quxDecoder.decodeFromFoldable(toList(string2)) == Right(qux2) &&
-          quxDecoder.decodeFromFoldable(toList(string3)) == Right(qux3)
+          quxDecoder.decodeFromFoldable(toList(string3)) == Right(qux3),
       )
 
       @ElementCodec
@@ -779,7 +788,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
       assert(
         quuxDecoder.decodeFromFoldable(toList(string4)) == Right(quux1) &&
           quuxDecoder.decodeFromFoldable(toList(string5)) == Right(quux2) &&
-          quuxDecoder.decodeFromFoldable(toList(string6)) == Right(quux3)
+          quuxDecoder.decodeFromFoldable(toList(string6)) == Right(quux3),
       )
     }
 
@@ -810,7 +819,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
 
       assert(
         animalDecoder.decodeFromFoldable(toList(string1)) == Right(wolf) &&
-          animalDecoder.decodeFromFoldable(toList(string2)) == Right(lion)
+          animalDecoder.decodeFromFoldable(toList(string2)) == Right(lion),
       )
     }
 
@@ -841,7 +850,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
 
       assert(
         insectDecoder.decodeFromFoldable(toList(string1)) == Right(hornet) &&
-          insectDecoder.decodeFromFoldable(toList(string2)) == Right(cockroach)
+          insectDecoder.decodeFromFoldable(toList(string2)) == Right(cockroach),
       )
     }
 
@@ -872,7 +881,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
 
       assert(
         fishDecoder.decodeFromFoldable(toList(string1)) == Right(clownFish) &&
-          fishDecoder.decodeFromFoldable(toList(string2)) == Right(whiteShark)
+          fishDecoder.decodeFromFoldable(toList(string2)) == Right(whiteShark),
       )
     }
     "not transform custom discriminator values sync" in
@@ -1090,7 +1099,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
       @XmlCodecNs("Bar", tkf, camelCaseConfig)
       case class Bar(
           @xmlns(tkf) someTopName: String,
-          @xmlns(tkf) someFoo: Foo
+          @xmlns(tkf) someFoo: Foo,
       )
 
       val bar    = Bar("d value", Foo(1, "b value", 3.0))
@@ -1125,7 +1134,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
       @XmlCodecNs("bar", tkf, snakeCaseConfig)
       case class Bar(
           @xmlns(tkf) someTopName: String,
-          @xmlns(tkf) someFoo: Foo
+          @xmlns(tkf) someFoo: Foo,
       )
 
       val bar    = Bar("d value", Foo(1, "b value", 3.0))
@@ -1242,7 +1251,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
     "decode with default attribute namespaces sync" in decodeWithDefaultAttributeNamespaces(pure)
     "decode with default attribute namespaces async" in decodeWithDefaultAttributeNamespaces(fromIterable)
 
-    def overrideDefaultAttributeNamespaceWithNamespaceFromAnnotation(toList: String => List[Array[Byte]]): Assertion ={
+    def overrideDefaultAttributeNamespaceWithNamespaceFromAnnotation(toList: String => List[Array[Byte]]): Assertion = {
       @XmlnsDef("tinkoff.ru")
       case object tkf
 
@@ -1255,7 +1264,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
       @XmlCodecNs("bar", tkf, defaultNamespaceConfig)
       case class Bar(@attr d: String, foo: Foo, @attr @xmlns(tcs) e: Char)
 
-      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string =
         """<?xml version='1.0' encoding='UTF-8'?>
           | <ans1:bar xmlns:ans1="tinkoff.ru" ans1:d="d value" xmlns:ans2="tcsbank.ru" ans2:e="e">

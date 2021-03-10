@@ -8,8 +8,7 @@ import org.codehaus.stax2.XMLStreamWriter2
 import ru.tinkoff.phobos.Namespace
 import ru.tinkoff.phobos.encoding.XmlEncoder.XmlEncoderConfig
 
-/**
-  * Typeclass for encoding XML document to an A value.
+/** Typeclass for encoding XML document to an A value.
   *
   * XmlEncoder instance must exist only for types which are encoded as XML documents (only for root elements).
   *
@@ -45,7 +44,9 @@ trait XmlEncoder[A] {
   def encodeToBytesWithConfig(a: A, config: XmlEncoderConfig): Array[Byte] = {
     val os = new ByteArrayOutputStream
     val sw =
-      new PhobosStreamWriter(XmlEncoder.factory.createXMLStreamWriter(os, config.encoding).asInstanceOf[XMLStreamWriter2])
+      new PhobosStreamWriter(
+        XmlEncoder.factory.createXMLStreamWriter(os, config.encoding).asInstanceOf[XMLStreamWriter2],
+      )
     if (config.writeProlog) {
       sw.writeStartDocument(config.encoding, config.version)
     }
@@ -71,7 +72,8 @@ object XmlEncoder {
   def apply[A](implicit instance: XmlEncoder[A]): XmlEncoder[A] = instance
 
   def fromElementEncoder[A](localName: String, namespaceUri: Option[String])(
-      implicit elementEncoder: ElementEncoder[A]): XmlEncoder[A] =
+      implicit elementEncoder: ElementEncoder[A],
+  ): XmlEncoder[A] =
     new XmlEncoder[A] {
       val localname: String                 = localName
       val namespaceuri: Option[String]      = namespaceUri
@@ -81,18 +83,21 @@ object XmlEncoder {
   def fromElementEncoder[A](localName: String)(implicit elementEncoder: ElementEncoder[A]): XmlEncoder[A] =
     fromElementEncoder(localName, None)
 
-  def fromElementEncoderNs[A, NS](localName: String, namespaceInstance: NS)(implicit elementEncoder: ElementEncoder[A],
-                                                                            namespace: Namespace[NS]): XmlEncoder[A] =
+  def fromElementEncoderNs[A, NS](localName: String, namespaceInstance: NS)(
+      implicit elementEncoder: ElementEncoder[A],
+      namespace: Namespace[NS],
+  ): XmlEncoder[A] =
     fromElementEncoder(localName, namespace.getNamespace.some)
 
-  def fromElementEncoderNs[A, NS](localName: String)(implicit elementEncoder: ElementEncoder[A],
-                                                     namespace: Namespace[NS]): XmlEncoder[A] =
+  def fromElementEncoderNs[A, NS](
+      localName: String,
+  )(implicit elementEncoder: ElementEncoder[A], namespace: Namespace[NS]): XmlEncoder[A] =
     fromElementEncoder(localName, namespace.getNamespace.some)
 
   final case class XmlEncoderConfig(
       encoding: String,
       version: String,
-      writeProlog: Boolean
+      writeProlog: Boolean,
   ) {
     def withoutProlog: XmlEncoderConfig = copy(writeProlog = false)
   }
@@ -101,6 +106,6 @@ object XmlEncoder {
     XmlEncoderConfig(
       encoding = "UTF-8",
       version = "1.0",
-      writeProlog = true
+      writeProlog = true,
     )
 }

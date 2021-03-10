@@ -18,22 +18,24 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
       xmlName: Tree,
       namespaceUri: Tree,
       paramType: Type,
-      category: ParamCategory
+      category: ParamCategory,
   )
 
   final case class SealedTraitSubtype(
       constructorName: Tree,
-      subtypeType: Type
+      subtypeType: Type,
   )
 
   def searchType[T: c.WeakTypeTag]: Type
 
   def deriveCoproductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(
       config: Expr[ElementCodecConfig],
-      subtypes: Iterable[SealedTraitSubtype]
+      subtypes: Iterable[SealedTraitSubtype],
   ): Tree
 
-  def deriveProductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(config: Expr[ElementCodecConfig], params: IndexedSeq[CaseClassParam]): Tree
+  def deriveProductCodec[T: c.WeakTypeTag](
+      stack: Stack[c.type],
+  )(config: Expr[ElementCodecConfig], params: IndexedSeq[CaseClassParam]): Tree
 
   def error(msg: String): Nothing = c.abort(c.enclosingPosition, msg)
 
@@ -105,8 +107,8 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
           val constructorName = q"""$config.transformConstructorNames(`${symbol.name.decodedName.toString}`)"""
           val discriminatorValue = symbol.annotations.collectFirst {
             case annot if annot.tree.tpe =:= discriminatorType =>
-              annot.tree.children.tail.collectFirst {
-                case t @ Literal(Constant(_: String)) => t
+              annot.tree.children.tail.collectFirst { case t @ Literal(Constant(_: String)) =>
+                t
               }.getOrElse {
                 error("@discriminator is only allowed to be used with string literals")
               }
@@ -123,7 +125,8 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
               case tpe if tpe == textType    => ParamCategory.text :: acc
               case tpe if tpe == defaultType => ParamCategory.default :: acc
               case _                         => acc
-          }) match {
+            },
+          ) match {
             case List(category) => category
             case Nil            => ParamCategory.element
             case categories =>
@@ -166,29 +169,28 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
           .toList
           .flatten
 
-        val params = caseParams.zip(annotations).map {
-          case (paramType, param) =>
-            val category  = fetchCategory(param)
-            val namespace = fetchNamespace(param, category)
-            val localName = param.name.decodedName.toString
-            val xmlName: Tree = param.annotations.collectFirst {
-              case annotation if annotation.tree.tpe =:= renamedType =>
-                annotation.tree.children.tail.collectFirst {
-                  case t @ Literal(Constant(_: String)) => t
-                }.getOrElse {
-                  error("@renamed is only allowed to be used with string literals")
-                }
-            } getOrElse {
-              val localNameTree = q"""$localName"""
-              category match {
-                case ParamCategory.attribute =>
-                  q"""$config.transformAttributeNames($localNameTree)"""
-                case ParamCategory.element =>
-                  q"""$config.transformElementNames($localNameTree)"""
-                case _ => localNameTree
+        val params = caseParams.zip(annotations).map { case (paramType, param) =>
+          val category  = fetchCategory(param)
+          val namespace = fetchNamespace(param, category)
+          val localName = param.name.decodedName.toString
+          val xmlName: Tree = param.annotations.collectFirst {
+            case annotation if annotation.tree.tpe =:= renamedType =>
+              annotation.tree.children.tail.collectFirst { case t @ Literal(Constant(_: String)) =>
+                t
+              }.getOrElse {
+                error("@renamed is only allowed to be used with string literals")
               }
+          } getOrElse {
+            val localNameTree = q"""$localName"""
+            category match {
+              case ParamCategory.attribute =>
+                q"""$config.transformAttributeNames($localNameTree)"""
+              case ParamCategory.element =>
+                q"""$config.transformElementNames($localNameTree)"""
+              case _ => localNameTree
             }
-            CaseClassParam(localName, xmlName, namespace, paramType, category)
+          }
+          CaseClassParam(localName, xmlName, namespace, paramType, category)
         }
 
         val attributeParamsNumber = params.count(_.category == ParamCategory.attribute)

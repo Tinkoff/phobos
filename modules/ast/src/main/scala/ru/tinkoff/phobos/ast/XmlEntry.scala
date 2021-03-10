@@ -5,9 +5,8 @@ import ru.tinkoff.phobos.decoding.{AttributeDecoder, ElementDecoder}
 import ru.tinkoff.phobos.encoding.{AttributeEncoder, ElementEncoder, TextEncoder}
 import ru.tinkoff.phobos.traverse.GenericElementDecoder
 
-/**
-  * Base type for XML nodes, elements and attributes values
-  * */
+/** Base type for XML nodes, elements and attributes values
+  */
 sealed trait XmlEntry
 object XmlEntry extends impl.CatsInstances {
 
@@ -99,19 +98,18 @@ object XmlEntry extends impl.CatsInstances {
 
     final case class Node(
         attributes: List[(String, Leaf)],
-        children: List[(String, XmlEntry)]
+        children: List[(String, XmlEntry)],
     ) extends XmlEntry {
 
-      /**
-        * @param more - new attributes and child nodes
+      /** @param more - new attributes and child nodes
         * @return - new [[XmlNode]] with given attributes and children added
-        * */
+        */
       def apply(more: XmlBuildingBlock*): Node = {
-        val attrs = more.collect {
-          case attr: Attr => attr.name -> attr.value
+        val attrs = more.collect { case attr: Attr =>
+          attr.name -> attr.value
         }.toList
-        val children2 = more.collect {
-          case node: NodePair => node.name -> node.value
+        val children2 = more.collect { case node: NodePair =>
+          node.name -> node.value
         }.toList
 
         Node(attributes ++ attrs, children ++ children2)

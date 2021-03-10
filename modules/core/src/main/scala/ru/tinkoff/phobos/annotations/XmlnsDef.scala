@@ -12,7 +12,7 @@ private final class XmlnsDefImpl(ctx: blackbox.Context) extends CodecAnnotation(
   import c.universe._
 
   def instances(typ: Tree): Seq[Tree] = {
-    val pkg = q"ru.tinkoff.phobos"
+    val pkg          = q"ru.tinkoff.phobos"
     val instanceName = TermName(c.freshName("namespaceInstance"))
     val uri = c.prefix.tree match {
       case q"new XmlnsDef($uri)" => uri

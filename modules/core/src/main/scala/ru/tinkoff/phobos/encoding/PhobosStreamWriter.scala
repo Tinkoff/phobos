@@ -13,28 +13,27 @@ final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
 
   private var discriminatorLocalName: Option[String] = None
   private var discriminatorNamespace: Option[String] = None
-  private var discriminatorValue: Option[String] = None
+  private var discriminatorValue: Option[String]     = None
 
-  /**
-   * Writes type-discriminator attribute inside next start element
-   *
-   * Following code
-   * <code>
-   *   sw.memoizeDiscriminator(Some("http://www.w3.org/2001/XMLSchema-instance"), "type", "dog")
-   *   sw.writeStartElement("GoodBoy")
-   * </code>
-   * will result to something like
-   * <code>
-   *   <GoodBoy xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="dog">
-   * </code>
-   *
-   * This API extension is required to keep ElementEncoder API simple.
-   * This method overrides old discriminator if it was already memorized
-   *
-   * @param namespaceUri namespace uri of type discriminator
-   * @param localName local name of type discriminator
-   * @param value value of type discriminator
-   */
+  /** Writes type-discriminator attribute inside next start element
+    *
+    * Following code
+    * <code>
+    *   sw.memoizeDiscriminator(Some("http://www.w3.org/2001/XMLSchema-instance"), "type", "dog")
+    *   sw.writeStartElement("GoodBoy")
+    * </code>
+    * will result to something like
+    * <code>
+    *   <GoodBoy xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="dog">
+    * </code>
+    *
+    * This API extension is required to keep ElementEncoder API simple.
+    * This method overrides old discriminator if it was already memorized
+    *
+    * @param namespaceUri namespace uri of type discriminator
+    * @param localName local name of type discriminator
+    * @param value value of type discriminator
+    */
   def memorizeDiscriminator(namespaceUri: Option[String], localName: String, value: String): Unit = {
     discriminatorNamespace = namespaceUri
     discriminatorLocalName = Some(localName)
@@ -123,7 +122,7 @@ final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
     sw.writeLongArray(value, from, length)
 
   def writeFloatArray(value: Array[Float], from: Int, length: Int): Unit =
-    sw.writeFloatArray(value, from ,length)
+    sw.writeFloatArray(value, from, length)
 
   def writeDoubleArray(value: Array[Double], from: Int, length: Int): Unit =
     sw.writeDoubleArray(value, from, length)
@@ -146,7 +145,12 @@ final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
   def writeIntegerAttribute(prefix: String, namespaceURI: String, localName: String, value: BigInteger): Unit =
     sw.writeIntegerAttribute(prefix, namespaceURI, localName, value)
 
-  def writeDecimalAttribute(prefix: String, namespaceURI: String, localName: String, value: java.math.BigDecimal): Unit =
+  def writeDecimalAttribute(
+      prefix: String,
+      namespaceURI: String,
+      localName: String,
+      value: java.math.BigDecimal,
+  ): Unit =
     sw.writeDecimalAttribute(prefix, namespaceURI, localName, value)
 
   def writeQNameAttribute(prefix: String, namespaceURI: String, localName: String, value: QName): Unit =
@@ -155,7 +159,13 @@ final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
   def writeBinaryAttribute(prefix: String, namespaceURI: String, localName: String, value: Array[Byte]): Unit =
     sw.writeBinaryAttribute(prefix, namespaceURI, localName, value)
 
-  def writeBinaryAttribute(variant: Base64Variant, prefix: String, namespaceURI: String, localName: String, value: Array[Byte]): Unit =
+  def writeBinaryAttribute(
+      variant: Base64Variant,
+      prefix: String,
+      namespaceURI: String,
+      localName: String,
+      value: Array[Byte],
+  ): Unit =
     sw.writeBinaryAttribute(variant, prefix, namespaceURI, localName, value)
 
   def writeIntArrayAttribute(prefix: String, namespaceURI: String, localName: String, value: Array[Int]): Unit =
@@ -172,10 +182,10 @@ final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
 
   private def maybeWriteDiscriminator(): Unit = {
     (discriminatorNamespace, discriminatorLocalName, discriminatorValue) match {
-      case (None, None, None) =>
-      case (None, Some(dLocalName), Some(dValue)) => sw.writeAttribute(dLocalName, dValue)
+      case (None, None, None)                                 =>
+      case (None, Some(dLocalName), Some(dValue))             => sw.writeAttribute(dLocalName, dValue)
       case (Some(dNamespace), Some(dLocalName), Some(dValue)) => sw.writeAttribute(dNamespace, dLocalName, dValue)
-      case state => throw new XMLStreamException(s"Unexpected discriminator names state: $state")
+      case state                                              => throw new XMLStreamException(s"Unexpected discriminator names state: $state")
     }
     discriminatorNamespace = None
     discriminatorLocalName = None
@@ -230,16 +240,15 @@ final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
   def writeNamespace(prefix: String, namespaceURI: String): Unit =
     sw.writeNamespace(prefix, namespaceURI)
 
-  /**
-   * Writes a namespace to the output stream
-   * Generates unbound prefix in format <code>ans\d+</code> and binds it to URI
-   *
-   * @param namespaceURI the uri to bind the prefix to
-   */
+  /** Writes a namespace to the output stream
+    * Generates unbound prefix in format <code>ans\d+</code> and binds it to URI
+    *
+    * @param namespaceURI the uri to bind the prefix to
+    */
   def writeNamespace(namespaceURI: String): Unit = {
     val nsContext = sw.getNamespaceContext
     if (nsContext.getPrefix(namespaceURI) == null) {
-      var left = 1
+      var left  = 1
       var right = 1
       while (nsContext.getNamespaceURI(prefixBase + right) != null) {
         left = right

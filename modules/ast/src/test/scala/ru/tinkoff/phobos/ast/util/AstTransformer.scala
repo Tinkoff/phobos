@@ -6,8 +6,8 @@ object AstTransformer {
   def sortNodeValues(xmlEntry: XmlEntry): XmlEntry = xmlEntry match {
     case XmlNode(attrs, children) =>
       val newAttrs = attrs.sortBy(_._1)
-      val newChildren = children.map {
-        case (n, v) => n -> sortNodeValues(v)
+      val newChildren = children.map { case (n, v) =>
+        n -> sortNodeValues(v)
       }.sortBy(_._1)
       XmlNode(newAttrs, newChildren)
 

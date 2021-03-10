@@ -39,7 +39,7 @@ private final class XmlCodecNsImpl(ctx: blackbox.Context) extends CodecAnnotatio
       q"""
           implicit val ${TermName(c.freshName("xmlDecoder"))}: $pkg.decoding.XmlDecoder[$typ] =
             $pkg.decoding.XmlDecoder.fromElementDecoderNs($localName, $nsInstance)
-       """
+       """,
     )
   }
 

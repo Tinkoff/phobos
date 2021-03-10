@@ -26,7 +26,7 @@ class Fs2Test extends AsyncWordSpec {
                   |</foo>
                   |""".stripMargin
 
-      val foo = Foo(1234, Some(Bar(1)), List(Bar(2), Bar(3)))
+      val foo    = Foo(1234, Some(Bar(1)), List(Bar(2), Bar(3)))
       val stream = Stream.fromIterator[IO](xml.iterator.map(x => Array(x.toByte)))
       XmlDecoder[Foo]
         .decodeFromStream(stream)

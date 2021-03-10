@@ -12,20 +12,18 @@ package object ast {
   object XmlNumber {
     type Aux[N] = XmlEntry.impl.Number { type ScalaType = N }
 
-    /**
-      * Creates a XML leaf containing Long
+    /** Creates a XML leaf containing Long
       *
       * @param value - the number
       * @return - typed XML leaf
-      * */
+      */
     def integral(value: Long): Aux[Long] = XmlEntry.impl.IntegralNumber(value)
 
-    /**
-      * Creates a XML leaf containing Double
+    /** Creates a XML leaf containing Double
       *
       * @param value - the number
       * @return - typed XML leaf
-      * */
+      */
     def double(value: Double): Aux[Double] = XmlEntry.impl.DoubleNumber(value)
 
     def unapply[N](number: Aux[N]): Option[N] = Some(number.value)
@@ -40,12 +38,11 @@ package object ast {
   type XmlBoolean = XmlEntry.impl.Bool
   object XmlBoolean {
 
-    /**
-      * Creates a XML leaf containing Boolean
+    /** Creates a XML leaf containing Boolean
       *
       * @param value - the boolean
       * @return - typed XML leaf
-      * */
+      */
     def fromBoolean(value: Boolean): XmlBoolean    = XmlEntry.impl.Bool(value)
     def unapply(bool: XmlBoolean): Option[Boolean] = Some(bool.value)
 
@@ -58,27 +55,24 @@ package object ast {
     /** Empty XML node */
     val empty: XmlNode = XmlNode(Nil, Nil)
 
-    /**
-      * Starting point for building a XML document
+    /** Starting point for building a XML document
       *
       * @param more - child nodes
       * @return - new XML node with given children
-      * */
+      */
     def apply(more: XmlBuildingBlock*): XmlNode = empty(more: _*)
   }
 
-  /**
-    * Starting point for building a XML element
+  /** Starting point for building a XML element
     *
     * @param name - the name of XML element
-    * */
+    */
   def node(name: String): impl.NodeName = new impl.NodeName(name)
 
-  /**
-    * Starting point for building a XML attribute
+  /** Starting point for building a XML attribute
     *
     * @param name - the name of XML attribute
-    * */
+    */
   def attr(name: String): impl.AttrName = new impl.AttrName(name)
 
   // useful implicit conversions for AST construction

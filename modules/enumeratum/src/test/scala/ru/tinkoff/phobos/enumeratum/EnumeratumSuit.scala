@@ -48,7 +48,7 @@ class EnumeratumSuit extends AnyWordSpec with Matchers {
               | </bar>
             """.stripMargin.minimized &&
           xml2 ==
-            """
+          """
                 | <?xml version='1.0' encoding='UTF-8'?>
                 | <bar>
                 |   <d>d value</d>
@@ -59,7 +59,7 @@ class EnumeratumSuit extends AnyWordSpec with Matchers {
                 | </bar>
               """.stripMargin.minimized &&
           xml3 ==
-            """
+          """
                 | <?xml version='1.0' encoding='UTF-8'?>
                 | <bar>
                 |   <d>another one value</d>
@@ -70,10 +70,11 @@ class EnumeratumSuit extends AnyWordSpec with Matchers {
                 | </bar>
               """.stripMargin.minimized &&
           xml4 ==
-            """
+          """
                 | <?xml version='1.0' encoding='UTF-8'?>
                 | <baz f="Foo1">Foo2</baz>
-              """.stripMargin.minimized)
+              """.stripMargin.minimized,
+      )
     }
 
     def pure(str: String): List[Array[Byte]] =

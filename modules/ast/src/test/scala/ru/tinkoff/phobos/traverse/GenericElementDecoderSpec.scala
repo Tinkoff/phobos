@@ -25,8 +25,8 @@ class GenericElementDecoderSpec extends AnyWordSpec with Matchers with DiffMatch
           "foo"  -> "5",
           "foo2" -> "true",
           "foo3" -> "false",
-          "x"    -> "2.0"
-        )
+          "x"    -> "2.0",
+        ),
       )
 
       xmlDecoder.decode(sampleXml) should matchTo(expectedResult0.asRight[DecodingError])
@@ -51,7 +51,7 @@ object GenericElementDecoderSpec {
 
     override def onAttributes(acc: Acc, attributes: List[(String, XmlLeaf)]): Acc = {
       acc.copy(
-        attributes = acc.attributes ++ attributes.map { case (name, leaf) => name -> leaf.value.toString }
+        attributes = acc.attributes ++ attributes.map { case (name, leaf) => name -> leaf.value.toString },
       )
     }
 

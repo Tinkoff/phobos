@@ -5,17 +5,16 @@ import java.util.{Base64, UUID}
 
 import cats.Functor
 
-/**
- * Warning! This is an internal API which may change in future.
- * Do not implement or use this trait directly unless you know what you are doing.
- *
- * Use XmlDecoder for decoding XML documents.
- *
- * AttributeDecoder instance must exist for every type decoded from attribute.
- * This typeclass is used for decoding case class parameters with @attr annotation.
- *
- * To create new instance use .map or .emap method of existing instance.
- */
+/** Warning! This is an internal API which may change in future.
+  * Do not implement or use this trait directly unless you know what you are doing.
+  *
+  * Use XmlDecoder for decoding XML documents.
+  *
+  * AttributeDecoder instance must exist for every type decoded from attribute.
+  * This typeclass is used for decoding case class parameters with @attr annotation.
+  *
+  * To create new instance use .map or .emap method of existing instance.
+  */
 trait AttributeDecoder[A] { self =>
   def decodeAsAttribute(c: Cursor, localName: String, namespaceUri: Option[String]): Either[DecodingError, A]
 
@@ -41,14 +40,15 @@ object AttributeDecoder extends AttributeLiteralInstances {
       def map[A, B](fa: AttributeDecoder[A])(f: A => B): AttributeDecoder[B] = fa.map(f)
     }
 
-  /**
-    * Instances
+  /** Instances
     */
   implicit val stringDecoder: AttributeDecoder[String] =
     new AttributeDecoder[String] {
-      def decodeAsAttribute(c: Cursor,
-                            localName: String,
-                            namespaceUri: Option[String]): Either[DecodingError, String] = {
+      def decodeAsAttribute(
+          c: Cursor,
+          localName: String,
+          namespaceUri: Option[String],
+      ): Either[DecodingError, String] = {
         val idx = c.getAttributeIndex(namespaceUri.orNull, localName)
         if (idx > -1) {
           Right(c.getAttributeValue(idx))
@@ -69,7 +69,8 @@ object AttributeDecoder extends AttributeLiteralInstances {
         case "true" | "1"  => Right(true)
         case "false" | "0" => Right(false)
         case str           => Left(DecodingError(s"Value `$str` is not `true` or `false`", history))
-    })
+      },
+    )
 
   implicit val javaBooleanDecoder: AttributeDecoder[java.lang.Boolean] = booleanDecoder.map(_.booleanValue())
 
@@ -108,9 +109,11 @@ object AttributeDecoder extends AttributeLiteralInstances {
 
   implicit def optionDecoder[A](implicit decoder: AttributeDecoder[A]): AttributeDecoder[Option[A]] =
     new AttributeDecoder[Option[A]] {
-      def decodeAsAttribute(c: Cursor,
-                            localName: String,
-                            namespaceUri: Option[String]): Either[DecodingError, Option[A]] = {
+      def decodeAsAttribute(
+          c: Cursor,
+          localName: String,
+          namespaceUri: Option[String],
+      ): Either[DecodingError, Option[A]] = {
         val idx = c.getAttributeIndex(namespaceUri.orNull, localName)
         if (idx > -1) {
           decoder.decodeAsAttribute(c, localName, namespaceUri).map(Some.apply)
@@ -124,9 +127,11 @@ object AttributeDecoder extends AttributeLiteralInstances {
 
   implicit val noneDecoder: AttributeDecoder[None.type] =
     new AttributeDecoder[None.type] {
-      def decodeAsAttribute(c: Cursor,
-                            localName: String,
-                            namespaceUri: Option[String]): Either[DecodingError, None.type] = Right(None)
+      def decodeAsAttribute(
+          c: Cursor,
+          localName: String,
+          namespaceUri: Option[String],
+      ): Either[DecodingError, None.type] = Right(None)
     }
 
   implicit val localDateTimeDecoder: AttributeDecoder[LocalDateTime] =

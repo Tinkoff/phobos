@@ -8,7 +8,7 @@ private[phobos] object XmlEntryElementEncoder extends ElementEncoder[XmlEntry] {
       entry: XmlEntry,
       sw: PhobosStreamWriter,
       localName: String,
-      namespaceUri: Option[String]
+      namespaceUri: Option[String],
   ): Unit = {
     entry match {
       case leaf: XmlLeaf =>
@@ -16,13 +16,11 @@ private[phobos] object XmlEntryElementEncoder extends ElementEncoder[XmlEntry] {
 
       case XmlNode(attributes, children) =>
         namespaceUri.fold(sw.writeStartElement(localName))(sw.writeStartElement(_, localName))
-        attributes.foreach {
-          case (attrName, attrValue) =>
-            attrValue.companion.attributeEncoder.encodeAsAttribute(attrValue.value, sw, attrName, namespaceUri = None)
+        attributes.foreach { case (attrName, attrValue) =>
+          attrValue.companion.attributeEncoder.encodeAsAttribute(attrValue.value, sw, attrName, namespaceUri = None)
         }
-        children foreach {
-          case (childName, child) =>
-            encodeAsElement(child, sw, childName, namespaceUri = None)
+        children foreach { case (childName, child) =>
+          encodeAsElement(child, sw, childName, namespaceUri = None)
         }
         sw.writeEndElement()
     }

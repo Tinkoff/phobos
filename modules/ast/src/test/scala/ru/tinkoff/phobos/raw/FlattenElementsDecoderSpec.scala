@@ -15,9 +15,9 @@ class FlattenElementsDecoderSpec extends AnyWordSpec with Matchers {
       assert(
         decodedRaw.contains(
           ElementsFlatten(
-            "bar" -> "bazz"
-          )
-        )
+            "bar" -> "bazz",
+          ),
+        ),
       )
     }
 
@@ -38,9 +38,9 @@ class FlattenElementsDecoderSpec extends AnyWordSpec with Matchers {
             "elem"  -> 11111111111111L,
             "elem"  -> 11111111111112L,
             "scala" -> 2.13,
-            "dotty" -> 0.13
-          )
-        )
+            "dotty" -> 0.13,
+          ),
+        ),
       )
     }
   }

@@ -35,7 +35,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             |   </foo>
             |   <e>e</e>
             | </bar>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "encode attributes" in {
@@ -57,7 +58,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             |     <c>3.0</c>
             |   </foo>
             | </bar>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "allow to override codecs" in {
@@ -83,7 +85,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
           |   <str>constant</str>
           |   <foo bar="a74153b">text</foo>
           | </qux>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "encode options" in {
@@ -106,10 +109,11 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             | </Wrapper>
           """.stripMargin.minimized &&
           xml2 ==
-            """
+          """
               | <?xml version='1.0' encoding='UTF-8'?>
               | <Wrapper/>
-            """.stripMargin.minimized)
+            """.stripMargin.minimized,
+      )
     }
 
     "encode lists" in {
@@ -118,10 +122,13 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
       @XmlCodec("foos")
       case class Foos(foo: List[Foo])
       val bar1 = Foos(
-        List(Foo(1, "b value".some, 3.0.some),
-             Foo(2, None, 4.0.some),
-             Foo(3, "It's three".some, None),
-             Foo(4, None, None)))
+        List(
+          Foo(1, "b value".some, 3.0.some),
+          Foo(2, None, 4.0.some),
+          Foo(3, "It's three".some, None),
+          Foo(4, None, None),
+        ),
+      )
       val bar2 = Foos(List())
       val xml1 = XmlEncoder[Foos].encode(bar1)
       val xml2 = XmlEncoder[Foos].encode(bar2)
@@ -147,10 +154,11 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             | </foos>
           """.stripMargin.minimized
           && xml2 ==
-            """
+          """
             | <?xml version='1.0' encoding='UTF-8'?>
             | <foos/>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "encode byte arrays" in {
@@ -163,7 +171,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
         string ==
           """<?xml version='1.0' encoding='UTF-8'?>
             | <foo>Zm9vYmFy</foo>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "encode text values" in {
@@ -183,7 +192,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             |   <foo a="1" b="b value">3.0</foo>
             |   <e>e</e>
             | </bar>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "encode recursive values" in {
@@ -212,7 +222,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             |    </foo>
             |    <das>0</das>
             | </foo>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "encode mixed content" in {
@@ -226,7 +237,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
           """
             | <?xml version='1.0' encoding='UTF-8'?>
             | <foo>Sending item to <count>1</count><buz>Buzz</buz></foo>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "escape characters" in {
@@ -242,7 +254,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
              | <foo baz="Esca&quot;&apos;&lt;>&amp;pe">
              |   <bar>Esca"'&lt;>&amp;pe</bar>
              | </foo>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "encode with @renamed" in {
@@ -266,7 +279,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             |   </theFoo>
             |   <e>e</e>
             | </bar>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "encode with @renamed @attr" in {
@@ -283,7 +297,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             |     <a>1</a>
             |     <c>3.0</c>
             |   </foo>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "encode @renamed text values" in {
@@ -303,7 +318,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             |   <foo a="1" theB="b value">3.0</foo>
             |   <e>e</e>
             | </bar>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "encode CamelCase" in {
@@ -324,7 +340,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             |   <SomeFoo SomeName="1" SomeOther="b value">3.0</SomeFoo>
             |   <E>e</E>
             | </Bar>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "encode snake_case" in {
@@ -345,7 +362,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             |   <some_foo some_name="1" some_other="b value">3.0</some_foo>
             |   <e>e</e>
             | </bar>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
   }
 
@@ -377,7 +395,7 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             | </bar>
           """.stripMargin.minimized &&
           string2 ==
-            """
+          """
               | <?xml version='1.0' encoding='UTF-8'?>
               | <bar>
               |   <d>d value</d>
@@ -388,7 +406,7 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
               | </bar>
           """.stripMargin.minimized &&
           string3 ==
-            """
+          """
               | <?xml version='1.0' encoding='UTF-8'?>
               | <bar>
               |   <d>another one value</d>
@@ -397,7 +415,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
               |   </foo>
               |   <e>v</e>
               | </bar>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "encode sealed traits with custom discriminator" in {
@@ -427,7 +446,7 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             | </qux>
           """.stripMargin.minimized &&
           string2 ==
-            """
+          """
               | <?xml version='1.0' encoding='UTF-8'?>
               | <qux>
               |   <d>d value</d>
@@ -438,7 +457,7 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
               | </qux>
           """.stripMargin.minimized &&
           string3 ==
-            """
+          """
               | <?xml version='1.0' encoding='UTF-8'?>
               | <qux>
               |   <d>another one value</d>
@@ -447,7 +466,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
               |   </bar>
               |   <e>v</e>
               | </qux>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
 
       @ElementCodec
       case class Quux(d: String, baz: SealedClasses.Baz, e: Char)
@@ -475,7 +495,7 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             | </quux>
           """.stripMargin.minimized &&
           string5 ==
-            """
+          """
               | <?xml version='1.0' encoding='UTF-8'?>
               | <quux>
               |   <d>d value</d>
@@ -486,7 +506,7 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
               | </quux>
           """.stripMargin.minimized &&
           string6 ==
-            """
+          """
               | <?xml version='1.0' encoding='UTF-8'?>
               | <quux>
               |   <d>another one value</d>
@@ -495,7 +515,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
               |   </baz>
               |   <e>v</e>
               | </quux>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "encode sealed traits with constructor names transformed" in {
@@ -515,14 +536,14 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             | </animal>
           """.stripMargin.minimized &&
           animalEncoder.encode(lion) ==
-            """
+          """
               | <?xml version='1.0' encoding='UTF-8'?>
               | <animal xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="panthera_leo">
               |   <name>Sergey</name>
               |   <strength>0.75</strength>
               |   <speed>60.1</speed>
               | </animal>
-            """.stripMargin.minimized
+            """.stripMargin.minimized,
       )
     }
 
@@ -542,13 +563,14 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             | </insect>
           """.stripMargin.minimized &&
           insectEncoder.encode(cockroach) ==
-            """
+          """
               | <?xml version='1.0' encoding='UTF-8'?>
               | <insect xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="cockroach">
               |   <name>Dmitriy</name>
               |   <legsNumber>5</legsNumber>
               | </insect>
-            """.stripMargin.minimized)
+            """.stripMargin.minimized,
+      )
     }
 
     "not transform custom discriminator values" in {
@@ -567,13 +589,13 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             | </fish>
           """.stripMargin.minimized &&
           fishEncoder.encode(whiteShark) ==
-            """
+          """
               | <?xml version='1.0' encoding='UTF-8'?>
               | <fish xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="carcharodon_carcharias">
               |   <name>Bill</name>
               |   <teethNumber>20000000000</teethNumber>
               | </fish>
-            """.stripMargin.minimized
+            """.stripMargin.minimized,
       )
     }
 
@@ -655,7 +677,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             |   </ans1:foo>
             |   <ans1:e>e</ans1:e>
             | </ans1:bar>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "encode attributes" in {
@@ -687,7 +710,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             |     <ans1:c>3.0</ans1:c>
             |   </ans1:foo>
             | </ans1:bar>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "encode nested namespace" in {
@@ -719,7 +743,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             |     <ans1:c>3.0</ans1:c>
             |   </ans1:foo>
             | </bar>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "encode multiple namespaces" in {
@@ -753,7 +778,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             |     <ans2:c>3.0</ans2:c>
             |   </ans2:foo>
             | </ans1:bar>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "encode CamelCase" in {
@@ -769,7 +795,7 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
       @XmlCodecNs("Bar", tkf, camelCaseConfig)
       case class Bar(
           @xmlns(tkf) someTopName: String,
-          @xmlns(tkf) someFoo: Foo
+          @xmlns(tkf) someFoo: Foo,
       )
 
       val bar    = Bar("d value", Foo(1, "b value", 3.0))
@@ -786,7 +812,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             |     <ans1:C>3.0</ans1:C>
             |   </ans1:SomeFoo>
             | </ans1:Bar>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "encode snake_case" in {
@@ -802,7 +829,7 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
       @XmlCodecNs("bar", tkf, snakeCaseConfig)
       case class Bar(
           @xmlns(tkf) someTopName: String,
-          @xmlns(tkf) someFoo: Foo
+          @xmlns(tkf) someFoo: Foo,
       )
 
       val bar    = Bar("d value", Foo(1, "b value", 3.0))
@@ -819,7 +846,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             |     <ans1:c>3.0</ans1:c>
             |   </ans1:some_foo>
             | </ans1:bar>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "encode with @renamed having priority over naming" in {
@@ -840,7 +868,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             |   <Me2 some_name="1" i-Have-priority="b value">3.0</Me2>
             |   <e>e</e>
             | </bar>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "encode with default element namespaces" in {
@@ -867,7 +896,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
           |   </ans1:foo>
           |  <ans1:e>e</ans1:e>
           | </ans1:bar>
-      """.stripMargin.minimized)
+      """.stripMargin.minimized,
+      )
     }
 
     "override default element namespace with namespace from annotation" in {
@@ -897,7 +927,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             |   </ans2:foo>
             |  <ans1:e>e</ans1:e>
             | </ans1:bar>
-      """.stripMargin.minimized)
+      """.stripMargin.minimized,
+      )
     }
 
     "encode with default attribute namespaces" in {
@@ -923,7 +954,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             |     <c>3.0</c>
             |   </foo>
             | </ans1:bar>
-      """.stripMargin.minimized)
+      """.stripMargin.minimized,
+      )
     }
 
     "override default attribute namespace with namespace from annotation" in {
@@ -952,7 +984,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             |     <c>3.0</c>
             |   </foo>
             | </ans1:bar>
-      """.stripMargin.minimized)
+      """.stripMargin.minimized,
+      )
     }
 
     "define namespaces from config" in {
@@ -971,7 +1004,7 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
           @xmlns(tcs) c: Double,
       )
 
-      val foo = Foo(1, "b value", 3.0)
+      val foo    = Foo(1, "b value", 3.0)
       val string = XmlEncoder[Foo].encode(foo)
 
       assert(
@@ -982,7 +1015,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             |   <ans1:b>b value</ans1:b>
             |   <ans1:c>3.0</ans1:c>
             | </foo>
-      """.stripMargin.minimized)
+      """.stripMargin.minimized,
+      )
     }
 
     "define namespaces with not bounded prefixes" in {
@@ -999,22 +1033,22 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
 
       @ElementCodec(config)
       final case class Foo(
-                            a: Int,
-                            b: String,
-                            c: Double,
-                          )
+          a: Int,
+          b: String,
+          c: Double,
+      )
 
       @XmlCodecNs("bar", tkf)
       final case class Bar(
-        @xmlns(tcs) foo: Foo,
+          @xmlns(tcs) foo: Foo,
       )
 
-      val bar = Bar(Foo(1, "b value", 3.0))
+      val bar    = Bar(Foo(1, "b value", 3.0))
       val string = XmlEncoder[Bar].encode(bar)
       // \u0020 - space, for .minimize to work correctly
       assert(
         string ==
-        """<?xml version='1.0' encoding='UTF-8'?>
+          """<?xml version='1.0' encoding='UTF-8'?>
           | <ans1:bar xmlns:ans1="tinkoff.ru">
           |   <ans2:foo xmlns:ans2="tcsbank.ru" xmlns:ans3="example.com/3" xmlns:ans4="example.com/4"\u0020
           |             xmlns:ans5="example.com/5" xmlns:ans6="example.com/6" xmlns:ans7="example.com/7"\u0020
@@ -1024,7 +1058,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
           |     <c>3.0</c>
           |   </ans2:foo>
           | </ans1:bar>
-      """.stripMargin.minimized)
+      """.stripMargin.minimized,
+      )
     }
 
     "not define already defined namespaces" in {
@@ -1037,17 +1072,17 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
       val config = ElementCodecConfig.default.withNamespaceDefined(tkf).withNamespaceDefined(tcs)
       @ElementCodec(config)
       final case class Foo(
-                            a: Int,
-                            b: String,
-                            c: Double,
-                          )
+          a: Int,
+          b: String,
+          c: Double,
+      )
 
       @XmlCodecNs("bar", tkf)
       final case class Bar(
-                            foo: Foo,
-                          )
+          foo: Foo,
+      )
 
-      val bar = Bar(Foo(1, "b value", 3.0))
+      val bar    = Bar(Foo(1, "b value", 3.0))
       val string = XmlEncoder[Bar].encode(bar)
       assert(
         string ==
@@ -1059,7 +1094,8 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
             |     <c>3.0</c>
             |   </foo>
             | </ans1:bar>
-      """.stripMargin.minimized)
+      """.stripMargin.minimized,
+      )
     }
   }
 

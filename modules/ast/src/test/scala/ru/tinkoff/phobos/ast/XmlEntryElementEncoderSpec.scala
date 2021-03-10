@@ -28,16 +28,16 @@ class XmlEntryElementEncoderSpec extends AnyWordSpec with DiffMatcher with Match
         node("bar") := "bazz",
         node("array") := xml(
           attr("foo2") := true,
-          attr("foo3") := false
+          attr("foo3") := false,
         )(
           node("elem") := 11111111111111L,
-          node("elem") := 11111111111112L
+          node("elem") := 11111111111112L,
         ),
         node("nested") := xml(
           node("scala") := 2.13,
           node("dotty") := 0.13,
-          node("scala-4") := xml.empty
-        )
+          node("scala-4") := xml.empty,
+        ),
       )
 
       val result =
@@ -46,7 +46,7 @@ class XmlEntryElementEncoderSpec extends AnyWordSpec with DiffMatcher with Match
           .encode(ast)
 
       assert(
-        result == """<?xml version='1.0' encoding='UTF-8'?><ans1:ast xmlns:ans1="https://tinkoff.ru" foo="5"><bar>bazz</bar><array foo2="true" foo3="false"><elem>11111111111111</elem><elem>11111111111112</elem></array><nested><scala>2.13</scala><dotty>0.13</dotty><scala-4/></nested></ans1:ast>"""
+        result == """<?xml version='1.0' encoding='UTF-8'?><ans1:ast xmlns:ans1="https://tinkoff.ru" foo="5"><bar>bazz</bar><array foo2="true" foo3="false"><elem>11111111111111</elem><elem>11111111111112</elem></array><nested><scala>2.13</scala><dotty>0.13</dotty><scala-4/></nested></ans1:ast>""",
       )
     }
   }

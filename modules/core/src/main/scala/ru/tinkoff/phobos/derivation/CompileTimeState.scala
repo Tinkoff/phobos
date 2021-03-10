@@ -13,19 +13,19 @@ private[derivation] object CompileTimeState {
   final case class CoproductType(typeName: String) extends TypePath(s"coproduct type $typeName")
 
   final case class ProductType(paramName: String, typeName: String)
-    extends TypePath(s"parameter '$paramName' of product type $typeName")
+      extends TypePath(s"parameter '$paramName' of product type $typeName")
 
   final case class ChainedImplicit(typeClassName: String, typeName: String)
-    extends TypePath(s"chained implicit $typeClassName for type $typeName")
+      extends TypePath(s"chained implicit $typeClassName for type $typeName")
 
   final class Stack[C <: blackbox.Context with Singleton] {
     private var frames = List.empty[Frame]
-    private val cache = mutable.Map.empty[C#Type, C#Tree]
+    private val cache  = mutable.Map.empty[C#Type, C#Tree]
 
-    def isEmpty: Boolean = frames.isEmpty
-    def nonEmpty: Boolean = frames.nonEmpty
-    def top: Option[Frame] = frames.headOption
-    def pop(): Unit = frames = frames drop 1
+    def isEmpty: Boolean         = frames.isEmpty
+    def nonEmpty: Boolean        = frames.nonEmpty
+    def top: Option[Frame]       = frames.headOption
+    def pop(): Unit              = frames = frames drop 1
     def push(frame: Frame): Unit = frames ::= frame
 
     def clear(): Unit = {
@@ -46,8 +46,7 @@ private[derivation] object CompileTimeState {
 
     def trace: List[TypePath] =
       frames.drop(1).zip(frames).collect {
-        case (Frame(path, tp1, _), Frame(_, tp2, _))
-          if !(tp1 =:= tp2) => path
+        case (Frame(path, tp1, _), Frame(_, tp2, _)) if !(tp1 =:= tp2) => path
       }
 
     override def toString: String =
@@ -59,8 +58,8 @@ private[derivation] object CompileTimeState {
   object Stack {
     // Cheating to satisfy Singleton bound (which improves type inference).
     private val dummyContext: blackbox.Context = null
-    private val global = new Stack[dummyContext.type]
-    private val workSet = mutable.Set.empty[blackbox.Context#Symbol]
+    private val global                         = new Stack[dummyContext.type]
+    private val workSet                        = mutable.Set.empty[blackbox.Context#Symbol]
 
     def withContext(c: blackbox.Context)(fn: Stack[c.type] => c.Tree): c.Tree = {
       workSet += c.macroApplication.symbol
