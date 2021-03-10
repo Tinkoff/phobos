@@ -12,7 +12,7 @@ Scala 2.12 and 2.13 are supported. Support for Scala 2.11 may be implemented on 
 Add phobos-core to your dependencies:
 
 ```
-libraryDependencies += "ru.tinkoff" %% "phobos-core" % "0.9.2"
+libraryDependencies += "ru.tinkoff" %% "phobos-core" % "0.10.0"
 ```
 
 Then try this code out in `sbt console` or in a separate source file:
@@ -65,7 +65,7 @@ Performance details can be found out in [phobos-benchmark repository](https://gi
 There are several additional modules for some specific cases. 
 These modules could be added with command below:
 ```
-libraryDependencies += "ru.tinkoff" %% "phobos-<module>" % "0.9.2"
+libraryDependencies += "ru.tinkoff" %% "phobos-<module>" % "0.10.0
 ```
 Where `<module>` is module name.
 
