@@ -1,16 +1,15 @@
 package ru.tinkoff.phobos
 
-/**
- * Typeclass for defining XML namespaces.
- *
- * Example of use:
- *
- *  case object nsi {
- *    implicit val ns: Namespace[nsi.type] = Namespace.mkInstance("example.com")
- *  }
- *
- * See package annotations for more convenient syntax.
- */
+/** Typeclass for defining XML namespaces.
+  *
+  * Example of use:
+  *
+  *  case object nsi {
+  *    implicit val ns: Namespace[nsi.type] = Namespace.mkInstance("example.com")
+  *  }
+  *
+  * See package annotations for more convenient syntax.
+  */
 trait Namespace[T] {
   val getNamespace: String
 }

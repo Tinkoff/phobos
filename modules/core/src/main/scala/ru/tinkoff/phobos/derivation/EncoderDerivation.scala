@@ -16,7 +16,7 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 
   def deriveCoproductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(
       config: Expr[ElementCodecConfig],
-      subtypes: Iterable[SealedTraitSubtype]
+      subtypes: Iterable[SealedTraitSubtype],
   ): Tree = {
     val assignedName = TermName(c.freshName(s"ElementEncoderTypeclass")).encodedName.toTermName
 
@@ -67,7 +67,9 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
     """
   }
 
-  def deriveProductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(config: Expr[ElementCodecConfig], params: IndexedSeq[CaseClassParam]): Tree = {
+  def deriveProductCodec[T: c.WeakTypeTag](
+      stack: Stack[c.type],
+  )(config: Expr[ElementCodecConfig], params: IndexedSeq[CaseClassParam]): Tree = {
     val assignedName = TermName(c.freshName(s"ElementEncoderTypeclass")).encodedName.toTermName
 
     val scalaPkg = q"_root_.scala"
@@ -152,19 +154,23 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
     xmlConfigured[T](localName, defaultConfig)
 
   def xmlConfigured[T: c.WeakTypeTag](localName: Tree, config: Expr[ElementCodecConfig]): Tree =
-    q"""_root_.ru.tinkoff.phobos.encoding.XmlEncoder.fromElementEncoder[${weakTypeOf[T]}]($localName)(${elementConfigured[
-      T](config)})"""
+    q"""_root_.ru.tinkoff.phobos.encoding.XmlEncoder.fromElementEncoder[${weakTypeOf[
+      T,
+    ]}]($localName)(${elementConfigured[T](config)})"""
 
   def xmlNs[T: c.WeakTypeTag, NS: c.WeakTypeTag](localName: Tree, ns: Tree): Tree =
     xmlNsConfigured[T, NS](localName, ns, defaultConfig)
 
-  def xmlNsConfigured[T: c.WeakTypeTag, NS: c.WeakTypeTag](localName: Tree,
-                                                           ns: Tree,
-                                                           config: Expr[ElementCodecConfig]): Tree = {
+  def xmlNsConfigured[T: c.WeakTypeTag, NS: c.WeakTypeTag](
+      localName: Tree,
+      ns: Tree,
+      config: Expr[ElementCodecConfig],
+  ): Tree = {
     val nsInstance = Option(c.inferImplicitValue(appliedType(weakTypeOf[Namespace[_]], weakTypeOf[NS])))
       .filter(_.nonEmpty)
       .getOrElse(error(s"Could not find Namespace instance for $ns"))
-    q"""_root_.ru.tinkoff.phobos.encoding.XmlEncoder.fromElementEncoderNs[${weakTypeOf[T]}, ${weakTypeOf[NS]}]($localName, $ns)(${elementConfigured[
-      T](config)}, $nsInstance)"""
+    q"""_root_.ru.tinkoff.phobos.encoding.XmlEncoder.fromElementEncoderNs[${weakTypeOf[T]}, ${weakTypeOf[
+      NS,
+    ]}]($localName, $ns)(${elementConfigured[T](config)}, $nsInstance)"""
   }
 }

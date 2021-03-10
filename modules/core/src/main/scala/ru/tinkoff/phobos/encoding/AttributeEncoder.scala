@@ -5,17 +5,16 @@ import java.util.{Base64, UUID}
 
 import cats.Contravariant
 
-/**
- * Warning! This is an internal API which may change in future.
- * Do not implement or use this trait directly unless you know what you are doing.
- *
- * Use XmlEncoder for encoding XML documents.
- *
- * AttributeEncoder instance must exist for every type encoded to attribute.
- * This typeclass is used for encoding case class parameters with @attr annotation.
- *
- * To create new instance use .contramap method of existing instance.
- */
+/** Warning! This is an internal API which may change in future.
+  * Do not implement or use this trait directly unless you know what you are doing.
+  *
+  * Use XmlEncoder for encoding XML documents.
+  *
+  * AttributeEncoder instance must exist for every type encoded to attribute.
+  * This typeclass is used for encoding case class parameters with @attr annotation.
+  *
+  * To create new instance use .contramap method of existing instance.
+  */
 trait AttributeEncoder[A] { self =>
   def encodeAsAttribute(a: A, sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String]): Unit
 
@@ -32,8 +31,7 @@ object AttributeEncoder extends AttributeLiteralInstances {
       def contramap[A, B](fa: AttributeEncoder[A])(f: B => A): AttributeEncoder[B] = fa.contramap(f)
     }
 
-  /**
-    * Instances
+  /** Instances
     */
   implicit val stringEncoder: AttributeEncoder[String] =
     new AttributeEncoder[String] {
@@ -73,7 +71,12 @@ object AttributeEncoder extends AttributeLiteralInstances {
 
   implicit def optionEncoder[A](implicit encoder: AttributeEncoder[A]): AttributeEncoder[Option[A]] =
     new AttributeEncoder[Option[A]] {
-      def encodeAsAttribute(a: Option[A], sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String]): Unit =
+      def encodeAsAttribute(
+          a: Option[A],
+          sw: PhobosStreamWriter,
+          localName: String,
+          namespaceUri: Option[String],
+      ): Unit =
         a.foreach(encoder.encodeAsAttribute(_, sw, localName, namespaceUri))
     }
 

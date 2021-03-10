@@ -10,17 +10,16 @@ import ru.tinkoff.phobos.decoding.TextDecoder.{EMappedDecoder, MappedDecoder}
 
 import scala.annotation.tailrec
 
-/**
- * Warning! This is a complicated internal API which may change in future.
- * Do not implement or use this trait directly unless you know what you are doing.
- *
- * Use XmlDecoder for decoding XML documents.
- *
- * TextDecoder instance must exist for every type decoded from text inside XML element.
- * This typeclass is used for decoding case class parameters with @text annotation.
- *
- * To create new instance use .map or .emap method of existing instance.
- */
+/** Warning! This is a complicated internal API which may change in future.
+  * Do not implement or use this trait directly unless you know what you are doing.
+  *
+  * Use XmlDecoder for decoding XML documents.
+  *
+  * TextDecoder instance must exist for every type decoded from text inside XML element.
+  * This typeclass is used for decoding case class parameters with @text annotation.
+  *
+  * To create new instance use .map or .emap method of existing instance.
+  */
 trait TextDecoder[A] { self =>
   def decodeAsText(c: Cursor): TextDecoder[A]
   def result(history: List[String]): Either[DecodingError, A]
@@ -84,8 +83,7 @@ object TextDecoder extends TextLiteralInstances {
     override def toString: String = s"FailedDecoder($decodingError)"
   }
 
-  /**
-    * Instances
+  /** Instances
     */
   class StringDecoder(string: String = "") extends TextDecoder[String] {
     def decodeAsText(c: Cursor): TextDecoder[String] = {
@@ -121,7 +119,8 @@ object TextDecoder extends TextLiteralInstances {
         case "true" | "1"  => Right(true)
         case "false" | "0" => Right(false)
         case str           => Left(DecodingError(s"Value `$str` is not `true` or `false`", history))
-    })
+      },
+    )
 
   implicit val javaBooleanDecoder: TextDecoder[java.lang.Boolean] = booleanDecoder.map(_.booleanValue())
 

@@ -9,14 +9,16 @@ final case class Envelope[Header, Body](@xmlns(soapenv) Header: Header, @xmlns(s
 
 object Envelope {
 
-  implicit def deriveEnvelopeEncoder[Header: ElementEncoder, Body: ElementEncoder]: XmlEncoder[Envelope[Header, Body]] = {
+  implicit def deriveEnvelopeEncoder[Header: ElementEncoder, Body: ElementEncoder]
+      : XmlEncoder[Envelope[Header, Body]] = {
     implicit val envelopeElementEncoder: ElementEncoder[Envelope[Header, Body]] =
       deriveElementEncoder[Envelope[Header, Body]]
 
     XmlEncoder.fromElementEncoderNs[Envelope[Header, Body], soapenv]("Envelope")
   }
 
-  implicit def deriveEnvelopeDecoder[Header: ElementDecoder, Body: ElementDecoder]: XmlDecoder[Envelope[Header, Body]] = {
+  implicit def deriveEnvelopeDecoder[Header: ElementDecoder, Body: ElementDecoder]
+      : XmlDecoder[Envelope[Header, Body]] = {
     implicit val envelopeElementDecoder: ElementDecoder[Envelope[Header, Body]] =
       deriveElementDecoder[Envelope[Header, Body]]
 

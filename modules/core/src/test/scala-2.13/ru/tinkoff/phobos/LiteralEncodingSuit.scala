@@ -17,7 +17,8 @@ class LiteralEncodingSuit extends AnyWordSpec {
         string ==
           """<?xml version='1.0' encoding='UTF-8'?>
             | <foo status="Ok"/>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
 
     "encode elements with literal type" in {
@@ -29,9 +30,9 @@ class LiteralEncodingSuit extends AnyWordSpec {
         string ==
           """<?xml version='1.0' encoding='UTF-8'?>
             | <foo><status>Ok</status></foo>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
-
 
     "encode text with literal type" in {
       @XmlCodec("foo")
@@ -42,7 +43,8 @@ class LiteralEncodingSuit extends AnyWordSpec {
         string ==
           """<?xml version='1.0' encoding='UTF-8'?>
             | <foo>Ok</foo>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
   }
 }

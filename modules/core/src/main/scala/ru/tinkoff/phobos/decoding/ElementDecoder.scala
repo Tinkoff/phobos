@@ -12,8 +12,7 @@ import ru.tinkoff.phobos.decoding.ElementDecoder.{EMappedDecoder, MappedDecoder}
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 
-/**
-  * Warning! This is a complicated internal API which may change in future.
+/** Warning! This is a complicated internal API which may change in future.
   * Do not implement or use this trait directly unless you know what you are doing.
   *
   * Use XmlDecoder for decoding XML documents.
@@ -23,7 +22,6 @@ import scala.collection.mutable.ListBuffer
   * ElementDecoder instance can be created
   *  - from existing instance by using .map or .emap method (mostly used for "simple" types);
   *  - by macros from ru.tinkoff.phobos.derivation.semiauto package (for case classes and sealed traits).
-  *
   *
   * This typeclass describes process of decoding some element to an A value. Name of the element is
   * not defined in typeclass, it should be passed in decodeAsElement method.
@@ -108,8 +106,7 @@ object ElementDecoder extends ElementLiteralInstances {
     override def toString: String = s"FailedDecoder($decodingError)"
   }
 
-  /**
-    * Instances
+  /** Instances
     */
   final class StringDecoder(string: String = "") extends ElementDecoder[String] {
     def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String]): ElementDecoder[String] = {
@@ -163,7 +160,8 @@ object ElementDecoder extends ElementLiteralInstances {
         case "true" | "1"  => Right(true)
         case "false" | "0" => Right(false)
         case str           => Left(DecodingError(s"Value `$str` is not `true` or `false`", history))
-    })
+      },
+    )
 
   implicit val javaBooleanDecoder: ElementDecoder[java.lang.Boolean] = booleanDecoder.map(_.booleanValue())
 
@@ -226,8 +224,8 @@ object ElementDecoder extends ElementLiteralInstances {
   implicit val noneDecoder: ElementDecoder[None.type] = new ConstDecoder[None.type](None)
 
   class ListDecoder[A](list: List[A] = Nil, currentItemDecoderOpt: Option[ElementDecoder[A]] = None)(
-      implicit itemDecoder: ElementDecoder[A])
-      extends ElementDecoder[List[A]] {
+      implicit itemDecoder: ElementDecoder[A],
+  ) extends ElementDecoder[List[A]] {
     def decodeAsElement(cursor: Cursor, localName: String, namespaceUri: Option[String]): ElementDecoder[List[A]] = {
       if (cursor.getEventType == AsyncXMLStreamReader.EVENT_INCOMPLETE) {
         this
@@ -257,7 +255,9 @@ object ElementDecoder extends ElementLiteralInstances {
                 new ListDecoder[A](listBuffer.toList, Some(newDecoder))
               }
             }
-          } else if (cursor.getEventType == AsyncXMLStreamReader.EVENT_INCOMPLETE || cursor.isStartElement || cursor.isEndElement) {
+          } else if (
+            cursor.getEventType == AsyncXMLStreamReader.EVENT_INCOMPLETE || cursor.isStartElement || cursor.isEndElement
+          ) {
             new ListDecoder[A](listBuffer.toList)
           } else {
             cursor.next()
@@ -296,27 +296,24 @@ object ElementDecoder extends ElementLiteralInstances {
     listDecoder[A].map(Chain.fromSeq)
 
   implicit def nonEmptyListDecoder[A](implicit decoder: ElementDecoder[A]): ElementDecoder[NonEmptyList[A]] =
-    listDecoder[A].emap(
-      (history, list) =>
-        NonEmptyList
-          .fromList(list)
-          .fold[Either[DecodingError, NonEmptyList[A]]](Left(DecodingError("List is empty", history)))(Right.apply)
+    listDecoder[A].emap((history, list) =>
+      NonEmptyList
+        .fromList(list)
+        .fold[Either[DecodingError, NonEmptyList[A]]](Left(DecodingError("List is empty", history)))(Right.apply),
     )
 
   implicit def nonEmptyVectorDecoder[A](implicit decoder: ElementDecoder[A]): ElementDecoder[NonEmptyVector[A]] =
-    vectorDecoder[A].emap(
-      (history, vector) =>
-        NonEmptyVector
-          .fromVector(vector)
-          .fold[Either[DecodingError, NonEmptyVector[A]]](Left(DecodingError("Vector is empty", history)))(Right.apply)
+    vectorDecoder[A].emap((history, vector) =>
+      NonEmptyVector
+        .fromVector(vector)
+        .fold[Either[DecodingError, NonEmptyVector[A]]](Left(DecodingError("Vector is empty", history)))(Right.apply),
     )
 
   implicit def nonEmptyChainDecoder[A](implicit decoder: ElementDecoder[A]): ElementDecoder[NonEmptyChain[A]] =
-    chainDecoder[A].emap(
-      (history, chain) =>
-        NonEmptyChain
-          .fromChain(chain)
-          .fold[Either[DecodingError, NonEmptyChain[A]]](Left(DecodingError("Chain is empty", history)))(Right.apply)
+    chainDecoder[A].emap((history, chain) =>
+      NonEmptyChain
+        .fromChain(chain)
+        .fold[Either[DecodingError, NonEmptyChain[A]]](Left(DecodingError("Chain is empty", history)))(Right.apply),
     )
 
   implicit val localDateTimeDecoder: ElementDecoder[LocalDateTime] =

@@ -8,14 +8,15 @@ import scala.concurrent.Future
 
 private[phobos] trait AkkaStreamOps {
 
-  /**
-    * @note - works only for streams emmiting single xml document
-    * */
+  /** @note - works only for streams emmiting single xml document
+    */
   def decodingFlow[A: XmlDecoder](charset: String = "UTF-8"): Flow[Array[Byte], Either[DecodingError, A], NotUsed] = {
     val xmlDecoder = XmlDecoder[A]
     Flow[Array[Byte]]
       .fold(Option.empty[SinkDecoderState[A]]) { (stateOpt, bytes) =>
-        val state = stateOpt.getOrElse(SinkDecoderState.initial(xmlDecoder, charset)) // trick to make this flow reusable (because of mutable Cursor)
+        val state = stateOpt.getOrElse(
+          SinkDecoderState.initial(xmlDecoder, charset),
+        ) // trick to make this flow reusable (because of mutable Cursor)
         import state.{cursor, elementDecoder, xmlStreamReader}
         xmlStreamReader.getInputFeeder.feedInput(bytes, 0, bytes.length)
         do {
@@ -41,9 +42,8 @@ private[phobos] trait AkkaStreamOps {
       }
   }
 
-  /**
-    * @note - works only for streams emmiting single xml document
-    * */
+  /** @note - works only for streams emmiting single xml document
+    */
   def decodingFlowUnsafe[A: XmlDecoder](charset: String = "UTF-8"): Flow[Array[Byte], A, NotUsed] =
     decodingFlow(charset).map(_.fold(throw _, identity))
 
@@ -57,7 +57,7 @@ private[phobos] trait AkkaStreamOps {
 private[phobos] case class SinkDecoderState[A](
     xmlStreamReader: XmlStreamReader,
     cursor: Cursor,
-    elementDecoder: ElementDecoder[A]
+    elementDecoder: ElementDecoder[A],
 ) {
   def withEncoder(that: ElementDecoder[A]): SinkDecoderState[A] = copy(elementDecoder = that)
 }
@@ -70,7 +70,7 @@ private[phobos] object SinkDecoderState {
     SinkDecoderState(
       xmlStreamReader = sr,
       cursor = cursor,
-      elementDecoder = xmlDecoder.elementdecoder
+      elementDecoder = xmlDecoder.elementdecoder,
     )
   }
 }

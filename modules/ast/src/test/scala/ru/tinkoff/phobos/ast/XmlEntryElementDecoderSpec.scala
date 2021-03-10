@@ -34,16 +34,16 @@ class XmlEntryElementDecoderSpec extends AnyWordSpec with Matchers with DiffMatc
         node("bar") := "bazz",
         node("array") := xml(
           attr("foo2") := true,
-          attr("foo3") := false
+          attr("foo3") := false,
         )(
           node("elem") := 11111111111111L,
-          node("elem") := 11111111111112L
+          node("elem") := 11111111111112L,
         ),
         node("nested") := xml(
           node("scala") := 2.13,
           node("dotty") := 0.13,
-          node("scala-4") := xml.empty
-        )
+          node("scala-4") := xml.empty,
+        ),
       )
 
       decodedAst should matchTo(expectedResult.asRight[DecodingError])
@@ -54,8 +54,8 @@ class XmlEntryElementDecoderSpec extends AnyWordSpec with Matchers with DiffMatc
       val n: XmlEntry = xml(
         node("k") :=
           xml(
-            node("k") := "gbq"
-          )
+            node("k") := "gbq",
+          ),
       )
 
       val encoded = ru.tinkoff.phobos.encoding.XmlEncoder.fromElementEncoder[XmlEntry]("ast").encode(n)
@@ -63,11 +63,11 @@ class XmlEntryElementDecoderSpec extends AnyWordSpec with Matchers with DiffMatc
       val result = XmlDecoder
         .fromElementDecoder[XmlEntry]("ast")
         .decode(
-          encoded
+          encoded,
         )
 
       result.map(util.AstTransformer.sortNodeValues) should matchTo(
-        util.AstTransformer.sortNodeValues(n).asRight[DecodingError]
+        util.AstTransformer.sortNodeValues(n).asRight[DecodingError],
       )
     }
   }

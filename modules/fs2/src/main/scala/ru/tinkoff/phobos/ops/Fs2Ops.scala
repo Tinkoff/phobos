@@ -11,9 +11,10 @@ private[phobos] trait Fs2Ops {
 }
 
 class DecoderOps[A](private val xmlDecoder: XmlDecoder[A]) extends AnyVal {
-  def decodeFromStream[F[_], G[_]](stream: Stream[F, Array[Byte]], charset: String = "UTF-8")(
-      implicit compiler: Stream.Compiler[F, G],
-      monadError: MonadError[G, Throwable]): G[A] = {
+  def decodeFromStream[F[_], G[_]](
+      stream: Stream[F, Array[Byte]],
+      charset: String = "UTF-8",
+  )(implicit compiler: Stream.Compiler[F, G], monadError: MonadError[G, Throwable]): G[A] = {
     val sr: XmlStreamReader = XmlDecoder.createStreamReader(charset)
     val cursor              = new Cursor(sr)
 

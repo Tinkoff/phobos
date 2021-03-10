@@ -14,7 +14,7 @@ class CodecProperties extends Properties("Ast codecs") {
 
   property("decode(encode(ast)) === ast") = forAll { entry: XmlEntry =>
     decoder.decode(
-      encoder.encode(entry)
+      encoder.encode(entry),
     ) == Right(entry)
   }
 
@@ -27,18 +27,21 @@ class CodecProperties extends Properties("Ast codecs") {
 
 object CodecProperties {
   implicit val arbitraryXmlLong: Arbitrary[XmlNumber.Aux[Long]] = Arbitrary(
-    Arbitrary.arbitrary[Long].map(XmlNumber.integral))
+    Arbitrary.arbitrary[Long].map(XmlNumber.integral),
+  )
 
   implicit val arbitraryXmlDouble: Arbitrary[XmlNumber.Aux[Double]] = Arbitrary(
-    Arbitrary.arbitrary[Double].map(XmlNumber.double))
+    Arbitrary.arbitrary[Double].map(XmlNumber.double),
+  )
 
   implicit val arbitraryXmlNumber: Arbitrary[XmlNumber] =
     Arbitrary(
-      Gen.oneOf(arbitraryXmlLong.arbitrary, arbitraryXmlDouble.arbitrary)
+      Gen.oneOf(arbitraryXmlLong.arbitrary, arbitraryXmlDouble.arbitrary),
     )
 
   implicit val arbitraryXmlBoolean: Arbitrary[XmlBoolean] = Arbitrary(
-    Arbitrary.arbitrary[Boolean].map(XmlBoolean.fromBoolean))
+    Arbitrary.arbitrary[Boolean].map(XmlBoolean.fromBoolean),
+  )
 
   implicit val arbNonEmptyString: Arbitrary[String] = Arbitrary {
     Gen.choose(1, 10).flatMap { n =>
@@ -49,11 +52,11 @@ object CodecProperties {
   }
 
   implicit val arbitraryXmlText: Arbitrary[XmlText] = Arbitrary(
-    arbNonEmptyString.arbitrary.map(XmlText(_))
+    arbNonEmptyString.arbitrary.map(XmlText(_)),
   )
 
   implicit val arbitraryXmlLeaf: Arbitrary[XmlLeaf] = Arbitrary(
-    Gen.oneOf(arbitraryXmlNumber.arbitrary, arbitraryXmlBoolean.arbitrary, arbitraryXmlText.arbitrary)
+    Gen.oneOf(arbitraryXmlNumber.arbitrary, arbitraryXmlBoolean.arbitrary, arbitraryXmlText.arbitrary),
   )
 
   class Depth(val value: Int) extends AnyVal

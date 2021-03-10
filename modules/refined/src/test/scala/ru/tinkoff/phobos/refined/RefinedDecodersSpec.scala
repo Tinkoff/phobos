@@ -75,7 +75,7 @@ class RefinedDecodersSpec extends AnyWordSpec with Matchers {
         .decode(sampleXml0)
         .left
         .map(_.text) shouldEqual Left(
-        """Failed to verify RefinedDecodersSpec.this.NumericAtLeastTo refinement for value=1 of raw type String: Predicate failed: "1".matches("[0-9]{2,}")."""
+        """Failed to verify RefinedDecodersSpec.this.NumericAtLeastTo refinement for value=1 of raw type String: Predicate failed: "1".matches("[0-9]{2,}").""",
       )
 
       val sampleXml1 =
@@ -91,7 +91,7 @@ class RefinedDecodersSpec extends AnyWordSpec with Matchers {
         .decode(sampleXml1)
         .left
         .map(_.text) shouldEqual Left(
-        """Failed to verify eu.timepit.refined.numeric.NonNegative refinement for value=-1000 of raw type Long: Predicate (-1000 < 0) did not fail."""
+        """Failed to verify eu.timepit.refined.numeric.NonNegative refinement for value=-1000 of raw type Long: Predicate (-1000 < 0) did not fail.""",
       )
 
     }

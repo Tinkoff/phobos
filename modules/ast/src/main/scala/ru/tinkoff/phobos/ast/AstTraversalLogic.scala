@@ -54,9 +54,10 @@ object AstTraversalLogic {
   object Accumulator {
     case class TextNode(toEntry: XmlLeaf) extends Accumulator
 
-    case class ParentNode(attributes: AttributeBuilder = AttributeBuilder(),
-                          children: ChildrenBuilder = ChildrenBuilder())
-        extends Accumulator {
+    case class ParentNode(
+        attributes: AttributeBuilder = AttributeBuilder(),
+        children: ChildrenBuilder = ChildrenBuilder(),
+    ) extends Accumulator {
 
       override def toEntry: XmlNode = {
         XmlNode(attributes.toList, children.toList)

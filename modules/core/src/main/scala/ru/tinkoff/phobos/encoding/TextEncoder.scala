@@ -5,14 +5,13 @@ import java.util.{Base64, UUID}
 
 import cats.Contravariant
 
-/**
- * Use XmlEncoder for encoding XML documents.
- *
- * TextEncoder instance must exist for every type encoded to text inside XML element.
- * This typeclass is used for encoding case class parameters with @text annotation.
- *
- * To create new instance use .contramap method of existing instance.
- */
+/** Use XmlEncoder for encoding XML documents.
+  *
+  * TextEncoder instance must exist for every type encoded to text inside XML element.
+  * This typeclass is used for encoding case class parameters with @text annotation.
+  *
+  * To create new instance use .contramap method of existing instance.
+  */
 
 trait TextEncoder[A] { self =>
   def encodeAsText(a: A, sw: PhobosStreamWriter): Unit
@@ -29,8 +28,7 @@ object TextEncoder extends TextLiteralInstances {
       def contramap[A, B](fa: TextEncoder[A])(f: B => A): TextEncoder[B] = fa.contramap(f)
     }
 
-  /**
-    * Instances
+  /** Instances
     */
   implicit val stringEncoder: TextEncoder[String] =
     new TextEncoder[String] {

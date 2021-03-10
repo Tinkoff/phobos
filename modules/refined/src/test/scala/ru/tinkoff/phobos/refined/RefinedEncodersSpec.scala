@@ -49,7 +49,8 @@ class RefinedEncodersSpec extends AnyWordSpec with Matchers {
             |   <str>42</str>
             |   <foo bar="42">1000</foo>
             | </qux>
-          """.stripMargin.minimized)
+          """.stripMargin.minimized,
+      )
     }
   }
 }

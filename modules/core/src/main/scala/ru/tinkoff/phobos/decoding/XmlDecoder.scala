@@ -9,8 +9,7 @@ import com.fasterxml.aalto.stax.InputFactoryImpl
 import ru.tinkoff.phobos.Namespace
 import ru.tinkoff.phobos.decoding.XmlDecoder.createStreamReader
 
-/**
-  * Typeclass for decoding XML document to an A value.
+/** Typeclass for decoding XML document to an A value.
   *
   * XmlDecoder instance must exist only for types which are decoded as XML documents (only for root elements).
   *
@@ -81,7 +80,8 @@ object XmlDecoder {
   def apply[A](implicit instance: XmlDecoder[A]): XmlDecoder[A] = instance
 
   def fromElementDecoder[A](localName: String, namespaceUri: Option[String])(
-      implicit elementDecoder: ElementDecoder[A]): XmlDecoder[A] =
+      implicit elementDecoder: ElementDecoder[A],
+  ): XmlDecoder[A] =
     new XmlDecoder[A] {
       val localname: String                 = localName
       val namespaceuri: Option[String]      = namespaceUri
@@ -91,11 +91,14 @@ object XmlDecoder {
   def fromElementDecoder[A](localName: String)(implicit elementDecoder: ElementDecoder[A]): XmlDecoder[A] =
     fromElementDecoder(localName, None)
 
-  def fromElementDecoderNs[A, NS](localName: String, namespaceInstance: NS)(implicit elementDecoder: ElementDecoder[A],
-                                                                            namespace: Namespace[NS]): XmlDecoder[A] =
+  def fromElementDecoderNs[A, NS](localName: String, namespaceInstance: NS)(
+      implicit elementDecoder: ElementDecoder[A],
+      namespace: Namespace[NS],
+  ): XmlDecoder[A] =
     fromElementDecoder(localName, namespace.getNamespace.some)
 
-  def fromElementDecoderNs[A, NS](localName: String)(implicit elementDecoder: ElementDecoder[A],
-                                                     namespace: Namespace[NS]): XmlDecoder[A] =
+  def fromElementDecoderNs[A, NS](
+      localName: String,
+  )(implicit elementDecoder: ElementDecoder[A], namespace: Namespace[NS]): XmlDecoder[A] =
     fromElementDecoder(localName, namespace.getNamespace.some)
 }
