@@ -11,6 +11,7 @@ final case class ElementCodecConfig(
     useElementNameAsDiscriminator: Boolean,
     attributesDefaultNamespace: Option[String] = None,
     elementsDefaultNamespace: Option[String] = None,
+    defineNamespaces: List[String] = Nil,
 ) {
   def withElementsRenamed(transform: String => String): ElementCodecConfig =
     copy(transformElementNames = transform)
@@ -42,6 +43,11 @@ final case class ElementCodecConfig(
   def withElementsDefaultNamespace[NS](namespace: NS)(implicit ns: Namespace[NS]): ElementCodecConfig =
     copy(elementsDefaultNamespace = Some(ns.getNamespace))
 
+  def withNamespaceDefined(namespace: String): ElementCodecConfig =
+    copy(defineNamespaces = namespace :: defineNamespaces)
+
+  def withNamespaceDefined[NS](namespace: NS)(implicit ns: Namespace[NS]): ElementCodecConfig =
+    copy(defineNamespaces = ns.getNamespace :: defineNamespaces)
 }
 
 object ElementCodecConfig {
@@ -53,5 +59,6 @@ object ElementCodecConfig {
       discriminatorLocalName = "type",
       discriminatorNamespace = Some("http://www.w3.org/2001/XMLSchema-instance"),
       useElementNameAsDiscriminator = false,
+      defineNamespaces = Nil,
     )
 }

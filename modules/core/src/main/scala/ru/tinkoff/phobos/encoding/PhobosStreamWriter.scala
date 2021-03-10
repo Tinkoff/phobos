@@ -7,6 +7,7 @@ import javax.xml.stream.XMLStreamException
 import org.codehaus.stax2.typed.Base64Variant
 import org.codehaus.stax2.{XMLStreamLocation2, XMLStreamReader2, XMLStreamWriter2}
 import org.codehaus.stax2.validation.{ValidationProblemHandler, XMLValidationSchema, XMLValidator}
+import PhobosStreamWriter.prefixBase
 
 final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
 
@@ -229,6 +230,30 @@ final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
   def writeNamespace(prefix: String, namespaceURI: String): Unit =
     sw.writeNamespace(prefix, namespaceURI)
 
+  /**
+   * Writes a namespace to the output stream
+   * Generates unbound prefix in format <code>ans\d+</code> and binds it to URI
+   *
+   * @param namespaceURI the uri to bind the prefix to
+   */
+  def writeNamespace(namespaceURI: String): Unit = {
+    val nsContext = sw.getNamespaceContext
+    if (nsContext.getPrefix(namespaceURI) == null) {
+      var left = 1
+      var right = 1
+      while (nsContext.getNamespaceURI(prefixBase + right) != null) {
+        left = right
+        right *= 2
+      }
+      while (left + 1 < right) {
+        val median = (left + right) / 2
+        if (nsContext.getNamespaceURI(prefixBase + median) == null) right = median
+        else left = median
+      }
+      sw.writeNamespace(prefixBase + right, namespaceURI)
+    }
+  }
+
   def writeDefaultNamespace(namespaceURI: String): Unit =
     sw.writeDefaultNamespace(namespaceURI)
 
@@ -294,4 +319,9 @@ final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
 
   def setValidationProblemHandler(h: ValidationProblemHandler): ValidationProblemHandler =
     sw.setValidationProblemHandler(h)
+
+}
+
+object PhobosStreamWriter {
+  val prefixBase = "ans"
 }

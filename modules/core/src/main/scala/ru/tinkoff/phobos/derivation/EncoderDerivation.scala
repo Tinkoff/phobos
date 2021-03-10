@@ -67,7 +67,7 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
     """
   }
 
-  def deriveProductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(params: IndexedSeq[CaseClassParam]): Tree = {
+  def deriveProductCodec[T: c.WeakTypeTag](stack: Stack[c.type])(config: Expr[ElementCodecConfig], params: IndexedSeq[CaseClassParam]): Tree = {
     val assignedName = TermName(c.freshName(s"ElementEncoderTypeclass")).encodedName.toTermName
 
     val scalaPkg = q"_root_.scala"
@@ -134,6 +134,9 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
          namespaceUri: $scalaPkg.Option[$javaPkg.String]
        ): $scalaPkg.Unit = {
          namespaceUri.fold(sw.writeStartElement(localName))(ns => sw.writeStartElement(ns, localName))
+         $config.defineNamespaces.foreach { uri =>
+           if (sw.getNamespaceContext.getPrefix(uri) == null) sw.writeNamespace(uri)
+         }
 
          ..$encodeAttributes
          ..$encodeText
