@@ -38,7 +38,7 @@ trait ElementDecoder[A] { self =>
   def emap[B](f: (List[String], A) => Either[DecodingError, B]): ElementDecoder[B] = new EMappedDecoder(self, f)
 }
 
-object ElementDecoder {
+object ElementDecoder extends ElementLiteralInstances {
 
   def errorIfWrongName[A](c: Cursor, localName: String, namespaceUri: Option[String]): Option[FailedDecoder[A]] = {
     namespaceUri match {

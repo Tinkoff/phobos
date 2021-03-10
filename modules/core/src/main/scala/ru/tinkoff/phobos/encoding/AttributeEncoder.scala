@@ -26,7 +26,7 @@ trait AttributeEncoder[A] { self =>
     }
 }
 
-object AttributeEncoder {
+object AttributeEncoder extends AttributeLiteralInstances {
   implicit val encoderContravariant: Contravariant[AttributeEncoder] =
     new Contravariant[AttributeEncoder] {
       def contramap[A, B](fa: AttributeEncoder[A])(f: B => A): AttributeEncoder[B] = fa.contramap(f)

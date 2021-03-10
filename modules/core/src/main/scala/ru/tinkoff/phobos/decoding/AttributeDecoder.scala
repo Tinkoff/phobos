@@ -35,7 +35,7 @@ trait AttributeDecoder[A] { self =>
     }
 }
 
-object AttributeDecoder {
+object AttributeDecoder extends AttributeLiteralInstances {
   implicit val attributeDecoderFunctor: Functor[AttributeDecoder] =
     new Functor[AttributeDecoder] {
       def map[A, B](fa: AttributeDecoder[A])(f: A => B): AttributeDecoder[B] = fa.map(f)

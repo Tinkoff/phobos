@@ -31,7 +31,7 @@ trait TextDecoder[A] { self =>
   def emap[B](f: (List[String], A) => Either[DecodingError, B]): TextDecoder[B] = new EMappedDecoder(self, f)
 }
 
-object TextDecoder {
+object TextDecoder extends TextLiteralInstances {
 
   class MappedDecoder[A, B](fa: TextDecoder[A], f: A => B) extends TextDecoder[B] {
 

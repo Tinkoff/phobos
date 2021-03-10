@@ -32,7 +32,7 @@ trait ElementEncoder[A] { self =>
     }
 }
 
-object ElementEncoder {
+object ElementEncoder extends ElementLiteralInstances {
   implicit val encoderContravariant: Contravariant[ElementEncoder] =
     new Contravariant[ElementEncoder] {
       def contramap[A, B](fa: ElementEncoder[A])(f: B => A): ElementEncoder[B] = fa.contramap(f)
