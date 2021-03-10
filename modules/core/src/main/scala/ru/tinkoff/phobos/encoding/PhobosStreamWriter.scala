@@ -230,6 +230,12 @@ final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
   def writeNamespace(prefix: String, namespaceURI: String): Unit =
     sw.writeNamespace(prefix, namespaceURI)
 
+  /**
+   * Writes a namespace to the output stream
+   * Generates unbound prefix in format <code>ans\d+</code> and binds it to URI
+   *
+   * @param namespaceURI the uri to bind the prefix to
+   */
   def writeNamespace(namespaceURI: String): Unit = {
     val nsContext = sw.getNamespaceContext
     if (nsContext.getPrefix(namespaceURI) == null) {
