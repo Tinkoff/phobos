@@ -9,7 +9,7 @@ lazy val commonDependencies =
     "org.typelevel" %% "cats-core"     % "2.5.0",
     "com.fasterxml"  % "aalto-xml"     % "1.2.2",
     "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-    "org.scalactic" %% "scalactic"     % "3.2.6" % "test",
+    "org.scalactic" %% "scalactic"     % "3.2.7" % "test",
     "org.scalatest" %% "scalatest"     % "3.2.6" % "test",
   )
 
