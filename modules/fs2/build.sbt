@@ -1,4 +1,4 @@
 libraryDependencies ++= Seq(
-  "co.fs2" %% "fs2-core" % "2.5.5",
-  "co.fs2" %% "fs2-io"   % "2.5.5" % "test",
+  "co.fs2" %% "fs2-core" % "3.0.2",
+  "co.fs2" %% "fs2-io"   % "3.0.2" % "test",
 )
