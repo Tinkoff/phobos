@@ -1,3 +1,3 @@
 libraryDependencies ++= Seq(
-  "tf.tofu" %% "derevo-core" % "0.12.3",
+  "tf.tofu" %% "derevo-core" % "0.12.5",
 )
