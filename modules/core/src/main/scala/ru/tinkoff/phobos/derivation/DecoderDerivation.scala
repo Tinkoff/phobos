@@ -154,7 +154,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
               defaultValue = q"$derivationPkg.CallByNeed[$elementDecoder]($ref)",
               goAssignment = q"var $tempName: $elementDecoder = $paramName.value",
               decoderConstructionParam = q"$derivationPkg.CallByNeed[$elementDecoder]($tempName)",
-              classConstructionForEnum = fq"$forName <- $tempName.result(cursor.history)",
+              classConstructionForEnum = fq"$forName <- $tempName.result(localName :: cursor.history)",
               classConstructorParam = q"$forName",
             ),
           )
@@ -164,7 +164,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
               `$xmlNameVal`  =>
                 $tempName = $tempName.decodeAsElement(cursor, $xmlNameVal, ${param.namespaceUri})
                 if ($tempName.isCompleted) {
-                  $tempName.result(cursor.history) match {
+                  $tempName.result($xmlNameVal :: cursor.history) match {
                     case $scalaPkg.Right(_) => go($decoderStateObj.DecodingSelf)
                     case $scalaPkg.Left(error) => new $decodingPkg.ElementDecoder.FailedDecoder[$classType](error)
                   }
