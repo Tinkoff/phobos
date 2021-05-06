@@ -693,11 +693,20 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                       |   <e>v</e>
                       | </bar>
                    """.stripMargin
-
+      val string4 = """<?xml version='1.0' encoding='UTF-8'?>
+                      | <bar>
+                      |   <d>another one value</d>
+                      |   <foo xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="Qux">
+                      |   </foo>
+                      |   <e>v</e>
+                      | </bar>
+                   """.stripMargin
       assert(
         barDecoder.decodeFromFoldable(toList(string1)) == Right(bar1) &&
           barDecoder.decodeFromFoldable(toList(string2)) == Right(bar2) &&
-          barDecoder.decodeFromFoldable(toList(string3)) == Right(bar3),
+          barDecoder.decodeFromFoldable(toList(string3)) == Right(bar3) &&
+          barDecoder.decodeFromFoldable(toList(string4)) ==
+          Left(DecodingError("Unknown type discriminator value: 'Qux'", List("foo", "bar"))),
       )
     }
 
@@ -930,9 +939,17 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
           |  <woof>1234</woof>
           |</dog>
           |""".stripMargin
+      val robotString =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          |<robot>
+          |  <woof>1234</woof>
+          |</robot>
+          |""".stripMargin
 
       animalXmlDecoder.decode(catString) shouldBe Right(Cat("meow"))
       animalXmlDecoder.decode(dogString) shouldBe Right(Dog(1234))
+      animalXmlDecoder.decode(robotString) shouldBe
+        Left(DecodingError("Unknown type discriminator value: 'robot'", List("robot")))
     }
 
     "override element name with discriminator in xml decoder if configured sync" in
@@ -1046,8 +1063,8 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
 
     }
 
-    "decode nested namespace sync" in decodeNestedNamespaces(pure)
-    "decode nested namespace async" in decodeNestedNamespaces(fromIterable)
+    "decode nested namespaces sync" in decodeNestedNamespaces(pure)
+    "decode nested namespaces async" in decodeNestedNamespaces(fromIterable)
 
     def decodeMultipleNamespaces(toList: String => List[Array[Byte]]): Assertion = {
       @XmlnsDef("tinkoff.ru")
@@ -1284,6 +1301,52 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
       overrideDefaultAttributeNamespaceWithNamespaceFromAnnotation(pure)
     "override default attribute namespace with namespace from annotation async" in
       overrideDefaultAttributeNamespaceWithNamespaceFromAnnotation(fromIterable)
+
+    def failWhenElementNameIsIncorrect(toList: String => List[Array[Byte]]): Assertion = {
+      @XmlnsDef("tinkoff.ru")
+      case object tcs
+
+      @ElementCodec
+      case class Foo(a: Int, b: String, c: Double)
+      @XmlCodecNs("bar", tcs)
+      case class Bar(@attr d: String, foo: Foo, @attr e: Char)
+
+      val string1 =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <ans1:wrong xmlns:ans1="tinkoff.ru" d="d value" e="e">
+          |   <foo>
+          |     <a>1</a>
+          |     <b>b value</b>
+          |     <c>3.0</c>
+          |   </foo>
+          | </ans1:wrong>
+        """.stripMargin
+      val string2 =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <ans1:bar xmlns:ans1="tcsbank.ru" d="d value" e="e">
+          |   <foo>
+          |     <a>1</a>
+          |     <b>b value</b>
+          |     <c>3.0</c>
+          |   </foo>
+          | </ans1:bar>
+        """.stripMargin
+      val decoded1 = XmlDecoder[Bar].decode(string1)
+      val decoded2 = XmlDecoder[Bar].decode(string2)
+
+      assert(
+        decoded1 == Left(DecodingError("Invalid local name. Expected 'bar', but found 'wrong'", List("wrong"))) &&
+          decoded2 == Left(
+            DecodingError("Invalid namespace. Expected 'tinkoff.ru', but found 'tcsbank.ru'", List("bar")),
+          ),
+      )
+    }
+
+    "fail when element name is incorrect sync" in
+      failWhenElementNameIsIncorrect(pure)
+    "fail when element name is incorrect async" in
+      failWhenElementNameIsIncorrect(fromIterable)
+
   }
 
   "Decoder derivation compilation" should {
