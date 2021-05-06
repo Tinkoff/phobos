@@ -63,16 +63,20 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
               if ($config.useElementNameAsDiscriminator) {
                 $scalaPkg.Right(cursor.getLocalName)
               } else {
-                val discriminatorIdx = cursor.getAttributeIndex($config.discriminatorNamespace.getOrElse(null), $config.discriminatorLocalName)
-                if (discriminatorIdx > -1) {
-                  $scalaPkg.Right(cursor.getAttributeValue(discriminatorIdx))
-                } else {
-                  $scalaPkg.Left(
-                    new $decodingPkg.ElementDecoder.FailedDecoder[$classType](
-                      cursor.error(s"No type discriminator '$${$config.discriminatorNamespace.fold("")(_ + ":")}$${$config.discriminatorLocalName}' found")
-                    )
-                  )
-                }
+                $decodingPkg.ElementDecoder.errorIfWrongName[$classType](cursor, localName, namespaceUri)
+                  .map($scalaPkg.Left.apply)
+                  .getOrElse {
+                    val discriminatorIdx = cursor.getAttributeIndex($config.discriminatorNamespace.getOrElse(null), $config.discriminatorLocalName)
+                    if (discriminatorIdx > -1) {
+                      $scalaPkg.Right(cursor.getAttributeValue(discriminatorIdx))
+                    } else {
+                      $scalaPkg.Left(
+                        new $decodingPkg.ElementDecoder.FailedDecoder[$classType](
+                          cursor.error(s"No type discriminator '$${$config.discriminatorNamespace.fold("")(_ + ":")}$${$config.discriminatorLocalName}' found")
+                        )
+                      )
+                    }
+                  }
               }
             discriminator.fold(identity, {
               case ..$alternatives
