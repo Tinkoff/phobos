@@ -10,7 +10,7 @@ lazy val commonDependencies =
     "com.fasterxml"  % "aalto-xml"     % "1.2.2",
     "org.scala-lang" % "scala-reflect" % scalaVersion.value,
     "org.scalatest" %% "scalatest"     % "3.2.8" % "test",
-    "org.scalactic" %% "scalactic"     % "3.2.7" % "test",
+    "org.scalactic" %% "scalactic"     % "3.2.8" % "test",
   )
 
 def onScalaVersion[B](`on-2-12`: => B, `on-2-13`: => B): Def.Initialize[B] =
