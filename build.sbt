@@ -1,6 +1,6 @@
 ThisBuild / name := "phobos"
 
-ThisBuild / scalaVersion := "2.13.5"
+ThisBuild / scalaVersion := "2.13.6"
 
 lazy val supportedVersions = List("2.12.13", "2.13.5")
 
