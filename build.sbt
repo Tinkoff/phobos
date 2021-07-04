@@ -2,7 +2,7 @@ ThisBuild / name := "phobos"
 
 ThisBuild / scalaVersion := "2.13.6"
 
-lazy val supportedVersions = List("2.12.13", "2.13.5")
+lazy val supportedVersions = List("2.12.14", "2.13.6")
 
 lazy val commonDependencies =
   libraryDependencies ++= List(
@@ -25,7 +25,7 @@ def configuration(id: String)(project: Project): Project =
   project.settings(
     moduleName := s"phobos-$id",
     crossScalaVersions := supportedVersions,
-    sources in (Compile, doc) := List.empty,
+    Compile / doc / sources := List.empty,
     commonDependencies,
     scalacOptions ++= List(
       "-language:experimental.macros",
@@ -68,6 +68,6 @@ lazy val phobos = project
   .in(file("."))
   .settings(
     moduleName := "phobos",
-    skip in publish := true,
+    publish / skip := true,
   )
   .aggregate(modules: _*)
