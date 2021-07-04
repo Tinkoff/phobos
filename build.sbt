@@ -7,7 +7,7 @@ lazy val supportedVersions = List("2.12.13", "2.13.5")
 lazy val commonDependencies =
   libraryDependencies ++= List(
     "org.typelevel" %% "cats-core"     % "2.6.1",
-    "com.fasterxml"  % "aalto-xml"     % "1.2.2",
+    "com.fasterxml"  % "aalto-xml"     % "1.3.0",
     "org.scala-lang" % "scala-reflect" % scalaVersion.value,
     "org.scalatest" %% "scalatest"     % "3.2.9" % "test",
     "org.scalactic" %% "scalactic"     % "3.2.9" % "test",
