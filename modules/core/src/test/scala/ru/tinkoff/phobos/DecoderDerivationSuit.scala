@@ -1,7 +1,5 @@
 package ru.tinkoff.phobos
 
-import cats.syntax.option._
-import cats.instances.list._
 import org.scalatest.Assertion
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
@@ -40,7 +38,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      | </bar>
                    """.stripMargin
 
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Bar].decodeFromIterable(toList(string))
       assert(decoded == Right(bar))
     }
 
@@ -64,7 +62,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      |   </foo>
                      | </bar>
                    """.stripMargin
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Bar].decodeFromIterable(toList(string))
       assert(decoded == Right(bar))
     }
 
@@ -92,7 +90,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
           |   <foo bar="not number">not number</foo>
           | </qux>
           """.stripMargin
-      val decoded = XmlDecoder[Qux].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Qux].decodeFromIterable(toList(string))
       assert(decoded == Right(qux))
 
     }
@@ -131,10 +129,10 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                        |   <foo/>
                        | </Wrapper>
                     """.stripMargin
-      val decoded1 = XmlDecoder[Wrapper].decodeFromFoldable(toList(string1))
-      val decoded2 = XmlDecoder[Wrapper].decodeFromFoldable(toList(string2))
-      val decoded3 = XmlDecoder[Wrapper].decodeFromFoldable(toList(string3))
-      val decoded4 = XmlDecoder[Wrapper].decodeFromFoldable(toList(string4))
+      val decoded1 = XmlDecoder[Wrapper].decodeFromIterable(toList(string1))
+      val decoded2 = XmlDecoder[Wrapper].decodeFromIterable(toList(string2))
+      val decoded3 = XmlDecoder[Wrapper].decodeFromIterable(toList(string3))
+      val decoded4 = XmlDecoder[Wrapper].decodeFromIterable(toList(string4))
       assert(decoded1 == Right(opt1) && decoded2 == Right(opt2) && decoded3 == Right(opt3) && decoded4 == Right(opt2))
     }
 
@@ -204,8 +202,8 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                       | </Wrapper2>
                     """.stripMargin
 
-      val decoded1 = XmlDecoder[Wrapper1].decodeFromFoldable(toList(string1))
-      val decoded2 = XmlDecoder[Wrapper2].decodeFromFoldable(toList(string2))
+      val decoded1 = XmlDecoder[Wrapper1].decodeFromIterable(toList(string1))
+      val decoded2 = XmlDecoder[Wrapper2].decodeFromIterable(toList(string2))
       assert(decoded1 == Right(wrapper1) && decoded2 == Right(wrapper2))
     }
 
@@ -219,9 +217,9 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
       case class Foos(foo: List[Foo])
       val bar1 = Foos(
         List(
-          Foo(1, "b value".some, 3.0.some),
-          Foo(2, None, 4.0.some),
-          Foo(3, "It's three".some, None),
+          Foo(1, Some("b value"), Some(3.0)),
+          Foo(2, None, Some(4.0)),
+          Foo(3, Some("It's three"), None),
           Foo(4, None, None),
         ),
       )
@@ -251,8 +249,8 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
           | <foos/>
         """.stripMargin
 
-      val decoded1 = XmlDecoder[Foos].decodeFromFoldable(toList(string1))
-      val decoded2 = XmlDecoder[Foos].decodeFromFoldable(toList(string2))
+      val decoded1 = XmlDecoder[Foos].decodeFromIterable(toList(string1))
+      val decoded2 = XmlDecoder[Foos].decodeFromIterable(toList(string2))
       assert(decoded1 == Right(bar1) && decoded2 == Right(bar2))
     }
 
@@ -269,9 +267,9 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
 
       val bar1 = FooBars(
         List(
-          Foo(1, "b value".some, 3.0.some),
-          Foo(2, None, 4.0.some),
-          Foo(3, "It's three".some, None),
+          Foo(1, Some("b value"), Some(3.0)),
+          Foo(2, None, Some(4.0)),
+          Foo(3, Some("It's three"), None),
           Foo(4, None, None),
         ),
         List(Bar("str", 5), Bar("str2", 6)),
@@ -310,8 +308,8 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
           | <foobars/>
         """.stripMargin
 
-      val decoded1 = XmlDecoder[FooBars].decodeFromFoldable(toList(string1))
-      val decoded2 = XmlDecoder[FooBars].decodeFromFoldable(toList(string2))
+      val decoded1 = XmlDecoder[FooBars].decodeFromIterable(toList(string1))
+      val decoded2 = XmlDecoder[FooBars].decodeFromIterable(toList(string2))
       assert(decoded1 == Right(bar1) && decoded2 == Right(bar2))
     }
 
@@ -327,7 +325,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      | <foo>Zm9vYmFy</foo>
                     """.stripMargin
 
-      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Foo].decodeFromIterable(toList(string))
       assert(decoded.map(d => java.util.Arrays.equals(d.content, foo.content)) == Right(true))
     }
 
@@ -349,7 +347,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      | </bar>
                    """.stripMargin
 
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Bar].decodeFromIterable(toList(string))
       assert(decoded == Right(bar))
     }
 
@@ -379,7 +377,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      |</foo>
                    """.stripMargin
 
-      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Foo].decodeFromIterable(toList(string))
       assert(decoded == Right(foo))
     }
 
@@ -409,7 +407,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      |</foo>
                    """.stripMargin
 
-      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Foo].decodeFromIterable(toList(string))
       assert(decoded == Right(foo))
 
     }
@@ -426,7 +424,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      |<foo>Sending <count>1</count> item to <buz>Buzz</buz></foo>
                    """.stripMargin
 
-      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Foo].decodeFromIterable(toList(string))
       assert(decoded == Right(foo))
 
     }
@@ -446,7 +444,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      |<document><element>text1<element>text2</element></element></document>
                    """.stripMargin
 
-      val decoded = XmlDecoder[Document].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Document].decodeFromIterable(toList(string))
 
       assert(
         decoded == Right(Document(Element1(Element2("text2"), "text1"))),
@@ -466,7 +464,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      |  <bar>Esca"'&lt;>&amp;pe</bar>
                      |</foo>
                    """.stripMargin
-      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Foo].decodeFromIterable(toList(string))
       assert(decoded == Right(foo))
     }
 
@@ -484,7 +482,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      |  <foooo>somefoo</foooo>
                      |</foo>
                    """.stripMargin
-      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Foo].decodeFromIterable(toList(string))
       assert(decoded == Right(foo))
     }
 
@@ -506,7 +504,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      |  </theBar>
                      |</foo>
                    """.stripMargin
-      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Foo].decodeFromIterable(toList(string))
       assert(decoded == Right(foo))
     }
 
@@ -523,7 +521,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      |  <bar>Esca"'&lt;>&amp;pe</bar>
                      |</foo>
                    """.stripMargin
-      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Foo].decodeFromIterable(toList(string))
       assert(decoded == Right(foo))
     }
 
@@ -545,7 +543,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      | </bar>
                    """.stripMargin
 
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Bar].decodeFromIterable(toList(string))
       assert(decoded == Right(bar))
     }
 
@@ -568,7 +566,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      | </Bar>
                    """.stripMargin
 
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Bar].decodeFromIterable(toList(string))
       assert(decoded == Right(bar))
     }
 
@@ -591,7 +589,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      | </bar>
                    """.stripMargin
 
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Bar].decodeFromIterable(toList(string))
       assert(decoded == Right(bar))
     }
 
@@ -614,7 +612,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      | </bar>
                    """.stripMargin
 
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Bar].decodeFromIterable(toList(string))
       assert(decoded == Right(bar))
     }
 
@@ -647,7 +645,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      |</foo>
                    """.stripMargin
 
-      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Foo].decodeFromIterable(toList(string))
       assert(decoded == Right(foo))
     }
 
@@ -702,10 +700,10 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                       | </bar>
                    """.stripMargin
       assert(
-        barDecoder.decodeFromFoldable(toList(string1)) == Right(bar1) &&
-          barDecoder.decodeFromFoldable(toList(string2)) == Right(bar2) &&
-          barDecoder.decodeFromFoldable(toList(string3)) == Right(bar3) &&
-          barDecoder.decodeFromFoldable(toList(string4)) ==
+        barDecoder.decodeFromIterable(toList(string1)) == Right(bar1) &&
+          barDecoder.decodeFromIterable(toList(string2)) == Right(bar2) &&
+          barDecoder.decodeFromIterable(toList(string3)) == Right(bar3) &&
+          barDecoder.decodeFromIterable(toList(string4)) ==
           Left(DecodingError("Unknown type discriminator value: 'Qux'", List("foo", "bar"))),
       )
     }
@@ -752,9 +750,9 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                     """.stripMargin
 
       assert(
-        quxDecoder.decodeFromFoldable(toList(string1)) == Right(qux1) &&
-          quxDecoder.decodeFromFoldable(toList(string2)) == Right(qux2) &&
-          quxDecoder.decodeFromFoldable(toList(string3)) == Right(qux3),
+        quxDecoder.decodeFromIterable(toList(string1)) == Right(qux1) &&
+          quxDecoder.decodeFromIterable(toList(string2)) == Right(qux2) &&
+          quxDecoder.decodeFromIterable(toList(string3)) == Right(qux3),
       )
 
       @ElementCodec
@@ -795,9 +793,9 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                     """.stripMargin
 
       assert(
-        quuxDecoder.decodeFromFoldable(toList(string4)) == Right(quux1) &&
-          quuxDecoder.decodeFromFoldable(toList(string5)) == Right(quux2) &&
-          quuxDecoder.decodeFromFoldable(toList(string6)) == Right(quux3),
+        quuxDecoder.decodeFromIterable(toList(string4)) == Right(quux1) &&
+          quuxDecoder.decodeFromIterable(toList(string5)) == Right(quux2) &&
+          quuxDecoder.decodeFromIterable(toList(string6)) == Right(quux3),
       )
     }
 
@@ -827,8 +825,8 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                     """.stripMargin
 
       assert(
-        animalDecoder.decodeFromFoldable(toList(string1)) == Right(wolf) &&
-          animalDecoder.decodeFromFoldable(toList(string2)) == Right(lion),
+        animalDecoder.decodeFromIterable(toList(string1)) == Right(wolf) &&
+          animalDecoder.decodeFromIterable(toList(string2)) == Right(lion),
       )
     }
 
@@ -858,8 +856,8 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                     """.stripMargin
 
       assert(
-        insectDecoder.decodeFromFoldable(toList(string1)) == Right(hornet) &&
-          insectDecoder.decodeFromFoldable(toList(string2)) == Right(cockroach),
+        insectDecoder.decodeFromIterable(toList(string1)) == Right(hornet) &&
+          insectDecoder.decodeFromIterable(toList(string2)) == Right(cockroach),
       )
     }
 
@@ -889,8 +887,8 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                       """.stripMargin
 
       assert(
-        fishDecoder.decodeFromFoldable(toList(string1)) == Right(clownFish) &&
-          fishDecoder.decodeFromFoldable(toList(string2)) == Right(whiteShark),
+        fishDecoder.decodeFromIterable(toList(string1)) == Right(clownFish) &&
+          fishDecoder.decodeFromIterable(toList(string2)) == Right(whiteShark),
       )
     }
     "not transform custom discriminator values sync" in
@@ -918,7 +916,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                       | </zoo>
                     """.stripMargin
       val zoo    = Zoo(List(Cow(12.432), Cat("meow"), Dog(1234), Cat("nya")))
-      XmlDecoder[Zoo].decodeFromFoldable(toList(string)) shouldBe Right(zoo)
+      XmlDecoder[Zoo].decodeFromIterable(toList(string)) shouldBe Right(zoo)
     }
 
     "use element name as discriminator if configured sync" in useElementNameAsDiscriminatorIfConfigured(pure)
@@ -990,7 +988,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      | </ans1:bar>
                    """.stripMargin
 
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Bar].decodeFromIterable(toList(string))
       assert(decoded == Right(bar))
     }
 
@@ -1024,7 +1022,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      | </ans1:bar>
                    """.stripMargin
 
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Bar].decodeFromIterable(toList(string))
       assert(decoded == Right(bar))
 
     }
@@ -1058,7 +1056,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      |   </ans1:foo>
                      | </bar>
                    """.stripMargin
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Bar].decodeFromIterable(toList(string))
       assert(decoded == Right(bar))
 
     }
@@ -1095,7 +1093,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      | </ans1:bar>
                    """.stripMargin
 
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Bar].decodeFromIterable(toList(string))
       assert(decoded == Right(bar))
 
     }
@@ -1131,7 +1129,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      | </ans1:Bar>
                      """.stripMargin
 
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Bar].decodeFromIterable(toList(string))
       assert(decoded == Right(bar))
     }
 
@@ -1166,7 +1164,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
                      | </ans1:bar>
                      """.stripMargin
 
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Bar].decodeFromIterable(toList(string))
       assert(decoded == Right(bar))
     }
 
@@ -1195,7 +1193,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
           |  <ans1:e>e</ans1:e>
           | </ans1:bar>
         """.stripMargin
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Bar].decodeFromIterable(toList(string))
 
       assert(decoded == Right(bar))
     }
@@ -1229,7 +1227,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
           | </ans1:bar>
         """.stripMargin
 
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Bar].decodeFromIterable(toList(string))
 
       assert(decoded == Right(bar))
     }
@@ -1260,7 +1258,7 @@ class DecoderDerivationSuit extends AnyWordSpec with Matchers {
         |   </foo>
         | </ans1:bar>
       """.stripMargin
-      val decoded = XmlDecoder[Bar].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Bar].decodeFromIterable(toList(string))
 
       assert(decoded == Right(bar))
     }

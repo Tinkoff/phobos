@@ -3,8 +3,6 @@ package ru.tinkoff.phobos.decoding
 import java.time.{LocalDate, LocalDateTime, LocalTime, ZonedDateTime}
 import java.util.{Base64, UUID}
 
-import cats.Functor
-
 /** Warning! This is an internal API which may change in future.
   * Do not implement or use this trait directly unless you know what you are doing.
   *
@@ -35,10 +33,6 @@ trait AttributeDecoder[A] { self =>
 }
 
 object AttributeDecoder extends AttributeLiteralInstances {
-  implicit val attributeDecoderFunctor: Functor[AttributeDecoder] =
-    new Functor[AttributeDecoder] {
-      def map[A, B](fa: AttributeDecoder[A])(f: A => B): AttributeDecoder[B] = fa.map(f)
-    }
 
   /** Instances
     */

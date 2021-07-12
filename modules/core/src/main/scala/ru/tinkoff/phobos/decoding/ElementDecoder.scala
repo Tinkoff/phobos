@@ -3,8 +3,6 @@ package ru.tinkoff.phobos.decoding
 import java.time.{LocalDate, LocalDateTime, LocalTime, ZonedDateTime}
 import java.util.{Base64, UUID}
 
-import cats.Functor
-import cats.data.{Chain, NonEmptyChain, NonEmptyList, NonEmptyVector}
 import com.fasterxml.aalto.AsyncXMLStreamReader
 import javax.xml.stream.XMLStreamConstants
 import ru.tinkoff.phobos.decoding.ElementDecoder.{EMappedDecoder, MappedDecoder}
@@ -85,11 +83,6 @@ object ElementDecoder extends ElementLiteralInstances {
 
     def isCompleted: Boolean = fa.isCompleted
   }
-
-  implicit val decoderFunctor: Functor[ElementDecoder] =
-    new Functor[ElementDecoder] {
-      def map[A, B](fa: ElementDecoder[A])(f: A => B): ElementDecoder[B] = fa.map(f)
-    }
 
   final class ConstDecoder[A](a: A) extends ElementDecoder[A] {
     def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String]): ElementDecoder[A] =
@@ -297,30 +290,6 @@ object ElementDecoder extends ElementLiteralInstances {
 
   implicit def vectorDecoder[A](implicit decoder: ElementDecoder[A]): ElementDecoder[Vector[A]] =
     listDecoder[A].map(_.toVector)
-
-  implicit def chainDecoder[A](implicit decoder: ElementDecoder[A]): ElementDecoder[Chain[A]] =
-    listDecoder[A].map(Chain.fromSeq)
-
-  implicit def nonEmptyListDecoder[A](implicit decoder: ElementDecoder[A]): ElementDecoder[NonEmptyList[A]] =
-    listDecoder[A].emap((history, list) =>
-      NonEmptyList
-        .fromList(list)
-        .fold[Either[DecodingError, NonEmptyList[A]]](Left(DecodingError("List is empty", history)))(Right.apply),
-    )
-
-  implicit def nonEmptyVectorDecoder[A](implicit decoder: ElementDecoder[A]): ElementDecoder[NonEmptyVector[A]] =
-    vectorDecoder[A].emap((history, vector) =>
-      NonEmptyVector
-        .fromVector(vector)
-        .fold[Either[DecodingError, NonEmptyVector[A]]](Left(DecodingError("Vector is empty", history)))(Right.apply),
-    )
-
-  implicit def nonEmptyChainDecoder[A](implicit decoder: ElementDecoder[A]): ElementDecoder[NonEmptyChain[A]] =
-    chainDecoder[A].emap((history, chain) =>
-      NonEmptyChain
-        .fromChain(chain)
-        .fold[Either[DecodingError, NonEmptyChain[A]]](Left(DecodingError("Chain is empty", history)))(Right.apply),
-    )
 
   implicit val localDateTimeDecoder: ElementDecoder[LocalDateTime] =
     stringDecoder.emap(wrapException(LocalDateTime.parse))

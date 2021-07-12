@@ -3,9 +3,6 @@ package ru.tinkoff.phobos.encoding
 import java.time.{LocalDate, LocalDateTime, LocalTime, ZonedDateTime}
 import java.util.{Base64, UUID}
 
-import cats.{Contravariant, Foldable}
-import cats.data.{Chain, NonEmptyChain, NonEmptyList, NonEmptySet, NonEmptyVector}
-
 /** Warning! This is an internal API which may change in future.
   * Do not implement or use this trait directly unless you know what you are doing.
   *
@@ -31,10 +28,6 @@ trait ElementEncoder[A] { self =>
 }
 
 object ElementEncoder extends ElementLiteralInstances {
-  implicit val encoderContravariant: Contravariant[ElementEncoder] =
-    new Contravariant[ElementEncoder] {
-      def contramap[A, B](fa: ElementEncoder[A])(f: B => A): ElementEncoder[B] = fa.contramap(f)
-    }
 
   /** Instances
     */
@@ -87,12 +80,6 @@ object ElementEncoder extends ElementLiteralInstances {
 
   implicit val noneEncoder: ElementEncoder[None.type] = unitEncoder.contramap(_ => ())
 
-  implicit def foldableEncoder[F[_]: Foldable, A](implicit encoder: ElementEncoder[A]): ElementEncoder[F[A]] =
-    new ElementEncoder[F[A]] {
-      def encodeAsElement(as: F[A], sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String]): Unit =
-        Foldable[F].foldLeft(as, ())((_, a) => encoder.encodeAsElement(a, sw, localName, namespaceUri))
-    }
-
   implicit def iteratorEncoder[A](implicit encoder: ElementEncoder[A]): ElementEncoder[Iterator[A]] =
     new ElementEncoder[Iterator[A]] {
       def encodeAsElement(
@@ -115,21 +102,6 @@ object ElementEncoder extends ElementLiteralInstances {
 
   implicit def vectorEncoder[A](implicit encoder: ElementEncoder[A]): ElementEncoder[Vector[A]] =
     iteratorEncoder[A].contramap(_.iterator)
-
-  implicit def chainEncoder[A](implicit encoder: ElementEncoder[A]): ElementEncoder[Chain[A]] =
-    iteratorEncoder[A].contramap(_.iterator)
-
-  implicit def nonEmptyListEncoder[A](implicit encoder: ElementEncoder[A]): ElementEncoder[NonEmptyList[A]] =
-    listEncoder[A].contramap(_.toList)
-
-  implicit def nonEmptyVectorEncoder[A](implicit encoder: ElementEncoder[A]): ElementEncoder[NonEmptyVector[A]] =
-    vectorEncoder[A].contramap(_.toVector)
-
-  implicit def nonEmptySetEncoder[A](implicit encoder: ElementEncoder[A]): ElementEncoder[NonEmptySet[A]] =
-    setEncoder[A].contramap(_.toSortedSet)
-
-  implicit def nonEmptyChainEncoder[A](implicit encoder: ElementEncoder[A]): ElementEncoder[NonEmptyChain[A]] =
-    chainEncoder[A].contramap(_.toChain)
 
   implicit val localDateTimeEncoder: ElementEncoder[LocalDateTime] =
     stringEncoder.contramap(_.toString)

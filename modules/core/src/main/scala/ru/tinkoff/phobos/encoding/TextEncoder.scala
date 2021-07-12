@@ -3,8 +3,6 @@ package ru.tinkoff.phobos.encoding
 import java.time.{LocalDate, LocalDateTime, LocalTime, ZonedDateTime}
 import java.util.{Base64, UUID}
 
-import cats.Contravariant
-
 /** Use XmlEncoder for encoding XML documents.
   *
   * TextEncoder instance must exist for every type encoded to text inside XML element.
@@ -23,10 +21,6 @@ trait TextEncoder[A] { self =>
 }
 
 object TextEncoder extends TextLiteralInstances {
-  implicit val encoderContravariant: Contravariant[TextEncoder] =
-    new Contravariant[TextEncoder] {
-      def contramap[A, B](fa: TextEncoder[A])(f: B => A): TextEncoder[B] = fa.contramap(f)
-    }
 
   /** Instances
     */

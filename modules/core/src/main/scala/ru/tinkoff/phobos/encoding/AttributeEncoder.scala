@@ -3,8 +3,6 @@ package ru.tinkoff.phobos.encoding
 import java.time.{LocalDate, LocalDateTime, LocalTime, ZonedDateTime}
 import java.util.{Base64, UUID}
 
-import cats.Contravariant
-
 /** Warning! This is an internal API which may change in future.
   * Do not implement or use this trait directly unless you know what you are doing.
   *
@@ -26,10 +24,6 @@ trait AttributeEncoder[A] { self =>
 }
 
 object AttributeEncoder extends AttributeLiteralInstances {
-  implicit val encoderContravariant: Contravariant[AttributeEncoder] =
-    new Contravariant[AttributeEncoder] {
-      def contramap[A, B](fa: AttributeEncoder[A])(f: B => A): AttributeEncoder[B] = fa.contramap(f)
-    }
 
   /** Instances
     */

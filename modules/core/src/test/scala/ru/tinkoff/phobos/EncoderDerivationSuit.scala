@@ -1,6 +1,5 @@
 package ru.tinkoff.phobos
 
-import cats.syntax.option._
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
 import ru.tinkoff.phobos.SealedClasses.{Animal, Cat, Cow, Dog}
@@ -123,9 +122,9 @@ class EncoderDerivationSuit extends AnyWordSpec with Matchers {
       case class Foos(foo: List[Foo])
       val bar1 = Foos(
         List(
-          Foo(1, "b value".some, 3.0.some),
-          Foo(2, None, 4.0.some),
-          Foo(3, "It's three".some, None),
+          Foo(1, Some("b value"), Some(3.0)),
+          Foo(2, None, Some(4.0)),
+          Foo(3, Some("It's three"), None),
           Foo(4, None, None),
         ),
       )
