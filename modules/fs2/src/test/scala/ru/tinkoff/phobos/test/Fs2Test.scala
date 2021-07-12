@@ -7,9 +7,12 @@ import ru.tinkoff.phobos.syntax.text
 import ru.tinkoff.phobos.fs2._
 import fs2.Stream
 import cats.effect.IO
+import cats.effect.unsafe.{IORuntime, IORuntimeConfig, Scheduler}
 
 class Fs2Test extends AsyncWordSpec {
-
+  val (scheduler, shutdown) = Scheduler.createDefaultScheduler()
+  implicit val ioRuntime: IORuntime =
+    IORuntime(executionContext, executionContext, scheduler, shutdown, IORuntimeConfig.apply())
   "Fs2 decoder" should {
     "decode case classes correctly" in {
       @ElementCodec
@@ -27,7 +30,7 @@ class Fs2Test extends AsyncWordSpec {
                   |""".stripMargin
 
       val foo    = Foo(1234, Some(Bar(1)), List(Bar(2), Bar(3)))
-      val stream = Stream.fromIterator[IO](xml.iterator.map(x => Array(x.toByte)))
+      val stream = Stream.iterable[IO, Array[Byte]](xml.map(x => Array(x.toByte)))
       XmlDecoder[Foo]
         .decodeFromStream(stream)
         .map(result => assert(result == foo))
