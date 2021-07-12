@@ -28,7 +28,7 @@ import scala.collection.mutable.ListBuffer
   */
 trait ElementDecoder[A] { self =>
   def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String]): ElementDecoder[A]
-  def result(history: List[String]): Either[DecodingError, A]
+  def result(history: => List[String]): Either[DecodingError, A]
   def isCompleted: Boolean
 
   def map[B](f: A => B): ElementDecoder[B] = new MappedDecoder(self, f)
@@ -55,11 +55,17 @@ object ElementDecoder extends ElementLiteralInstances {
     nilIdx > -1 && c.getAttributeValue(nilIdx) == "true"
   }
 
+  def decodingNotCompleteError(history: List[String]): DecodingError =
+    history match {
+      case element :: others => DecodingError(s"Element '$element' is missing or invalid", others)
+      case Nil               => DecodingError("Root element is missing or invalid", Nil)
+    }
+
   final class MappedDecoder[A, B](fa: ElementDecoder[A], f: A => B) extends ElementDecoder[B] {
     def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String]): ElementDecoder[B] =
       new MappedDecoder(fa.decodeAsElement(c, localName, namespaceUri), f)
 
-    def result(history: List[String]): Either[DecodingError, B] = fa.result(history).map(f)
+    def result(history: => List[String]): Either[DecodingError, B] = fa.result(history).map(f)
 
     val isCompleted: Boolean = fa.isCompleted
 
@@ -71,7 +77,7 @@ object ElementDecoder extends ElementLiteralInstances {
     def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String]): ElementDecoder[B] =
       new EMappedDecoder(fa.decodeAsElement(c, localName, namespaceUri), f)
 
-    def result(history: List[String]): Either[DecodingError, B] =
+    def result(history: => List[String]): Either[DecodingError, B] =
       fa.result(history) match {
         case Right(a)    => f(history, a)
         case Left(error) => Left(error)
@@ -89,7 +95,7 @@ object ElementDecoder extends ElementLiteralInstances {
     def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String]): ElementDecoder[A] =
       new FailedDecoder[A](c.error("Element is already decoded (Most likely it occurred more than once)"))
 
-    def result(history: List[String]): Either[DecodingError, A] = Right(a)
+    def result(history: => List[String]): Either[DecodingError, A] = Right(a)
 
     val isCompleted: Boolean = true
 
@@ -99,7 +105,7 @@ object ElementDecoder extends ElementLiteralInstances {
   final class FailedDecoder[A](decodingError: DecodingError) extends ElementDecoder[A] {
     def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String]): ElementDecoder[A] = this
 
-    def result(history: List[String]): Either[DecodingError, A] = Left(decodingError)
+    def result(history: => List[String]): Either[DecodingError, A] = Left(decodingError)
 
     val isCompleted: Boolean = true
 
@@ -141,8 +147,8 @@ object ElementDecoder extends ElementLiteralInstances {
       }
     }
 
-    def result(history: List[String]): Either[DecodingError, String] =
-      Left(DecodingError("Decoding not complete", history))
+    def result(history: => List[String]): Either[DecodingError, String] =
+      Left(decodingNotCompleteError(history))
 
     val isCompleted: Boolean = false
 
@@ -214,7 +220,7 @@ object ElementDecoder extends ElementLiteralInstances {
         }
       }
 
-      def result(history: List[String]): Either[DecodingError, Option[A]] = Right(None)
+      def result(history: => List[String]): Either[DecodingError, Option[A]] = Right(None)
 
       val isCompleted: Boolean = true
     }
@@ -268,11 +274,11 @@ object ElementDecoder extends ElementLiteralInstances {
       }
     }
 
-    def result(history: List[String]): Either[DecodingError, List[A]] =
+    def result(history: => List[String]): Either[DecodingError, List[A]] =
       if (currentItemDecoderOpt.isEmpty) {
         Right(list)
       } else {
-        Left(DecodingError("Decoding not complete", history))
+        Left(decodingNotCompleteError(history))
       }
 
     def isCompleted: Boolean = currentItemDecoderOpt.isEmpty
