@@ -1,7 +1,6 @@
 package ru.tinkoff.phobos.enumeratum
 
 import enumeratum._
-import cats.instances.list._
 import org.scalatest.Assertion
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
@@ -133,10 +132,10 @@ class EnumeratumSuit extends AnyWordSpec with Matchers {
         """<?xml version='1.0' encoding='UTF-8'?>
           | <baz f="Foo1">Foo2</baz>
         """.stripMargin
-      val decoded1 = XmlDecoder[Bar].decodeFromFoldable(toList(string1))
-      val decoded2 = XmlDecoder[Bar].decodeFromFoldable(toList(string2))
-      val decoded3 = XmlDecoder[Bar].decodeFromFoldable(toList(string3))
-      val decoded4 = XmlDecoder[Baz].decodeFromFoldable(toList(string4))
+      val decoded1 = XmlDecoder[Bar].decodeFromIterable(toList(string1))
+      val decoded2 = XmlDecoder[Bar].decodeFromIterable(toList(string2))
+      val decoded3 = XmlDecoder[Bar].decodeFromIterable(toList(string3))
+      val decoded4 = XmlDecoder[Baz].decodeFromIterable(toList(string4))
       assert(decoded1 == Right(bar1) && decoded2 == Right(bar2) && decoded3 == Right(bar3) && decoded4 == Right(baz))
     }
 

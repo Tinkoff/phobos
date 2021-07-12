@@ -24,7 +24,7 @@ class LiteralDecodingSuit extends AnyWordSpec with Matchers {
         """<?xml version='1.0' encoding='UTF-8'?>
           | <foo status="Ok"/>
         """.stripMargin
-      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Foo].decodeFromIterable(toList(string))
       assert(decoded == Right(foo))
     }
 
@@ -39,7 +39,7 @@ class LiteralDecodingSuit extends AnyWordSpec with Matchers {
         """<?xml version='1.0' encoding='UTF-8'?>
           | <foo status="Error"/>
         """.stripMargin
-      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Foo].decodeFromIterable(toList(string))
       decoded should
         matchPattern { case Left(DecodingError("Failed to decode literal type. Expected: Ok, actual: Error", _)) => }
     }
@@ -58,7 +58,7 @@ class LiteralDecodingSuit extends AnyWordSpec with Matchers {
         """<?xml version='1.0' encoding='UTF-8'?>
           | <foo><status>Ok</status></foo>
         """.stripMargin
-      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Foo].decodeFromIterable(toList(string))
       assert(decoded == Right(foo))
     }
 
@@ -73,7 +73,7 @@ class LiteralDecodingSuit extends AnyWordSpec with Matchers {
         """<?xml version='1.0' encoding='UTF-8'?>
           | <foo><status>Error</status></foo>
         """.stripMargin
-      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Foo].decodeFromIterable(toList(string))
       decoded should
         matchPattern { case Left(DecodingError("Failed to decode literal type. Expected: Ok, actual: Error", _)) => }
     }
@@ -92,7 +92,7 @@ class LiteralDecodingSuit extends AnyWordSpec with Matchers {
         """<?xml version='1.0' encoding='UTF-8'?>
           | <foo>Ok</foo>
         """.stripMargin
-      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Foo].decodeFromIterable(toList(string))
       assert(decoded == Right(foo))
     }
 
@@ -107,7 +107,7 @@ class LiteralDecodingSuit extends AnyWordSpec with Matchers {
         """<?xml version='1.0' encoding='UTF-8'?>
           | <foo>Error</foo>
         """.stripMargin
-      val decoded = XmlDecoder[Foo].decodeFromFoldable(toList(string))
+      val decoded = XmlDecoder[Foo].decodeFromIterable(toList(string))
       decoded should
         matchPattern { case Left(DecodingError("Failed to decode literal type. Expected: Ok, actual: Error", _)) => }
     }

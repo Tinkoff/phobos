@@ -2,7 +2,6 @@ package ru.tinkoff.phobos.refined.decoding
 
 import eu.timepit.refined.api.{RefType, Validate}
 import ru.tinkoff.phobos.decoding._
-import cats.syntax.either._
 import scala.reflect.runtime.universe.TypeTag
 
 trait DecodingInstances {
@@ -12,7 +11,10 @@ trait DecodingInstances {
       validate: Validate[T, P],
   ): TextDecoder[F[T, P]] = {
     underlying.emap { (history, raw) =>
-      refType.refine[P](raw).leftMap(mkDecodingError[T, P](raw, _, history))
+      refType.refine[P](raw) match {
+        case Left(value)  => Left(mkDecodingError[T, P](raw, value, history))
+        case Right(value) => Right(value)
+      }
     }
   }
 
@@ -22,7 +24,10 @@ trait DecodingInstances {
       validate: Validate[T, P],
   ): ElementDecoder[F[T, P]] = {
     underlying.emap { (history, raw) =>
-      refType.refine[P](raw).leftMap(mkDecodingError[T, P](raw, _, history))
+      refType.refine[P](raw) match {
+        case Left(value)  => Left(mkDecodingError[T, P](raw, value, history))
+        case Right(value) => Right(value)
+      }
     }
   }
 

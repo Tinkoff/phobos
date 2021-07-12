@@ -1,8 +1,6 @@
 package ru.tinkoff.phobos.decoding
 
-import cats.Foldable
 import javax.xml.stream.XMLStreamConstants
-import cats.syntax.option._
 import com.fasterxml.aalto.{AsyncByteArrayFeeder, WFCException}
 import com.fasterxml.aalto.async.{AsyncByteArrayScanner, AsyncStreamReaderImpl}
 import com.fasterxml.aalto.stax.InputFactoryImpl
@@ -19,7 +17,7 @@ import ru.tinkoff.phobos.decoding.XmlDecoder.createStreamReader
   *
   * This typeclass wraps ElementDecoder[A] and provides element name and Cursor.
   */
-trait XmlDecoder[A] {
+trait XmlDecoder[A] extends XmlDecoderIterable[A] {
   val localname: String
   val namespaceuri: Option[String]
   val elementdecoder: ElementDecoder[A]
@@ -46,25 +44,6 @@ trait XmlDecoder[A] {
     }
   }
 
-  def decodeFromFoldable[F[_]: Foldable](f: F[Array[Byte]], charset: String = "UTF-8"): Either[DecodingError, A] = {
-    val sr: XmlStreamReader = createStreamReader(charset)
-    val cursor              = new Cursor(sr)
-
-    val a = Foldable[F].foldLeft(f, elementdecoder) { (decoder: ElementDecoder[A], bytes: Array[Byte]) =>
-      sr.getInputFeeder.feedInput(bytes, 0, bytes.length)
-      do {
-        cursor.next()
-      } while (cursor.getEventType == XMLStreamConstants.DTD || cursor.getEventType == XMLStreamConstants.START_DOCUMENT)
-
-      if (decoder.result(cursor.history).isRight) {
-        decoder
-      } else {
-        decoder.decodeAsElement(cursor, localname, namespaceuri)
-      }
-    }
-    sr.getInputFeeder.endOfInput()
-    a.result(cursor.history)
-  }
 }
 
 object XmlDecoder {
@@ -95,10 +74,10 @@ object XmlDecoder {
       implicit elementDecoder: ElementDecoder[A],
       namespace: Namespace[NS],
   ): XmlDecoder[A] =
-    fromElementDecoder(localName, namespace.getNamespace.some)
+    fromElementDecoder(localName, Some(namespace.getNamespace))
 
   def fromElementDecoderNs[A, NS](
       localName: String,
   )(implicit elementDecoder: ElementDecoder[A], namespace: Namespace[NS]): XmlDecoder[A] =
-    fromElementDecoder(localName, namespace.getNamespace.some)
+    fromElementDecoder(localName, Some(namespace.getNamespace))
 }

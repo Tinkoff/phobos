@@ -3,8 +3,6 @@ package ru.tinkoff.phobos.decoding
 import java.time.{LocalDate, LocalDateTime, LocalTime, ZonedDateTime}
 import java.util.{Base64, UUID}
 
-import cats.Functor
-import com.fasterxml.aalto.AsyncXMLStreamReader
 import javax.xml.stream.XMLStreamConstants
 import ru.tinkoff.phobos.decoding.TextDecoder.{EMappedDecoder, MappedDecoder}
 
@@ -57,11 +55,6 @@ object TextDecoder extends TextLiteralInstances {
 
     def isCompleted: Boolean = fa.isCompleted
   }
-
-  implicit val decoderFunctor: Functor[TextDecoder] =
-    new Functor[TextDecoder] {
-      def map[A, B](fa: TextDecoder[A])(f: A => B): TextDecoder[B] = fa.map(f)
-    }
 
   final class ConstDecoder[A](a: A) extends TextDecoder[A] {
     def decodeAsText(c: Cursor): TextDecoder[A] = this

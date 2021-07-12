@@ -2,7 +2,6 @@ package ru.tinkoff.phobos.encoding
 
 import java.io.ByteArrayOutputStream
 
-import cats.syntax.option._
 import com.fasterxml.aalto.stax.OutputFactoryImpl
 import org.codehaus.stax2.XMLStreamWriter2
 import ru.tinkoff.phobos.Namespace
@@ -87,12 +86,12 @@ object XmlEncoder {
       implicit elementEncoder: ElementEncoder[A],
       namespace: Namespace[NS],
   ): XmlEncoder[A] =
-    fromElementEncoder(localName, namespace.getNamespace.some)
+    fromElementEncoder(localName, Some(namespace.getNamespace))
 
   def fromElementEncoderNs[A, NS](
       localName: String,
   )(implicit elementEncoder: ElementEncoder[A], namespace: Namespace[NS]): XmlEncoder[A] =
-    fromElementEncoder(localName, namespace.getNamespace.some)
+    fromElementEncoder(localName, Some(namespace.getNamespace))
 
   final case class XmlEncoderConfig(
       encoding: String,

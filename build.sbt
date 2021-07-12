@@ -6,7 +6,6 @@ lazy val supportedVersions = List("2.12.14", "2.13.6")
 
 lazy val commonDependencies =
   libraryDependencies ++= List(
-    "org.typelevel" %% "cats-core"     % "2.6.1",
     "com.fasterxml"  % "aalto-xml"     % "1.3.0",
     "org.scala-lang" % "scala-reflect" % scalaVersion.value,
     "org.scalatest" %% "scalatest"     % "3.2.9" % "test",
@@ -52,6 +51,7 @@ def phobosModule(id: String) =
     .configure(configuration(id))
 
 lazy val core          = phobosModule("core")
+lazy val cats          = phobosModule("cats") dependsOn (core        % "compile->compile;test->test")
 lazy val derevo        = phobosModule("derevo") dependsOn (core      % "compile->compile;test->test")
 lazy val enumeratum    = phobosModule("enumeratum") dependsOn (core  % "compile->compile;test->test")
 lazy val `akka-http`   = phobosModule("akka-http") dependsOn (core   % "compile->compile;test->test")
