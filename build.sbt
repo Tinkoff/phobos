@@ -51,6 +51,7 @@ def phobosModule(id: String) =
     .configure(configuration(id))
 
 lazy val core          = phobosModule("core")
+lazy val cats          = phobosModule("cats") dependsOn (core        % "compile->compile;test->test")
 lazy val derevo        = phobosModule("derevo") dependsOn (core      % "compile->compile;test->test")
 lazy val enumeratum    = phobosModule("enumeratum") dependsOn (core  % "compile->compile;test->test")
 lazy val `akka-http`   = phobosModule("akka-http") dependsOn (core   % "compile->compile;test->test")
