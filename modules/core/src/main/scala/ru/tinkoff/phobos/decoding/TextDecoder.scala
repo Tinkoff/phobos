@@ -22,7 +22,7 @@ import scala.annotation.tailrec
   */
 trait TextDecoder[A] { self =>
   def decodeAsText(c: Cursor): TextDecoder[A]
-  def result(history: List[String]): Either[DecodingError, A]
+  def result(history: => List[String]): Either[DecodingError, A]
   def isCompleted: Boolean
 
   def map[B](f: A => B): TextDecoder[B] = new MappedDecoder(self, f)
@@ -37,7 +37,7 @@ object TextDecoder extends TextLiteralInstances {
     def decodeAsText(c: Cursor): TextDecoder[B] =
       new MappedDecoder[A, B](fa.decodeAsText(c), f)
 
-    def result(history: List[String]): Either[DecodingError, B] = fa.result(history).map(f)
+    def result(history: => List[String]): Either[DecodingError, B] = fa.result(history).map(f)
 
     val isCompleted: Boolean = fa.isCompleted
 
@@ -50,7 +50,7 @@ object TextDecoder extends TextLiteralInstances {
     def decodeAsText(c: Cursor): TextDecoder[B] =
       new EMappedDecoder(fa.decodeAsText(c), f)
 
-    def result(history: List[String]): Either[DecodingError, B] = fa.result(history) match {
+    def result(history: => List[String]): Either[DecodingError, B] = fa.result(history) match {
       case Right(a)    => f(history, a)
       case Left(error) => Left(error)
     }
@@ -66,7 +66,7 @@ object TextDecoder extends TextLiteralInstances {
   final class ConstDecoder[A](a: A) extends TextDecoder[A] {
     def decodeAsText(c: Cursor): TextDecoder[A] = this
 
-    def result(history: List[String]): Either[DecodingError, A] = Right(a)
+    def result(history: => List[String]): Either[DecodingError, A] = Right(a)
 
     val isCompleted: Boolean = true
 
@@ -76,7 +76,7 @@ object TextDecoder extends TextLiteralInstances {
   final class FailedDecoder[A](decodingError: DecodingError) extends TextDecoder[A] {
     def decodeAsText(c: Cursor): TextDecoder[A] = this
 
-    def result(history: List[String]): Either[DecodingError, A] = Left(decodingError)
+    def result(history: => List[String]): Either[DecodingError, A] = Left(decodingError)
 
     val isCompleted: Boolean = true
 
@@ -101,7 +101,7 @@ object TextDecoder extends TextLiteralInstances {
       go()
     }
 
-    def result(history: List[String]): Either[DecodingError, String] =
+    def result(history: => List[String]): Either[DecodingError, String] =
       Right(string)
 
     val isCompleted: Boolean = true

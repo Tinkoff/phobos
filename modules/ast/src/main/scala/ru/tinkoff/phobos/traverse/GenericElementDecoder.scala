@@ -123,8 +123,8 @@ class GenericElementDecoder[Acc, Result] private (state: DecoderState, logic: De
     fail(cursor.error(message))
   }
 
-  override def result(history: List[String]): Either[DecodingError, Result] =
-    Left(DecodingError("Decoding not complete", history))
+  override def result(history: => List[String]): Either[DecodingError, Result] =
+    Left(ElementDecoder.decodingNotCompleteError(history))
 
   override val isCompleted: Boolean = false
 }

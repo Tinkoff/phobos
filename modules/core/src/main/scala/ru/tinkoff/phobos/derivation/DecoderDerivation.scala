@@ -90,8 +90,8 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
         
         val isCompleted: $scalaPkg.Boolean = false
 
-        def result(history: $scalaPkg.List[$javaPkg.String]): $scalaPkg.Either[$decodingPkg.DecodingError, $classType] =
-          $scalaPkg.Left($decodingPkg.DecodingError("Decoding not complete", history))
+        def result(history: => $scalaPkg.List[$javaPkg.String]): $scalaPkg.Either[$decodingPkg.DecodingError, $classType] =
+          $scalaPkg.Left($decodingPkg.ElementDecoder.decodingNotCompleteError(history))
       }
     """
   }
@@ -154,7 +154,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
               defaultValue = q"$derivationPkg.CallByNeed[$elementDecoder]($ref)",
               goAssignment = q"var $tempName: $elementDecoder = $paramName.value",
               decoderConstructionParam = q"$derivationPkg.CallByNeed[$elementDecoder]($tempName)",
-              classConstructionForEnum = fq"$forName <- $tempName.result(localName :: cursor.history)",
+              classConstructionForEnum = fq"$forName <- $tempName.result($xmlNameVal :: localName :: cursor.history)",
               classConstructorParam = q"$forName",
             ),
           )
@@ -363,8 +363,9 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
           go(state)
         }
 
-        def result(history: $scalaPkg.List[$javaPkg.String]): $scalaPkg.Either[$decodingPkg.DecodingError, $classType] =
-          $scalaPkg.Left($decodingPkg.DecodingError("Decoding not complete", history))
+        def result(history: => $scalaPkg.List[$javaPkg.String]): $scalaPkg.Either[$decodingPkg.DecodingError, $classType] = {
+          $scalaPkg.Left($decodingPkg.ElementDecoder.decodingNotCompleteError(history))
+        }
 
         val isCompleted: $scalaPkg.Boolean = false
       }
