@@ -4,7 +4,6 @@ import ru.tinkoff.phobos.Namespace
 import ru.tinkoff.phobos.configured.ElementCodecConfig
 import ru.tinkoff.phobos.derivation.CompileTimeState.{ChainedImplicit, Stack}
 import ru.tinkoff.phobos.derivation.Derivation.DirectlyReentrantException
-import ru.tinkoff.phobos.derivation.auto.Exported
 import ru.tinkoff.phobos.syntax.{attr, default, discriminator, renamed, text, xmlns}
 
 import scala.reflect.macros.blackbox
@@ -82,7 +81,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
   def elementConfigured[T: c.WeakTypeTag](config: Expr[ElementCodecConfig]): Tree = Stack.withContext(c) { stack =>
     val classType  = weakTypeOf[T]
     val typeSymbol = classType.typeSymbol
-    if (!typeSymbol.isClass) error("Don't know how to work with not classes")
+    if (!typeSymbol.isClass) error(s"Don't know how to work with not classes ($typeSymbol)")
     val classSymbol       = typeSymbol.asClass
     val namespaceType     = typeOf[Namespace[_]]
     val attrType          = typeOf[attr]
@@ -113,7 +112,12 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
                 error("@discriminator is only allowed to be used with string literals")
               }
           }.getOrElse(constructorName)
-          SealedTraitSubtype(discriminatorValue, symbol.asType.toType)
+          val subType     = symbol.asType.toType
+          val typeArgs    = subType.baseType(classType.typeSymbol).typeArgs
+          val mapping     = typeArgs.map(_.typeSymbol).zip(classType.typeArgs).toMap
+          val newTypeArgs = symbol.asType.typeParams.map(mapping.withDefault(_.asType.toType))
+          val applied     = appliedType(subType.typeConstructor, newTypeArgs)
+          SealedTraitSubtype(discriminatorValue, applied)
         }
         deriveCoproductCodec(stack)(config, sealedTraitSubtypes)
       } else if (classSymbol.isCaseClass) {
