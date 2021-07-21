@@ -5,16 +5,15 @@
 [![Discord](https://img.shields.io/badge/chat-discord%20(en%2Fru)-blue)](https://discord.gg/S9Ad88t)
 
 Phobos is an XML data-binding library based on stream parsing. 
-It depends on [cats-core](https://github.com/typelevel/cats) and 
-[aalto-xml](https://github.com/FasterXML/aalto-xml/) for parsing.
+It depends only on [aalto-xml](https://github.com/FasterXML/aalto-xml/) for parsing.
 
-Scala 2.12 and 2.13 are supported. Support for Scala 2.11 may be implemented on demand.
+Scala 2.12 and 2.13 are supported.
 
 ## QuickStart
 Add phobos-core to your dependencies:
 
 ```
-libraryDependencies += "ru.tinkoff" %% "phobos-core" % "0.11.0"
+libraryDependencies += "ru.tinkoff" %% "phobos-core" % "0.11.1"
 ```
 
 Then try this code out in `sbt console` or in a separate source file:
@@ -67,7 +66,7 @@ Performance details can be found out in [phobos-benchmark repository](https://gi
 There are several additional modules for some specific cases. 
 These modules could be added with command below:
 ```
-libraryDependencies += "ru.tinkoff" %% "phobos-<module>" % "0.11.0
+libraryDependencies += "ru.tinkoff" %% "phobos-<module>" % "0.11.1
 ```
 Where `<module>` is module name.
 
