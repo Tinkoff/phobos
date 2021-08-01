@@ -1,6 +1,6 @@
 libraryDependencies ++= Seq(
   "org.scalacheck"         %% "scalacheck"      % "1.15.4" % "test",
-  "com.softwaremill.diffx" %% "diffx-scalatest" % "0.5.4"  % "test",
+  "com.softwaremill.diffx" %% "diffx-scalatest" % "0.5.5"  % "test",
   "org.typelevel"          %% "cats-core"       % "2.6.1",
 )
 
