@@ -8,7 +8,8 @@ import scala.concurrent.Future
 
 private[phobos] trait AkkaStreamOps {
 
-  /** @note - works only for streams emmiting single xml document
+  /** @note
+    *   - works only for streams emmiting single xml document
     */
   def decodingFlow[A: XmlDecoder](charset: String = "UTF-8"): Flow[Array[Byte], Either[DecodingError, A], NotUsed] = {
     val xmlDecoder = XmlDecoder[A]
@@ -42,7 +43,8 @@ private[phobos] trait AkkaStreamOps {
       }
   }
 
-  /** @note - works only for streams emmiting single xml document
+  /** @note
+    *   - works only for streams emmiting single xml document
     */
   def decodingFlowUnsafe[A: XmlDecoder](charset: String = "UTF-8"): Flow[Array[Byte], A, NotUsed] =
     decodingFlow(charset).map(_.fold(throw _, identity))

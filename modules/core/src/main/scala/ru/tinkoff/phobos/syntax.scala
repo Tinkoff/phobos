@@ -15,8 +15,7 @@ object syntax {
     */
   final class text() extends StaticAnnotation
 
-  /** Case class param with @default annotation is used for decoding elements
-    * which do not fit for other params.
+  /** Case class param with @default annotation is used for decoding elements which do not fit for other params.
     *
     * Params with this annotation are encoded as regular elements.
     *

@@ -40,8 +40,8 @@ class XmlEntryElementDecoderSpec extends AnyWordSpec with Matchers with DiffMatc
           node("elem") := 11111111111112L,
         ),
         node("nested") := xml(
-          node("scala") := 2.13,
-          node("dotty") := 0.13,
+          node("scala")   := 2.13,
+          node("dotty")   := 0.13,
           node("scala-4") := xml.empty,
         ),
       )
