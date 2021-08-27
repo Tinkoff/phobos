@@ -12,9 +12,12 @@ import GenericElementDecoder.DecoderState
 
 /** An encoder allowing to arbitrarily encode a XML element with provided traversal logic.
   *
-  * @tparam Acc - accumulator
-  * @tparam Result - decoding result
-  * @param logic - see [[DecodingTraversalLogic]]
+  * @tparam Acc
+  *   - accumulator
+  * @tparam Result
+  *   - decoding result
+  * @param logic
+  *   - see [[DecodingTraversalLogic]]
   */
 class GenericElementDecoder[Acc, Result] private (state: DecoderState, logic: DecodingTraversalLogic[Acc, Result])
     extends ElementDecoder[Result] {
@@ -133,10 +136,14 @@ object GenericElementDecoder {
 
   /** Allows to create a [[GenericElementDecoder]] based on providing traversal logic
     *
-    * @tparam Acc - accumulator
-    * @tparam Result - decoding result
-    * @param logic - see [[DecodingTraversalLogic]]
-    * @return - an [[ElementDecoder]] for [[Result]]
+    * @tparam Acc
+    *   - accumulator
+    * @tparam Result
+    *   - decoding result
+    * @param logic
+    *   - see [[DecodingTraversalLogic]]
+    * @return
+    *   - an [[ElementDecoder]] for [[Result]]
     */
   def apply[Acc, Result](logic: DecodingTraversalLogic[Acc, Result]): ElementDecoder[Result] =
     new GenericElementDecoder(DecoderState.New, logic)
