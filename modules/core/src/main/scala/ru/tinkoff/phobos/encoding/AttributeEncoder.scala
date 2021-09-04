@@ -3,13 +3,13 @@ package ru.tinkoff.phobos.encoding
 import java.time.{LocalDate, LocalDateTime, LocalTime, ZonedDateTime}
 import java.util.{Base64, UUID}
 
-/** Warning! This is an internal API which may change in future.
-  * Do not implement or use this trait directly unless you know what you are doing.
+/** Warning! This is an internal API which may change in future. Do not implement or use this trait directly unless you
+  * know what you are doing.
   *
   * Use XmlEncoder for encoding XML documents.
   *
-  * AttributeEncoder instance must exist for every type encoded to attribute.
-  * This typeclass is used for encoding case class parameters with @attr annotation.
+  * AttributeEncoder instance must exist for every type encoded to attribute. This typeclass is used for encoding case
+  * class parameters with @attr annotation.
   *
   * To create new instance use .contramap method of existing instance.
   */

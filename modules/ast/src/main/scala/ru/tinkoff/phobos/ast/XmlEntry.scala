@@ -101,8 +101,10 @@ object XmlEntry extends impl.CatsInstances {
         children: List[(String, XmlEntry)],
     ) extends XmlEntry {
 
-      /** @param more - new attributes and child nodes
-        * @return - new [[XmlNode]] with given attributes and children added
+      /** @param more
+        *   - new attributes and child nodes
+        * @return
+        *   - new [[XmlNode]] with given attributes and children added
         */
       def apply(more: XmlBuildingBlock*): Node = {
         val attrs = more.collect { case attr: Attr =>
