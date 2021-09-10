@@ -4,9 +4,7 @@ package ru.tinkoff.phobos
   *
   * Example of use:
   *
-  *  case object nsi {
-  *    implicit val ns: Namespace[nsi.type] = Namespace.mkInstance("example.com")
-  *  }
+  * case object nsi { implicit val ns: Namespace[nsi.type] = Namespace.mkInstance("example.com") }
   *
   * See package annotations for more convenient syntax.
   */
