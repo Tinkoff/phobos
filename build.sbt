@@ -22,8 +22,8 @@ def onScalaVersion[B](`on-2-12`: => B, `on-2-13`: => B): Def.Initialize[B] =
 
 def configuration(id: String)(project: Project): Project =
   project.settings(
-    moduleName := s"phobos-$id",
-    crossScalaVersions := supportedVersions,
+    moduleName              := s"phobos-$id",
+    crossScalaVersions      := supportedVersions,
     Compile / doc / sources := List.empty,
     commonDependencies,
     scalacOptions ++= List(
@@ -67,7 +67,7 @@ lazy val modules: List[ProjectReference] =
 lazy val phobos = project
   .in(file("."))
   .settings(
-    moduleName := "phobos",
+    moduleName     := "phobos",
     publish / skip := true,
   )
   .aggregate(modules: _*)
