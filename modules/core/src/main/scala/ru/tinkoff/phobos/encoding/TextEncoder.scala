@@ -5,8 +5,8 @@ import java.util.{Base64, UUID}
 
 /** Use XmlEncoder for encoding XML documents.
   *
-  * TextEncoder instance must exist for every type encoded to text inside XML element.
-  * This typeclass is used for encoding case class parameters with @text annotation.
+  * TextEncoder instance must exist for every type encoded to text inside XML element. This typeclass is used for
+  * encoding case class parameters with @text annotation.
   *
   * To create new instance use .contramap method of existing instance.
   */

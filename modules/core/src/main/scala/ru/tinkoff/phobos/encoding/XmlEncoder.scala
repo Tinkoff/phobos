@@ -12,8 +12,8 @@ import ru.tinkoff.phobos.encoding.XmlEncoder.XmlEncoderConfig
   * XmlEncoder instance must exist only for types which are encoded as XML documents (only for root elements).
   *
   * XmlEncoder instance can be created
-  *  - from ElementEncoder using functions in XmlEncoder object
-  *  - by macros from ru.tinkoff.phobos.derivation.semiauto package
+  *   - from ElementEncoder using functions in XmlEncoder object
+  *   - by macros from ru.tinkoff.phobos.derivation.semiauto package
   *
   * This typeclass wraps ElementEncoder[A] and provides element name and StreamWriter.
   */

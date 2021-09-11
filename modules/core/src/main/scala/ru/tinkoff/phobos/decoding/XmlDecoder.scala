@@ -12,8 +12,8 @@ import ru.tinkoff.phobos.decoding.XmlDecoder.createStreamReader
   * XmlDecoder instance must exist only for types which are decoded as XML documents (only for root elements).
   *
   * XmlDecoder instance can be created
-  *  - from ElementDecoder using functions in XmlDecoder object
-  *  - by macros from ru.tinkoff.phobos.derivation.semiauto package
+  *   - from ElementDecoder using functions in XmlDecoder object
+  *   - by macros from ru.tinkoff.phobos.derivation.semiauto package
   *
   * This typeclass wraps ElementDecoder[A] and provides element name and Cursor.
   */

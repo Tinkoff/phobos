@@ -17,22 +17,19 @@ final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
 
   /** Writes type-discriminator attribute inside next start element
     *
-    * Following code
-    * <code>
-    *   sw.memoizeDiscriminator(Some("http://www.w3.org/2001/XMLSchema-instance"), "type", "dog")
-    *   sw.writeStartElement("GoodBoy")
-    * </code>
-    * will result to something like
-    * <code>
-    *   <GoodBoy xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="dog">
-    * </code>
+    * Following code <code> sw.memoizeDiscriminator(Some("http://www.w3.org/2001/XMLSchema-instance"), "type", "dog")
+    * sw.writeStartElement("GoodBoy") </code> will result to something like <code> <GoodBoy
+    * xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="dog"> </code>
     *
-    * This API extension is required to keep ElementEncoder API simple.
-    * This method overrides old discriminator if it was already memorized
+    * This API extension is required to keep ElementEncoder API simple. This method overrides old discriminator if it
+    * was already memorized
     *
-    * @param namespaceUri namespace uri of type discriminator
-    * @param localName local name of type discriminator
-    * @param value value of type discriminator
+    * @param namespaceUri
+    *   namespace uri of type discriminator
+    * @param localName
+    *   local name of type discriminator
+    * @param value
+    *   value of type discriminator
     */
   def memorizeDiscriminator(namespaceUri: Option[String], localName: String, value: String): Unit = {
     discriminatorNamespace = namespaceUri
@@ -240,10 +237,10 @@ final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
   def writeNamespace(prefix: String, namespaceURI: String): Unit =
     sw.writeNamespace(prefix, namespaceURI)
 
-  /** Writes a namespace to the output stream
-    * Generates unbound prefix in format <code>ans\d+</code> and binds it to URI
+  /** Writes a namespace to the output stream Generates unbound prefix in format <code>ans\d+</code> and binds it to URI
     *
-    * @param namespaceURI the uri to bind the prefix to
+    * @param namespaceURI
+    *   the uri to bind the prefix to
     */
   def writeNamespace(namespaceURI: String): Unit = {
     val nsContext = sw.getNamespaceContext
