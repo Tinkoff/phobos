@@ -35,8 +35,8 @@ ThisBuild / developers := List(
 )
 
 ThisBuild / description := "Fast xml data binding library"
-ThisBuild / licenses := List("Apache 2" -> new URL("http://www.apache.org/licenses/LICENSE-2.0.txt"))
-ThisBuild / homepage := Some(url("https://github.com/TinkoffCreditSystems/phobos"))
+ThisBuild / licenses    := List("Apache 2" -> new URL("http://www.apache.org/licenses/LICENSE-2.0.txt"))
+ThisBuild / homepage    := Some(url("https://github.com/TinkoffCreditSystems/phobos"))
 
 // Remove all additional repository other than Maven Central from POM
 ThisBuild / pomIncludeRepository := { _ => false }

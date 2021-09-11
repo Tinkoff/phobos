@@ -3,13 +3,13 @@ package ru.tinkoff.phobos.decoding
 import java.time.{LocalDate, LocalDateTime, LocalTime, ZonedDateTime}
 import java.util.{Base64, UUID}
 
-/** Warning! This is an internal API which may change in future.
-  * Do not implement or use this trait directly unless you know what you are doing.
+/** Warning! This is an internal API which may change in future. Do not implement or use this trait directly unless you
+  * know what you are doing.
   *
   * Use XmlDecoder for decoding XML documents.
   *
-  * AttributeDecoder instance must exist for every type decoded from attribute.
-  * This typeclass is used for decoding case class parameters with @attr annotation.
+  * AttributeDecoder instance must exist for every type decoded from attribute. This typeclass is used for decoding case
+  * class parameters with @attr annotation.
   *
   * To create new instance use .map or .emap method of existing instance.
   */
