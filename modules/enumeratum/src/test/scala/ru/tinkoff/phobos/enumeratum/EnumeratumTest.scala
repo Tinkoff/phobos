@@ -10,7 +10,7 @@ import ru.tinkoff.phobos.encoding.XmlEncoder
 import ru.tinkoff.phobos.syntax._
 import ru.tinkoff.phobos.testString._
 
-class EnumeratumSuit extends AnyWordSpec with Matchers {
+class EnumeratumTest extends AnyWordSpec with Matchers {
   "Enum codecs" should {
     "encode enums" in {
       sealed trait Foo extends EnumEntry with Product with Serializable

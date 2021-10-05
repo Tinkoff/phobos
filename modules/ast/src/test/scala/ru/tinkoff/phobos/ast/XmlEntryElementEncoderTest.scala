@@ -6,7 +6,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import ru.tinkoff.phobos.Namespace
 import ru.tinkoff.phobos.encoding.XmlEncoder
 
-class XmlEntryElementEncoderSpec extends AnyWordSpec with DiffMatcher with Matchers {
+class XmlEntryElementEncoderTest extends AnyWordSpec with DiffMatcher with Matchers {
   "XmlEntry encoder" should {
     "encodes simple Xml ast correctly" in {
       val ast = xml(attr("foo") := 5, node("bar") := "bazz")

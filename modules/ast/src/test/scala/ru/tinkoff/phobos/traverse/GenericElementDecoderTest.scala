@@ -9,8 +9,8 @@ import org.scalatest.wordspec.AnyWordSpec
 import ru.tinkoff.phobos.ast.XmlLeaf
 import ru.tinkoff.phobos.decoding.{DecodingError, ElementDecoder, XmlDecoder}
 
-class GenericElementDecoderSpec extends AnyWordSpec with Matchers with DiffMatcher with EitherValues {
-  import GenericElementDecoderSpec._
+class GenericElementDecoderTest extends AnyWordSpec with Matchers with DiffMatcher with EitherValues {
+  import GenericElementDecoderTest._
   "GenericElementDecoder" should {
     "work correctly with immutable accumulators" in {
       implicit val decodeAllAttributes: ElementDecoder[Acc] = GenericElementDecoder(ImmutableTraversalLogic)
@@ -41,7 +41,7 @@ class GenericElementDecoderSpec extends AnyWordSpec with Matchers with DiffMatch
   }
 }
 
-object GenericElementDecoderSpec {
+object GenericElementDecoderTest {
   case class Acc(attributes: Map[String, String])
 
   object ImmutableTraversalLogic extends DecodingTraversalLogic[Acc, Acc] {

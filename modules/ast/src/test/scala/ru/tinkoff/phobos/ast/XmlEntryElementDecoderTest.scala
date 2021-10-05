@@ -9,7 +9,7 @@ import ru.tinkoff.phobos.Namespace
 import ru.tinkoff.phobos.decoding.{DecodingError, XmlDecoder}
 import cats.syntax.either._
 
-class XmlEntryElementDecoderSpec extends AnyWordSpec with Matchers with DiffMatcher with EitherValues {
+class XmlEntryElementDecoderTest extends AnyWordSpec with Matchers with DiffMatcher with EitherValues {
 
   "XmlEntry decoder" should {
     "decodes simple Xml into ast correctly" in {

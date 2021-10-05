@@ -6,7 +6,7 @@ import ru.tinkoff.phobos.Namespace
 import ru.tinkoff.phobos.decoding.XmlDecoder
 import ru.tinkoff.phobos.ast._
 
-class FlattenElementsDecoderSpec extends AnyWordSpec with Matchers {
+class FlattenElementsDecoderTest extends AnyWordSpec with Matchers {
 
   "XmlEntry decoder" should {
     "decodes simple Xml into ast correctly" in {

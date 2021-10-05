@@ -12,7 +12,7 @@ import ru.tinkoff.phobos.syntax.{attr, text}
 import shapeless.{Witness => W}
 import ru.tinkoff.phobos.testString._
 
-class RefinedEncodersSpec extends AnyWordSpec with Matchers {
+class RefinedEncodersTest extends AnyWordSpec with Matchers {
   type NumericAtLeastTo = MatchesRegex[W.`"[0-9]{2,}"`.T]
 
   @XmlCodec("test")
