@@ -7,7 +7,7 @@ import ru.tinkoff.phobos.annotations.XmlCodec
 import ru.tinkoff.phobos.decoding.{DecodingError, XmlDecoder}
 import ru.tinkoff.phobos.syntax.{attr, text}
 
-class LiteralDecodingSuit extends AnyWordSpec with Matchers {
+class LiteralDecodingTest extends AnyWordSpec with Matchers {
   def pure(str: String): List[Array[Byte]] =
     List(str.getBytes("UTF-8"))
 

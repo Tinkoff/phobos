@@ -3,7 +3,7 @@ package ru.tinkoff.phobos.derevo
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
 
-class DerevoSuit extends AnyWordSpec with Matchers {
+class DerevoTest extends AnyWordSpec with Matchers {
   "Derevo" should {
     "derive xml encoder without namespace" in {
       """

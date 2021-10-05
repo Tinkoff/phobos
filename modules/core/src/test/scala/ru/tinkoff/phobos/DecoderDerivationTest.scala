@@ -10,7 +10,7 @@ import ru.tinkoff.phobos.syntax._
 import ru.tinkoff.phobos.configured.naming._
 import ru.tinkoff.phobos.configured.ElementCodecConfig
 
-class DecoderDerivationSuit extends AnyWordSpec with Matchers {
+class DecoderDerivationTest extends AnyWordSpec with Matchers {
   def pure(str: String): List[Array[Byte]] =
     List(str.getBytes("UTF-8"))
 

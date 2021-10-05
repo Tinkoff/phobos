@@ -6,7 +6,7 @@ import ru.tinkoff.phobos.encoding.XmlEncoder
 import ru.tinkoff.phobos.syntax.{attr, text}
 import ru.tinkoff.phobos.testString._
 
-class LiteralEncodingSuit extends AnyWordSpec {
+class LiteralEncodingTest extends AnyWordSpec {
   "Literal encoders" should {
     "encode attributes with literal type" in {
       @XmlCodec("foo")

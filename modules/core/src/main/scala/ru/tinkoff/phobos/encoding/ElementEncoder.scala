@@ -2,6 +2,7 @@ package ru.tinkoff.phobos.encoding
 
 import java.time.{LocalDate, LocalDateTime, LocalTime, ZonedDateTime}
 import java.util.{Base64, UUID}
+import java.time.format.DateTimeFormatter
 
 /** Warning! This is an internal API which may change in future. Do not implement or use this trait directly unless you
   * know what you are doing.
@@ -106,12 +107,24 @@ object ElementEncoder extends ElementLiteralInstances {
   implicit val localDateTimeEncoder: ElementEncoder[LocalDateTime] =
     stringEncoder.contramap(_.toString)
 
+  def localDateTimeEncoderWithFormatter(formatter: DateTimeFormatter): ElementEncoder[LocalDateTime] = 
+    stringEncoder.contramap(_.format(formatter))
+
   implicit val zonedDateTimeEncoder: ElementEncoder[ZonedDateTime] =
     stringEncoder.contramap(_.toString)
+
+  def zonedDateTimeEncoderWithFormatter(formatter: DateTimeFormatter): ElementEncoder[ZonedDateTime] =
+    stringEncoder.contramap(_.format(formatter))
 
   implicit val localDateEncoder: ElementEncoder[LocalDate] =
     stringEncoder.contramap(_.toString)
 
+  def localDateEncoderWithFormatter(formatter: DateTimeFormatter): ElementEncoder[LocalDate] =
+    stringEncoder.contramap(_.format(formatter))
+
   implicit val localTimeEncoder: ElementEncoder[LocalTime] =
     stringEncoder.contramap(_.toString)
+
+  def localTimeEncoderWithFormatter(formatter: DateTimeFormatter): ElementEncoder[LocalTime] = 
+    stringEncoder.contramap(_.format(formatter))
 }

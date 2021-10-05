@@ -3,7 +3,7 @@ package ru.tinkoff.phobos.akka_http
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
 
-class SoapSuit extends AnyWordSpec with Matchers {
+class SoapTest extends AnyWordSpec with Matchers {
   "Soap codecs" should {
     "be found for envelope" in {
       """

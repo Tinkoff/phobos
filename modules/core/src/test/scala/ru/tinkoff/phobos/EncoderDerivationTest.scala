@@ -10,7 +10,7 @@ import ru.tinkoff.phobos.syntax._
 import ru.tinkoff.phobos.configured.naming._
 import ru.tinkoff.phobos.configured.ElementCodecConfig
 
-class EncoderDerivationSuit extends AnyWordSpec with Matchers {
+class EncoderDerivationTest extends AnyWordSpec with Matchers {
 
   "Encoder derivation without namespaces" should {
     "encode simple case classes" in {

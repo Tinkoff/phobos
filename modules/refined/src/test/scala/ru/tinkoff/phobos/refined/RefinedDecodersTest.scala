@@ -12,7 +12,7 @@ import ru.tinkoff.phobos.syntax.{attr, text}
 import ru.tinkoff.phobos.testString._
 import shapeless.{Witness => W}
 
-class RefinedDecodersSpec extends AnyWordSpec with Matchers {
+class RefinedDecodersTest extends AnyWordSpec with Matchers {
   type NumericAtLeastTo = MatchesRegex[W.`"[0-9]{2,}"`.T]
 
   @XmlCodec("test")
@@ -54,7 +54,7 @@ class RefinedDecodersSpec extends AnyWordSpec with Matchers {
       XmlDecoder[Qux].decode(sampleXml) shouldEqual Right(expectedResult)
     }
 
-    "provide verbose errorst" in {
+    "provide verbose errors" in {
 
       @XmlCodec("test")
       case class Test2(x: Int, y: Refined[String, NumericAtLeastTo])
@@ -75,7 +75,7 @@ class RefinedDecodersSpec extends AnyWordSpec with Matchers {
         .decode(sampleXml0)
         .left
         .map(_.text) shouldEqual Left(
-        """Failed to verify RefinedDecodersSpec.this.NumericAtLeastTo refinement for value=1 of raw type String: Predicate failed: "1".matches("[0-9]{2,}").""",
+        """Failed to verify RefinedDecodersTest.this.NumericAtLeastTo refinement for value=1 of raw type String: Predicate failed: "1".matches("[0-9]{2,}").""",
       )
 
       val sampleXml1 =

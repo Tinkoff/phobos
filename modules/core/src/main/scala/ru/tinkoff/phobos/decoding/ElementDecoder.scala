@@ -9,6 +9,7 @@ import ru.tinkoff.phobos.decoding.ElementDecoder.{EMappedDecoder, MappedDecoder}
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
+import java.time.format.DateTimeFormatter
 
 /** Warning! This is a complicated internal API which may change in future. Do not implement or use this trait directly
   * unless you know what you are doing.
@@ -294,12 +295,24 @@ object ElementDecoder extends ElementLiteralInstances {
   implicit val localDateTimeDecoder: ElementDecoder[LocalDateTime] =
     stringDecoder.emap(wrapException(LocalDateTime.parse))
 
+  def localDateTimeDecoderWithFormatter(formatter: DateTimeFormatter): ElementDecoder[LocalDateTime] =
+    stringDecoder.emap(wrapException(LocalDateTime.parse(_, formatter)))
+
   implicit val zonedDateTimeDecoder: ElementDecoder[ZonedDateTime] =
     stringDecoder.emap(wrapException(ZonedDateTime.parse))
+
+  def zonedDateTimeDecoderWithFormatter(formatter: DateTimeFormatter): ElementDecoder[ZonedDateTime] =
+    stringDecoder.emap(wrapException(ZonedDateTime.parse(_, formatter)))
 
   implicit val localDateDecoder: ElementDecoder[LocalDate] =
     stringDecoder.emap(wrapException(LocalDate.parse))
 
+  def localDateDecoderWithFormatter(formatter: DateTimeFormatter): ElementDecoder[LocalDate] =
+    stringDecoder.emap(wrapException(LocalDate.parse(_, formatter)))
+
   implicit val localTimeDecoder: ElementDecoder[LocalTime] =
     stringDecoder.emap(wrapException(LocalTime.parse))
+
+  def localTimeDecoderWithFormatter(formatter: DateTimeFormatter): ElementDecoder[LocalTime] =
+    stringDecoder.emap(wrapException(LocalTime.parse(_, formatter)))
 }
