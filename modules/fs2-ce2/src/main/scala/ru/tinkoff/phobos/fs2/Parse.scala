@@ -7,6 +7,7 @@ import ru.tinkoff.phobos.decoding._
 import com.fasterxml.aalto.AsyncXMLStreamReader.EVENT_INCOMPLETE
 import javax.xml.stream.XMLStreamConstants._
 import javax.xml.stream.events.StartElement
+import scala.annotation.tailrec
 
 object Parse {
   def oneDocument(rootElement: String) = OneDocument(NonEmptyList.one(rootElement))
@@ -43,6 +44,7 @@ object Parse {
             // - EVENT_INCOMPLETE | END_DOCUMENT             -- here we have nothing to do but pull another chunk or terminate
             // - START_ELEMENT & cursor.history.tail == path -- stop when meet next element inside given path to decode
             // - _ & lastDecoder != decoder.elementdecoder   -- lastDecoder is partially filled so we have to proceed any further data
+            @tailrec
             def skipUnnecessary(): Int =
               cursor.next() match {
                 case ev @ (EVENT_INCOMPLETE | END_DOCUMENT)                                       => ev
