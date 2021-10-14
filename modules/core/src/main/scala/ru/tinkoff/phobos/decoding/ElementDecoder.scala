@@ -37,6 +37,8 @@ trait ElementDecoder[A] { self =>
 
 object ElementDecoder extends ElementLiteralInstances {
 
+  def apply[T](implicit decoder: ElementDecoder[T]) = decoder
+
   def errorIfWrongName[A](c: Cursor, localName: String, namespaceUri: Option[String]): Option[FailedDecoder[A]] = {
     namespaceUri match {
       case _ if c.getLocalName != localName =>

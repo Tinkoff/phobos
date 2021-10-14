@@ -1,12 +1,12 @@
-package ru.tinkoff.phobos.ops
+package ru.tinkoff.phobos.fs2.ops
 
 import cats.MonadError
 import cats.syntax.flatMap._
-import fs2.{Stream, Compiler}
+import fs2.Stream
 import javax.xml.stream.XMLStreamConstants
 import ru.tinkoff.phobos.decoding.{Cursor, ElementDecoder, XmlDecoder, XmlStreamReader}
 
-private[phobos] trait Fs2Ops {
+trait Fs2Ops {
   implicit def DecoderOps[A](xmlDecoder: XmlDecoder[A]): DecoderOps[A] = new DecoderOps[A](xmlDecoder)
 }
 
@@ -14,7 +14,7 @@ class DecoderOps[A](private val xmlDecoder: XmlDecoder[A]) extends AnyVal {
   def decodeFromStream[F[_], G[_]](
       stream: Stream[F, Array[Byte]],
       charset: String = "UTF-8",
-  )(implicit compiler: Compiler[F, G], monadError: MonadError[G, Throwable]): G[A] = {
+  )(implicit compiler: Stream.Compiler[F, G], monadError: MonadError[G, Throwable]): G[A] = {
     val sr: XmlStreamReader = XmlDecoder.createStreamReader(charset)
     val cursor              = new Cursor(sr)
 
