@@ -34,6 +34,8 @@ trait AttributeDecoder[A] { self =>
 
 object AttributeDecoder extends AttributeLiteralInstances {
 
+  def apply[A](implicit instance: AttributeDecoder[A]) = instance
+
   /** Instances
     */
   implicit val stringDecoder: AttributeDecoder[String] =

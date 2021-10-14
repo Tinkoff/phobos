@@ -25,6 +25,8 @@ trait AttributeEncoder[A] { self =>
 
 object AttributeEncoder extends AttributeLiteralInstances {
 
+  def apply[A](implicit instance: AttributeEncoder[A]) = instance
+
   /** Instances
     */
   implicit val stringEncoder: AttributeEncoder[String] =
