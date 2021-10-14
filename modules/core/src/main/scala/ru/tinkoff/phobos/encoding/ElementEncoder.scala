@@ -30,6 +30,8 @@ trait ElementEncoder[A] { self =>
 
 object ElementEncoder extends ElementLiteralInstances {
 
+  def apply[A](implicit instance: ElementEncoder[A]) = instance
+
   /** Instances
     */
   implicit val stringEncoder: ElementEncoder[String] =

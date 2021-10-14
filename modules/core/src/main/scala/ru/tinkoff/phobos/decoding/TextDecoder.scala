@@ -30,6 +30,8 @@ trait TextDecoder[A] { self =>
 
 object TextDecoder extends TextLiteralInstances {
 
+  def apply[A](implicit instance: TextDecoder[A]) = instance
+
   class MappedDecoder[A, B](fa: TextDecoder[A], f: A => B) extends TextDecoder[B] {
 
     def decodeAsText(c: Cursor): TextDecoder[B] =
