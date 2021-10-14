@@ -1,4 +1,4 @@
-package ru.tinkoff.phobos.fs2.ops
+package ru.tinkoff.phobos.fs2
 
 import cats.MonadError
 import cats.syntax.flatMap._
@@ -7,7 +7,7 @@ import javax.xml.stream.XMLStreamConstants
 import ru.tinkoff.phobos.decoding.{Cursor, ElementDecoder, XmlDecoder, XmlStreamReader}
 
 trait Fs2Ops {
-  implicit def DecoderOps[A](xmlDecoder: XmlDecoder[A]): DecoderOps[A] = new DecoderOps[A](xmlDecoder)
+  implicit def decoderOps[A](xmlDecoder: XmlDecoder[A]): DecoderOps[A] = new DecoderOps[A](xmlDecoder)
 }
 
 class DecoderOps[A](private val xmlDecoder: XmlDecoder[A]) extends AnyVal {
