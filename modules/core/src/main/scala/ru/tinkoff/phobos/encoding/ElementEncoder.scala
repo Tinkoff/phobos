@@ -109,7 +109,7 @@ object ElementEncoder extends ElementLiteralInstances {
   implicit val localDateTimeEncoder: ElementEncoder[LocalDateTime] =
     stringEncoder.contramap(_.toString)
 
-  def localDateTimeEncoderWithFormatter(formatter: DateTimeFormatter): ElementEncoder[LocalDateTime] = 
+  def localDateTimeEncoderWithFormatter(formatter: DateTimeFormatter): ElementEncoder[LocalDateTime] =
     stringEncoder.contramap(_.format(formatter))
 
   implicit val zonedDateTimeEncoder: ElementEncoder[ZonedDateTime] =
@@ -127,6 +127,6 @@ object ElementEncoder extends ElementLiteralInstances {
   implicit val localTimeEncoder: ElementEncoder[LocalTime] =
     stringEncoder.contramap(_.toString)
 
-  def localTimeEncoderWithFormatter(formatter: DateTimeFormatter): ElementEncoder[LocalTime] = 
+  def localTimeEncoderWithFormatter(formatter: DateTimeFormatter): ElementEncoder[LocalTime] =
     stringEncoder.contramap(_.format(formatter))
 }
