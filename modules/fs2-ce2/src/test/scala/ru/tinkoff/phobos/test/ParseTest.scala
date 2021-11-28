@@ -20,7 +20,7 @@ class ParseTest extends AsyncWordSpec with Inspectors {
   object xml {
     val simpleSequential =
       ("root" :: Nil) ->
-      """|<root>
+        """|<root>
          |  <foo>1</foo>
          |  <foo>2</foo>
          |  <foo>3</foo>
@@ -30,7 +30,7 @@ class ParseTest extends AsyncWordSpec with Inspectors {
 
     val nestedRepetetive =
       ("root" :: "sub" :: Nil) ->
-      """|<root>
+        """|<root>
          |  <sub>
          |    <foo>1</foo>
          |    <foo>2</foo>
@@ -44,7 +44,7 @@ class ParseTest extends AsyncWordSpec with Inspectors {
 
     val nestedRepetetiveIcnludingOtherTags =
       ("root" :: "sub" :: Nil) ->
-      """|<root>
+        """|<root>
          |  <sub>
          |    <foo>1</foo>
          |    <!-- skip it -->
@@ -80,8 +80,8 @@ class ParseTest extends AsyncWordSpec with Inspectors {
       Right(Foo(3)),
       Right(Foo(4)),
       Right(Foo(5)),
-      Left(DecodingError("Invalid local name. Expected 'foo', but found 'bar'", List("bar", "sub", "root")))
-    )
+      Left(DecodingError("Invalid local name. Expected 'foo', but found 'bar'", List("bar", "sub", "root"))),
+    ),
   )
 
   def readAtOnce(path: List[String], xmlString: String) = {
@@ -126,6 +126,6 @@ class ParseTest extends AsyncWordSpec with Inspectors {
         } yield succeed
       }
     }
-    
+
   }
 }
