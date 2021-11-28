@@ -13,7 +13,7 @@ Scala 2.12 and 2.13 are supported.
 Add phobos-core to your dependencies:
 
 ```
-libraryDependencies += "ru.tinkoff" %% "phobos-core" % "0.13.0"
+libraryDependencies += "ru.tinkoff" %% "phobos-core" % "0.13.1"
 ```
 
 Then try this code out in `sbt console` or in a separate source file:
@@ -66,7 +66,7 @@ Performance details can be found out in [phobos-benchmark repository](https://gi
 There are several additional modules for some specific cases. 
 These modules could be added with command below:
 ```
-libraryDependencies += "ru.tinkoff" %% "phobos-<module>" % "0.13.0
+libraryDependencies += "ru.tinkoff" %% "phobos-<module>" % "0.13.1
 ```
 Where `<module>` is module name.
 
@@ -77,7 +77,8 @@ Where `<module>` is module name.
 | cats         | Cats instances |
 | derevo       | Separate derivation of encoders and decoders separately using [derevo](https://github.com/manatki/derevo) annotations (e.g. `@derive(xmlEncoder("foo"))`)|
 | enumeratum   | Support for [enumeratum](https://github.com/lloydmeta/enumeratum#manual-override-of-name) enums |
-| fs2          | Streaming decoding support (`Stream[F, Array[Byte]] => G[A]`) |
+| fs2          | Streaming decoding support (`Stream[F, Array[Byte]] => G[A]`). Latest fs2 version (fs2 `3.x`, cats effect `3.x`) |
+| fs2-ce2      | Streaming decoding support (`Stream[F, Array[Byte]] => G[A]`). Same as fs2 module, but for fs2 version `2.x` using cats effect `2.x`  |
 | monix        | Streaming decoding support (`Observable[Array[Byte]] => Task[A]`)  |
 | refined      | Support for [refined](https://github.com/fthomas/refined) |
 
