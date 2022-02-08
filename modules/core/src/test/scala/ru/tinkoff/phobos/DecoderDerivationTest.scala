@@ -1345,6 +1345,57 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "fail when element name is incorrect async" in
       failWhenElementNameIsIncorrect(fromIterable)
 
+    def decodeSealedTraits(toList: String => List[Array[Byte]]): Assertion = {
+      @XmlnsDef("tinkoff.ru")
+      case object tkf
+
+      @XmlCodec("aquarium", ElementCodecConfig.default.withNamespaceDefined(tkf))
+      case class Aquarium(@xmlns(tkf) fish: List[SealedClasses.Pisces])
+      val string =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <aquarium xmlns:ans1="tinkoff.ru">
+          |   <ans1:fish xmlns:ans2="http://www.w3.org/2001/XMLSchema-instance" ans2:type="ClownFish">
+          |     <name>Marlin</name>
+          |     <finNumber>3</finNumber>
+          |   </ans1:fish>
+          |   <ans1:fish xmlns:ans3="http://www.w3.org/2001/XMLSchema-instance" ans3:type="carcharodon_carcharias">
+          |     <name>Jaws</name>
+          |     <teethNumber>1234</teethNumber>
+          |   </ans1:fish>
+          | </aquarium>
+          |""".stripMargin
+      val aquarium = Aquarium(List(SealedClasses.Amphiprion("Marlin", 3), SealedClasses.CarcharodonCarcharias("Jaws", 1234)))
+      XmlDecoder[Aquarium].decodeFromIterable(toList(string)) shouldBe Right(aquarium)
+    }
+
+    "decode sealed traits sync" in decodeSealedTraits(pure)
+    "decode sealed traits async" in decodeSealedTraits(fromIterable)
+
+    def decodeSealedTraitsUsingElementNamesAsDiscriminators(toList: String => List[Array[Byte]]): Assertion = {
+      @XmlnsDef("tinkoff.ru")
+      case object tkf
+
+      @XmlCodec("shelter", ElementCodecConfig.default.withNamespaceDefined(tkf))
+      case class AnimalShelter(@xmlns(tkf) @default animals: List[SealedClasses.Animal])
+      val string =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <shelter xmlns:ans1="tinkoff.ru">
+          |   <ans1:cat>
+          |     <meow>meow</meow>
+          |   </ans1:cat>
+          |   <ans1:dog>
+          |     <woof>1234</woof>
+          |   </ans1:dog>
+          | </shelter>
+        """.stripMargin
+      val animalShelter = AnimalShelter(List(Cat("meow"), Dog(1234)))
+      XmlDecoder[AnimalShelter].decodeFromIterable(toList(string)) shouldBe Right(animalShelter)
+    }
+
+    "decode sealed traits using element names as discriminators sync" in
+      decodeSealedTraitsUsingElementNamesAsDiscriminators(pure)
+    "decode sealed traits using element names as discriminators async" in
+      decodeSealedTraitsUsingElementNamesAsDiscriminators(fromIterable)
   }
 
   "Decoder derivation compilation" should {

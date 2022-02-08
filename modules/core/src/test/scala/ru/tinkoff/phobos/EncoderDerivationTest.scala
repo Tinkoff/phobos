@@ -1096,6 +1096,50 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       """.stripMargin.minimized,
       )
     }
+
+    "encode sealed traits" in {
+      @XmlnsDef("tinkoff.ru")
+      case object tkf
+
+      @XmlCodec("aquarium", ElementCodecConfig.default.withNamespaceDefined(tkf))
+      case class Aquarium(@xmlns(tkf) fish: List[SealedClasses.Pisces])
+      val string =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <aquarium xmlns:ans1="tinkoff.ru">
+          |   <ans1:fish xmlns:ans2="http://www.w3.org/2001/XMLSchema-instance" ans2:type="ClownFish">
+          |     <name>Marlin</name>
+          |     <finNumber>3</finNumber>
+          |   </ans1:fish>
+          |   <ans1:fish xmlns:ans3="http://www.w3.org/2001/XMLSchema-instance" ans3:type="carcharodon_carcharias">
+          |     <name>Jaws</name>
+          |     <teethNumber>1234</teethNumber>
+          |   </ans1:fish>
+          | </aquarium>
+          |""".stripMargin.minimized
+      val aquarium = Aquarium(List(SealedClasses.Amphiprion("Marlin", 3), SealedClasses.CarcharodonCarcharias("Jaws", 1234)))
+      XmlEncoder[Aquarium].encode(aquarium) shouldBe string
+    }
+
+    "encode sealed traits using element names as discriminators" in {
+      @XmlnsDef("tinkoff.ru")
+      case object tkf
+
+      @XmlCodec("shelter", ElementCodecConfig.default.withNamespaceDefined(tkf))
+      case class AnimalShelter(@xmlns(tkf) animals: List[SealedClasses.Animal])
+      val string =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <shelter xmlns:ans1="tinkoff.ru">
+          |   <ans1:cat>
+          |     <meow>meow</meow>
+          |   </ans1:cat>
+          |   <ans1:dog>
+          |     <woof>1234</woof>
+          |   </ans1:dog>
+          | </shelter>
+        """.stripMargin.minimized
+      val animalShelter = AnimalShelter(List(Cat("meow"), Dog(1234)))
+      XmlEncoder[AnimalShelter].encode(animalShelter) shouldBe string
+    }
   }
 
   "Encoder derivation compilation" should {
