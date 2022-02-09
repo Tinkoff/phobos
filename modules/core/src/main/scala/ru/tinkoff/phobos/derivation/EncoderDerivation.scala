@@ -41,7 +41,7 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 
       cq"""sub: ${subtype.subtypeType.resultType} =>
              if ($config.useElementNameAsDiscriminator) {
-               $ref.encodeAsElement(sub, sw, ${subtype.constructorName}, $scalaPkg.None)
+               $ref.encodeAsElement(sub, sw, ${subtype.constructorName}, namespaceUri)
              } else {
                sw.memorizeDiscriminator($config.discriminatorNamespace, $config.discriminatorLocalName, ${subtype.constructorName})
                $ref.encodeAsElement(sub, sw, localName, namespaceUri)
