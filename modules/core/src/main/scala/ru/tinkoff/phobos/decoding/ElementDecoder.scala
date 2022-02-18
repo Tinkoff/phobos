@@ -1,6 +1,6 @@
 package ru.tinkoff.phobos.decoding
 
-import java.time.{LocalDate, LocalDateTime, LocalTime, ZonedDateTime}
+import java.time._
 import java.util.{Base64, UUID}
 
 import com.fasterxml.aalto.AsyncXMLStreamReader
@@ -305,6 +305,12 @@ object ElementDecoder extends ElementLiteralInstances {
 
   def zonedDateTimeDecoderWithFormatter(formatter: DateTimeFormatter): ElementDecoder[ZonedDateTime] =
     stringDecoder.emap(wrapException(ZonedDateTime.parse(_, formatter)))
+
+  implicit val offsetDateTimeDecoder: ElementDecoder[OffsetDateTime] =
+    zonedDateTimeDecoder.map(_.toOffsetDateTime)
+
+  def offsetDateTimeDecoderWithFormatter(formatter: DateTimeFormatter): ElementDecoder[OffsetDateTime] =
+    stringDecoder.emap(wrapException(OffsetDateTime.parse(_, formatter)))
 
   implicit val localDateDecoder: ElementDecoder[LocalDate] =
     stringDecoder.emap(wrapException(LocalDate.parse))
