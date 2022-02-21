@@ -137,7 +137,7 @@ object AttributeDecoder extends AttributeLiteralInstances {
     stringDecoder.emap(wrapException(ZonedDateTime.parse))
 
   implicit val offsetDateTimeDecoder: AttributeDecoder[OffsetDateTime] =
-    zonedDateTimeDecoder.map(_.toOffsetDateTime)
+    stringDecoder.emap(wrapException(OffsetDateTime.parse))
 
   implicit val localDateDecoder: AttributeDecoder[LocalDate] =
     stringDecoder.emap(wrapException(LocalDate.parse))

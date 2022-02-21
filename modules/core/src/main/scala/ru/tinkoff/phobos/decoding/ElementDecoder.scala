@@ -307,7 +307,7 @@ object ElementDecoder extends ElementLiteralInstances {
     stringDecoder.emap(wrapException(ZonedDateTime.parse(_, formatter)))
 
   implicit val offsetDateTimeDecoder: ElementDecoder[OffsetDateTime] =
-    zonedDateTimeDecoder.map(_.toOffsetDateTime)
+    stringDecoder.emap(wrapException(OffsetDateTime.parse))
 
   def offsetDateTimeDecoderWithFormatter(formatter: DateTimeFormatter): ElementDecoder[OffsetDateTime] =
     stringDecoder.emap(wrapException(OffsetDateTime.parse(_, formatter)))

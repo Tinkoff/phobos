@@ -119,7 +119,7 @@ object ElementEncoder extends ElementLiteralInstances {
     stringEncoder.contramap(_.format(formatter))
 
   implicit val offsetDateTimeEncoder: ElementEncoder[OffsetDateTime] =
-    zonedDateTimeEncoder.contramap(_.toZonedDateTime)
+    stringEncoder.contramap(_.toString)
 
   def offsetDateTimeEncoderWithFormatter(formatter: DateTimeFormatter): ElementEncoder[OffsetDateTime] =
     stringEncoder.contramap(_.format(formatter))

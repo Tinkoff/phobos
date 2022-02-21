@@ -87,7 +87,7 @@ object AttributeEncoder extends AttributeLiteralInstances {
     stringEncoder.contramap(_.toString)
 
   implicit val offsetDateTimeEncoder: AttributeEncoder[OffsetDateTime] =
-    zonedDateTimeEncoder.contramap(_.toZonedDateTime)
+    stringEncoder.contramap(_.toString)
 
   implicit val localDateEncoder: AttributeEncoder[LocalDate] =
     stringEncoder.contramap(_.toString)

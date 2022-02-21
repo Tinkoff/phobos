@@ -68,7 +68,7 @@ object TextEncoder extends TextLiteralInstances {
     stringEncoder.contramap(_.toString)
 
   implicit val offsetDateTimeEncoder: TextEncoder[OffsetDateTime] =
-    zonedDateTimeEncoder.contramap(_.toZonedDateTime)
+    stringEncoder.contramap(_.toString)
 
   implicit val localDateEncoder: TextEncoder[LocalDate] =
     stringEncoder.contramap(_.toString)

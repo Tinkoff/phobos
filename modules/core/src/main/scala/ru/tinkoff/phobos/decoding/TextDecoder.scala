@@ -158,7 +158,7 @@ object TextDecoder extends TextLiteralInstances {
     stringDecoder.emap(wrapException(ZonedDateTime.parse))
 
   implicit val offsetDateTimeDecoder: TextDecoder[OffsetDateTime] =
-    zonedDateTimeDecoder.map(_.toOffsetDateTime)
+    stringDecoder.emap(wrapException(OffsetDateTime.parse))
 
   implicit val localDateDecoder: TextDecoder[LocalDate] =
     stringDecoder.emap(wrapException(LocalDate.parse))
