@@ -13,18 +13,29 @@ import ru.tinkoff.phobos.testString._
 import shapeless.{Witness => W}
 
 class RefinedDecodersTest extends AnyWordSpec with Matchers {
-  type NumericAtLeastTo = MatchesRegex[W.`"[0-9]{2,}"`.T]
-
-  @XmlCodec("test")
-  case class Test(x: Int, y: Refined[String, NumericAtLeastTo])
-
-  @ElementCodec
-  case class Foo(@attr bar: Int, @text baz: NonNegLong)
-  @XmlCodec("qux")
-  case class Qux(str: String, foo: Foo)
+  type NumericAtLeastTwo = MatchesRegex[W.`"[0-9]{2,}"`.T]
 
   "refined decoder" should {
-    "decode element correctly" in {
+    "decode attributes correctly" in {
+      @XmlCodec("test")
+      case class Test(x: Int, @attr y: Refined[String, NumericAtLeastTwo])
+
+      val sampleXml = """
+         | <?xml version='1.0' encoding='UTF-8'?>
+         | <test y="123">
+         |   <x>2</x>
+         | </test>
+       """.stripMargin.minimized
+
+      val expectedResult = Test(2, refineMV[NumericAtLeastTwo]("123"))
+
+      XmlDecoder[Test].decode(sampleXml) shouldEqual Right(expectedResult)
+
+    }
+
+    "decode elements correctly" in {
+      @XmlCodec("test")
+      case class Test(x: Int, y: Refined[String, NumericAtLeastTwo])
 
       val sampleXml = """
          | <?xml version='1.0' encoding='UTF-8'?>
@@ -32,15 +43,20 @@ class RefinedDecodersTest extends AnyWordSpec with Matchers {
          |   <x>2</x>
          |   <y>123</y>
          | </test>
-          """.stripMargin.minimized
+       """.stripMargin.minimized
 
-      val expectedResult = Test(2, refineMV[NumericAtLeastTo]("123"))
+      val expectedResult = Test(2, refineMV[NumericAtLeastTwo]("123"))
 
-      XmlDecoder[Test].decode(sampleXml) shouldEqual (Right(expectedResult))
+      XmlDecoder[Test].decode(sampleXml) shouldEqual Right(expectedResult)
 
     }
 
     "decode text correctly" in {
+      @ElementCodec
+      case class Foo(@attr bar: Int, @text baz: NonNegLong)
+      @XmlCodec("qux")
+      case class Qux(str: String, foo: Foo)
+
       val sampleXml =
         """
           | <?xml version='1.0' encoding='UTF-8'?>
@@ -48,7 +64,7 @@ class RefinedDecodersTest extends AnyWordSpec with Matchers {
           |   <str>42</str>
           |   <foo bar="42">1000</foo>
           | </qux>
-          """.stripMargin.minimized
+        """.stripMargin.minimized
 
       val expectedResult = Qux("42", Foo(42, NonNegLong(1000L)))
       XmlDecoder[Qux].decode(sampleXml) shouldEqual Right(expectedResult)
@@ -57,7 +73,7 @@ class RefinedDecodersTest extends AnyWordSpec with Matchers {
     "provide verbose errors" in {
 
       @XmlCodec("test")
-      case class Test2(x: Int, y: Refined[String, NumericAtLeastTo])
+      case class Test2(x: Int, y: Refined[String, NumericAtLeastTwo])
       @ElementCodec
       case class Foo2(@attr bar: Int, @text baz: NonNegLong)
       @XmlCodec("qux")
@@ -69,13 +85,13 @@ class RefinedDecodersTest extends AnyWordSpec with Matchers {
            |   <x>2</x>
            |   <y>1</y>
            | </test>
-          """.stripMargin.minimized
+         """.stripMargin.minimized
 
       XmlDecoder[Test2]
         .decode(sampleXml0)
         .left
         .map(_.text) shouldEqual Left(
-        """Failed to verify RefinedDecodersTest.this.NumericAtLeastTo refinement for value=1 of raw type String: Predicate failed: "1".matches("[0-9]{2,}").""",
+        """Failed to verify RefinedDecodersTest.this.NumericAtLeastTwo refinement for value=1 of raw type String: Predicate failed: "1".matches("[0-9]{2,}").""",
       )
 
       val sampleXml1 =
@@ -85,7 +101,7 @@ class RefinedDecodersTest extends AnyWordSpec with Matchers {
           |   <str>42</str>
           |   <foo bar="42">-1000</foo>
           | </qux>
-          """.stripMargin.minimized
+        """.stripMargin.minimized
 
       XmlDecoder[Qux2]
         .decode(sampleXml1)

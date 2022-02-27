@@ -13,19 +13,31 @@ import shapeless.{Witness => W}
 import ru.tinkoff.phobos.testString._
 
 class RefinedEncodersTest extends AnyWordSpec with Matchers {
-  type NumericAtLeastTo = MatchesRegex[W.`"[0-9]{2,}"`.T]
-
-  @XmlCodec("test")
-  case class Test(x: Int, y: Refined[String, NumericAtLeastTo])
-
-  @ElementCodec
-  case class Foo(@attr bar: Int, @text baz: NonNegLong)
-  @XmlCodec("qux")
-  case class Qux(str: String, foo: Foo)
+  type NumericAtLeastTwo = MatchesRegex[W.`"[0-9]{2,}"`.T]
 
   "refined encoder" should {
-    "encode element correctly" in {
-      val value = Test(2, refineMV[NumericAtLeastTo]("123"))
+
+    "encode attributes correctly" in {
+      @XmlCodec("test")
+      case class Test(x: Int, @attr y: Refined[String, NumericAtLeastTwo])
+
+      val value = Test(2, refineMV[NumericAtLeastTwo]("123"))
+
+      val expectedResult = """
+         | <?xml version='1.0' encoding='UTF-8'?>
+         | <test y="123">
+         |   <x>2</x>
+         | </test>
+       """.stripMargin.minimized
+
+      XmlEncoder[Test].encode(value) shouldEqual expectedResult
+    }
+
+    "encode elements correctly" in {
+      @XmlCodec("test")
+      case class Test(x: Int, y: Refined[String, NumericAtLeastTwo])
+
+      val value = Test(2, refineMV[NumericAtLeastTwo]("123"))
 
       val expectedResult = """
          | <?xml version='1.0' encoding='UTF-8'?>
@@ -33,12 +45,17 @@ class RefinedEncodersTest extends AnyWordSpec with Matchers {
          |   <x>2</x>
          |   <y>123</y>
          | </test>
-          """.stripMargin.minimized
+        """.stripMargin.minimized
 
       XmlEncoder[Test].encode(value) shouldEqual expectedResult
     }
 
     "encode text correctly" in {
+      @ElementCodec
+      case class Foo(@attr bar: Int, @text baz: NonNegLong)
+      @XmlCodec("qux")
+      case class Qux(str: String, foo: Foo)
+
       val qux = Qux("42", Foo(42, NonNegLong(1000L)))
       val xml = XmlEncoder[Qux].encode(qux)
       assert(
