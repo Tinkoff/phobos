@@ -1,6 +1,6 @@
 package ru.tinkoff.phobos.encoding
 
-import java.time.{LocalDate, LocalDateTime, LocalTime, ZonedDateTime}
+import java.time._
 import java.util.{Base64, UUID}
 
 /** Use XmlEncoder for encoding XML documents.
@@ -65,6 +65,9 @@ object TextEncoder extends TextLiteralInstances {
     stringEncoder.contramap(_.toString)
 
   implicit val zonedDateTimeEncoder: TextEncoder[ZonedDateTime] =
+    stringEncoder.contramap(_.toString)
+
+  implicit val offsetDateTimeEncoder: TextEncoder[OffsetDateTime] =
     stringEncoder.contramap(_.toString)
 
   implicit val localDateEncoder: TextEncoder[LocalDate] =

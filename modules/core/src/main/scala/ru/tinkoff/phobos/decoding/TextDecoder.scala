@@ -1,6 +1,6 @@
 package ru.tinkoff.phobos.decoding
 
-import java.time.{LocalDate, LocalDateTime, LocalTime, ZonedDateTime}
+import java.time._
 import java.util.{Base64, UUID}
 
 import javax.xml.stream.XMLStreamConstants
@@ -156,6 +156,9 @@ object TextDecoder extends TextLiteralInstances {
 
   implicit val zonedDateTimeDecoder: TextDecoder[ZonedDateTime] =
     stringDecoder.emap(wrapException(ZonedDateTime.parse))
+
+  implicit val offsetDateTimeDecoder: TextDecoder[OffsetDateTime] =
+    stringDecoder.emap(wrapException(OffsetDateTime.parse))
 
   implicit val localDateDecoder: TextDecoder[LocalDate] =
     stringDecoder.emap(wrapException(LocalDate.parse))

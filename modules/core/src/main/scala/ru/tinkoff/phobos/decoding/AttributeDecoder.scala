@@ -1,6 +1,6 @@
 package ru.tinkoff.phobos.decoding
 
-import java.time.{LocalDate, LocalDateTime, LocalTime, ZonedDateTime}
+import java.time._
 import java.util.{Base64, UUID}
 
 /** Warning! This is an internal API which may change in future. Do not implement or use this trait directly unless you
@@ -135,6 +135,9 @@ object AttributeDecoder extends AttributeLiteralInstances {
 
   implicit val zonedDateTimeDecoder: AttributeDecoder[ZonedDateTime] =
     stringDecoder.emap(wrapException(ZonedDateTime.parse))
+
+  implicit val offsetDateTimeDecoder: AttributeDecoder[OffsetDateTime] =
+    stringDecoder.emap(wrapException(OffsetDateTime.parse))
 
   implicit val localDateDecoder: AttributeDecoder[LocalDate] =
     stringDecoder.emap(wrapException(LocalDate.parse))

@@ -1,6 +1,6 @@
 package ru.tinkoff.phobos.encoding
 
-import java.time.{LocalDate, LocalDateTime, LocalTime, ZonedDateTime}
+import java.time._
 import java.util.{Base64, UUID}
 
 /** Warning! This is an internal API which may change in future. Do not implement or use this trait directly unless you
@@ -84,6 +84,9 @@ object AttributeEncoder extends AttributeLiteralInstances {
     stringEncoder.contramap(_.toString)
 
   implicit val zonedDateTimeEncoder: AttributeEncoder[ZonedDateTime] =
+    stringEncoder.contramap(_.toString)
+
+  implicit val offsetDateTimeEncoder: AttributeEncoder[OffsetDateTime] =
     stringEncoder.contramap(_.toString)
 
   implicit val localDateEncoder: AttributeEncoder[LocalDate] =
