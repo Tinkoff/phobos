@@ -1364,7 +1364,8 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
           |   </ans1:fish>
           | </aquarium>
           |""".stripMargin
-      val aquarium = Aquarium(List(SealedClasses.Amphiprion("Marlin", 3), SealedClasses.CarcharodonCarcharias("Jaws", 1234)))
+      val aquarium =
+        Aquarium(List(SealedClasses.Amphiprion("Marlin", 3), SealedClasses.CarcharodonCarcharias("Jaws", 1234)))
       XmlDecoder[Aquarium].decodeFromIterable(toList(string)) shouldBe Right(aquarium)
     }
 

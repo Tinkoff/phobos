@@ -1116,7 +1116,8 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
           |   </ans1:fish>
           | </aquarium>
           |""".stripMargin.minimized
-      val aquarium = Aquarium(List(SealedClasses.Amphiprion("Marlin", 3), SealedClasses.CarcharodonCarcharias("Jaws", 1234)))
+      val aquarium =
+        Aquarium(List(SealedClasses.Amphiprion("Marlin", 3), SealedClasses.CarcharodonCarcharias("Jaws", 1234)))
       XmlEncoder[Aquarium].encode(aquarium) shouldBe string
     }
 

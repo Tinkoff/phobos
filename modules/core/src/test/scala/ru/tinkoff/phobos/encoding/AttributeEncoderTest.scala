@@ -11,11 +11,14 @@ class AttributeEncoderTest extends AnyWordSpec with Matchers with EncoderTestBas
     "exists for OffsetDateTime and works properly" in {
 
       val buff = new ByteArrayOutputStream(512)
-      val sw = buildStreamWriter(new WriterConfig(), buff)
+      val sw   = buildStreamWriter(new WriterConfig(), buff)
 
       sw.writeStartElement("Foo")
       AttributeEncoder[OffsetDateTime].encodeAsAttribute(
-        OffsetDateTime.parse("2019-10-27T18:27:26.1279855+05:00"), sw, "date", None
+        OffsetDateTime.parse("2019-10-27T18:27:26.1279855+05:00"),
+        sw,
+        "date",
+        None,
       )
       sw.writeEndElement()
       sw.flush()

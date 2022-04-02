@@ -12,8 +12,8 @@ trait EncoderTestBase {
       new NonRepairingStreamWriter(
         wc,
         writer,
-        wc.getUtf8Symbols(writer)
-      )
+        wc.getUtf8Symbols(writer),
+      ),
     )
   }
 }
