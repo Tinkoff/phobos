@@ -12,10 +12,13 @@ class ElementEncoderTest extends AnyWordSpec with Matchers with EncoderTestBase 
     "exists for OffsetDateTime and works properly" in {
 
       val buff = new ByteArrayOutputStream(512)
-      val sw = buildStreamWriter(new WriterConfig(), buff)
+      val sw   = buildStreamWriter(new WriterConfig(), buff)
 
       ElementEncoder[OffsetDateTime].encodeAsElement(
-        OffsetDateTime.parse("2019-10-27T18:27:26.1279855+05:00"), sw, "Date", None
+        OffsetDateTime.parse("2019-10-27T18:27:26.1279855+05:00"),
+        sw,
+        "Date",
+        None,
       )
 
       sw.flush()

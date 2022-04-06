@@ -14,12 +14,12 @@ class TextEncoderTest extends AnyWordSpec with Matchers with EncoderTestBase {
       val encoder = TextEncoder[OffsetDateTime]
 
       val buff = new ByteArrayOutputStream(512)
-      val sw = buildStreamWriter(new WriterConfig(), buff)
-
+      val sw   = buildStreamWriter(new WriterConfig(), buff)
 
       sw.writeStartElement("Foo")
       TextEncoder[OffsetDateTime].encodeAsText(
-        OffsetDateTime.parse("2019-10-27T18:27:26.1279855+05:00"), sw
+        OffsetDateTime.parse("2019-10-27T18:27:26.1279855+05:00"),
+        sw,
       )
       sw.writeEndElement()
       sw.flush()

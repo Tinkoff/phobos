@@ -379,8 +379,8 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 
   def xmlConfigured[T: c.WeakTypeTag](localName: Tree, config: Expr[ElementCodecConfig]): Tree =
     q"""_root_.ru.tinkoff.phobos.decoding.XmlDecoder.fromElementDecoder[${weakTypeOf[
-      T,
-    ]}]($localName)(${elementConfigured[T](config)})"""
+        T,
+      ]}]($localName)(${elementConfigured[T](config)})"""
 
   def xmlNs[T: c.WeakTypeTag, NS: c.WeakTypeTag](localName: Tree, ns: Tree): Tree =
     xmlNsConfigured[T, NS](localName, ns, defaultConfig)
@@ -394,8 +394,8 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
       .filter(_.nonEmpty)
       .getOrElse(error(s"Could not find Namespace instance for $ns"))
     q"""_root_.ru.tinkoff.phobos.decoding.XmlDecoder.fromElementDecoderNs[${weakTypeOf[T]}, ${weakTypeOf[
-      NS,
-    ]}]($localName, $ns)(${elementConfigured[T](config)}, $nsInstance)"""
+        NS,
+      ]}]($localName, $ns)(${elementConfigured[T](config)}, $nsInstance)"""
   }
 }
 
