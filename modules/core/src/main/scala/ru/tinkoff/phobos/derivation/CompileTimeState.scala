@@ -65,10 +65,11 @@ private[derivation] object CompileTimeState {
       workSet += c.macroApplication.symbol
       val depth = c.enclosingMacros.count(m => workSet(m.macroApplication.symbol))
       try fn(global.asInstanceOf[Stack[c.type]])
-      finally if (depth <= 1) {
-        global.clear()
-        workSet.clear()
-      }
+      finally
+        if (depth <= 1) {
+          global.clear()
+          workSet.clear()
+        }
     }
   }
 }
