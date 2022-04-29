@@ -7,7 +7,7 @@
 Phobos is an XML data-binding library based on stream parsing. 
 It depends only on [aalto-xml](https://github.com/FasterXML/aalto-xml/) for parsing.
 
-Scala 2.12 and 2.13 are supported.
+Scala 2.12, 2.13 and 3.1 are supported. Scala 3.0 is supported in `core-3-0` module. See [Supported Scala versions](#supported-scala-versions) for more details.
 
 ## QuickStart
 Add phobos-core to your dependencies:
@@ -57,12 +57,12 @@ println(decodedJourney)
 
 assert(Right(journey) == decodedJourney)
 ```
-Please see [phobos wiki](https://github.com/TinkoffCreditSystems/phobos/wiki) for explanation of the syntax and more details.
+Please see [phobos wiki](https://github.com/Tinkoff/phobos/wiki) for explanation of the syntax and more details.
 
 ## Performance
 Performance details can be found out in [phobos-benchmark repository](https://github.com/valentiay/phobos-benchmark). 
 
-## Addons
+## Modules
 There are several additional modules for some specific cases. 
 These modules could be added with command below:
 ```
@@ -70,17 +70,44 @@ libraryDependencies += "ru.tinkoff" %% "phobos-<module>" % "0.14.1"
 ```
 Where `<module>` is module name.
 
-| Module name  | Functionality  |
-|--------------|----------------|
-| akka-http    | Marshallers and unmarshallers for [akka-http](https://doc.akka.io/docs/akka-http/current/) |
-| akka-stream  | Streaming decoding support for [akka-stream](https://doc.akka.io/docs/akka/current/stream/index.html)|
-| cats         | Cats instances |
-| derevo       | Separate derivation of encoders and decoders separately using [derevo](https://github.com/manatki/derevo) annotations (e.g. `@derive(xmlEncoder("foo"))`)|
-| enumeratum   | Support for [enumeratum](https://github.com/lloydmeta/enumeratum#manual-override-of-name) enums |
-| fs2          | Streaming decoding support (`Stream[F, Array[Byte]] => G[A]`). Latest fs2 version (fs2 `3.x`, cats effect `3.x`) |
-| fs2-ce2      | Streaming decoding support (`Stream[F, Array[Byte]] => G[A]`). Same as fs2 module, but for fs2 version `2.x` using cats effect `2.x`  |
-| monix        | Streaming decoding support (`Observable[Array[Byte]] => Task[A]`)  |
-| refined      | Support for [refined](https://github.com/fthomas/refined) |
+| Module name | Functionality  |
+|-------------|----------------|
+| core-3-0    | Core module compiled for Scala 3.0. |
+| ast         | Support for parsing XML into AST |
+| akka-http   | Marshallers and unmarshallers for [akka-http](https://doc.akka.io/docs/akka-http/current/) |
+| akka-stream | Streaming decoding support for [akka-stream](https://doc.akka.io/docs/akka/current/stream/index.html)|
+| cats        | Cats instances |
+| derevo      | Separate derivation of encoders and decoders separately using [derevo](https://github.com/manatki/derevo) annotations (e.g. `@derive(xmlEncoder("foo"))`)|
+| enumeratum  | Support for [enumeratum](https://github.com/lloydmeta/enumeratum#manual-override-of-name) enums |
+| fs2         | Streaming decoding support (`Stream[F, Array[Byte]] => G[A]`). Latest fs2 version (fs2 `3.x`, cats effect `3.x`) |
+| fs2-ce2     | Streaming decoding support (`Stream[F, Array[Byte]] => G[A]`). Same as fs2 module, but for fs2 version `2.x` using cats effect `2.x`  |
+| monix       | Streaming decoding support (`Observable[Array[Byte]] => Task[A]`)  |
+| refined     | Support for [refined](https://github.com/fthomas/refined) |
+
+
+## Supported Scala versions
+Most modules support Scala 2.12, 2.13 and 3.1. 
+Dependencies for some modules don't support Scala 3, thus these modules support only Scala 2.x.
+Most module dependencies are compiled for Scala 3.1, and they can not be used with Scala 3.0, 
+because Scala 3 [TASTy files are not forward compatible](https://contributors.scala-lang.org/t/improving-scala-3-forward-compatibility/5298).
+Module `core` is also compiled for Scala 3.1, but core features may be used via `core-3-0` module.
+
+Detailed information about supported Scala versions is in the table. Available versions for modules are marked with ✓.
+
+| Module name | 2.12 | 2.13 | 3.0 | 3.1 |
+|-------------|------|------|-----|-----|
+| core        |  ✓   |  ✓   |     |  ✓  |
+| core-3-0    |      |      |  ✓  |     |
+| akka-http   |  ✓   |  ✓   |     |     |
+| akka-stream |  ✓   |  ✓   |     |  ✓  |
+| ast         |  ✓   |  ✓   |     |     |
+| cats        |  ✓   |  ✓   |     |  ✓  |
+| derevo      |  ✓   |  ✓   |     |     |
+| enumeratum  |  ✓   |  ✓   |     |     |
+| fs2         |  ✓   |  ✓   |     |  ✓  |
+| fs2-ce2     |  ✓   |  ✓   |     |  ✓  |
+| monix       |  ✓   |  ✓   |     |  ✓  |
+| refined     |  ✓   |  ✓   |     |     |
 
 ## XSD and WSDL code-generation support
-It will be soon implemented in [deimos](https://github.com/TinkoffCreditSystems/deimos) library.
+Classes from XSD could be generated using [deimos](https://github.com/Tinkoff/deimos) library.

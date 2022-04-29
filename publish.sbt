@@ -20,8 +20,8 @@ ThisBuild / publishTo :=
 
 ThisBuild / scmInfo := Some(
   ScmInfo(
-    url("https://github.com/TinkoffCreditSystems/phobos"),
-    "git@github.com:TinkoffCreditSystems/phobos",
+    url("https://github.com/Tinkoff/phobos"),
+    "git@github.com:Tinkoff/phobos",
   ),
 )
 
@@ -36,7 +36,7 @@ ThisBuild / developers := List(
 
 ThisBuild / description := "Fast xml data binding library"
 ThisBuild / licenses    := List("Apache 2" -> new URL("http://www.apache.org/licenses/LICENSE-2.0.txt"))
-ThisBuild / homepage    := Some(url("https://github.com/TinkoffCreditSystems/phobos"))
+ThisBuild / homepage    := Some(url("https://github.com/Tinkoff/phobos"))
 
 // Remove all additional repository other than Maven Central from POM
 ThisBuild / pomIncludeRepository := { _ => false }

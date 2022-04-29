@@ -1,13 +1,15 @@
 package ru.tinkoff.phobos.test
 
 import org.scalatest.wordspec.AsyncWordSpec
-import ru.tinkoff.phobos.annotations.{ElementCodec, XmlCodec}
 import ru.tinkoff.phobos.decoding.XmlDecoder
 import ru.tinkoff.phobos.syntax.text
 import ru.tinkoff.phobos.fs2._
 import fs2.Stream
 import cats.effect.IO
-import cats.effect.unsafe.{IORuntime, IORuntimeConfig, Scheduler}
+import cats.effect.unsafe.{IORuntimeConfig, Scheduler, IORuntime}
+import ru.tinkoff.phobos.decoding.ElementDecoder
+import ru.tinkoff.phobos.derivation.semiauto.deriveElementDecoder
+import ru.tinkoff.phobos.derivation.semiauto.deriveXmlDecoder
 
 class Fs2Test extends AsyncWordSpec {
   val (scheduler, shutdown) = Scheduler.createDefaultScheduler()
@@ -15,10 +17,11 @@ class Fs2Test extends AsyncWordSpec {
     IORuntime(executionContext, executionContext, scheduler, shutdown, IORuntimeConfig.apply())
   "Fs2 decoder" should {
     "decode case classes correctly" in {
-      @ElementCodec
       case class Bar(@text txt: Int)
-      @XmlCodec("foo")
+      implicit val barDecoder: ElementDecoder[Bar] = deriveElementDecoder
+
       case class Foo(qux: Int, maybeBar: Option[Bar], bars: List[Bar])
+      implicit val fooDecoder: XmlDecoder[Foo] = deriveXmlDecoder("foo")
 
       val xml = """
                   |<foo>

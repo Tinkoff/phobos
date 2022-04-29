@@ -2,14 +2,18 @@ package ru.tinkoff.phobos.test
 
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.{Sink, Source}
-import akka.stream.{Materializer, SystemMaterializer}
+import akka.stream.{SystemMaterializer, Materializer}
 import akka.testkit.TestKit
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.wordspec.AsyncWordSpecLike
 import ru.tinkoff.phobos.akka_stream._
-import ru.tinkoff.phobos.annotations.{ElementCodec, XmlCodec}
+import ru.tinkoff.phobos.decoding.ElementDecoder
+import ru.tinkoff.phobos.decoding.XmlDecoder
+import ru.tinkoff.phobos.derivation.semiauto.deriveElementDecoder
+import ru.tinkoff.phobos.derivation.semiauto.deriveXmlDecoder
 import ru.tinkoff.phobos.syntax.text
+
 import scala.concurrent.duration._
 
 class AkkaStreamTest
@@ -128,8 +132,12 @@ class AkkaStreamTest
 }
 
 object AkkaStreamTest {
-  @ElementCodec
   case class Bar(@text txt: Int)
-  @XmlCodec("foo")
+  object Bar {
+    implicit val barDecoder: ElementDecoder[Bar] = deriveElementDecoder
+  }
   case class Foo(qux: Int, maybeBar: Option[Bar], bars: List[Bar])
+  object Foo {
+    implicit val foo: XmlDecoder[Foo] = deriveXmlDecoder("foo")
+  }
 }

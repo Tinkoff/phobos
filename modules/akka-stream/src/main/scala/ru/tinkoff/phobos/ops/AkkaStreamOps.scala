@@ -20,9 +20,12 @@ private[phobos] trait AkkaStreamOps {
         ) // trick to make this flow reusable (because of mutable Cursor)
         import state.{cursor, elementDecoder, xmlStreamReader}
         xmlStreamReader.getInputFeeder.feedInput(bytes, 0, bytes.length)
-        do {
+        cursor.next()
+        while (
+          cursor.getEventType == XMLStreamConstants.DTD || cursor.getEventType == XMLStreamConstants.START_DOCUMENT
+        ) {
           cursor.next()
-        } while (cursor.getEventType == XMLStreamConstants.DTD || cursor.getEventType == XMLStreamConstants.START_DOCUMENT)
+        }
 
         Some {
           state withEncoder {

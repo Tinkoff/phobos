@@ -1,7 +1,6 @@
 package ru.tinkoff.phobos.test
 
 import org.scalatest.wordspec.AsyncWordSpec
-import ru.tinkoff.phobos.annotations.{ElementCodec, XmlCodec}
 import ru.tinkoff.phobos.decoding.XmlDecoder
 import ru.tinkoff.phobos.syntax.text
 import ru.tinkoff.phobos.fs2._
@@ -11,11 +10,12 @@ import cats.syntax.flatMap._
 import cats.effect.IO
 import org.scalatest.Inspectors
 import ru.tinkoff.phobos.decoding.DecodingError
+import ru.tinkoff.phobos.derivation.semiauto.deriveXmlDecoder
 
 class ParseTest extends AsyncWordSpec with Inspectors {
 
-  @XmlCodec("foo")
   case class Foo(@text txt: Int)
+  implicit val fooDecoder: XmlDecoder[Foo] = deriveXmlDecoder("foo")
 
   object xml {
     val simpleSequential =

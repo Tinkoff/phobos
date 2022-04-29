@@ -28,7 +28,7 @@ trait ElementEncoder[A] { self =>
     }
 }
 
-object ElementEncoder extends ElementLiteralInstances {
+object ElementEncoder extends ElementLiteralInstances with DerivedElement {
 
   def apply[A](implicit instance: ElementEncoder[A]) = instance
 
