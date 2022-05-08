@@ -17,9 +17,12 @@ class DecoderOps[A](private val xmlDecoder: XmlDecoder[A]) extends AnyVal {
     observable
       .foldLeftL[ElementDecoder[A]](xmlDecoder.elementdecoder) { (decoder, bytes) =>
         sr.getInputFeeder.feedInput(bytes, 0, bytes.length)
-        do {
+        cursor.next()
+        while (
+          cursor.getEventType == XMLStreamConstants.DTD || cursor.getEventType == XMLStreamConstants.START_DOCUMENT
+        ) {
           cursor.next()
-        } while (cursor.getEventType == XMLStreamConstants.DTD || cursor.getEventType == XMLStreamConstants.START_DOCUMENT)
+        }
 
         if (decoder.result(cursor.history).isRight) {
           decoder

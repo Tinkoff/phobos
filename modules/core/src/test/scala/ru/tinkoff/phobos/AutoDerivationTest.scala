@@ -8,40 +8,40 @@ class AutoDerivationTest extends AnyWordSpec with Matchers {
   "Automatic derivation" should {
     "derive codecs" in {
       """
-        | import ru.tinkoff.phobos.encoding._
-        | import ru.tinkoff.phobos.decoding._
-        | import ru.tinkoff.phobos.syntax._
-        | import ru.tinkoff.phobos.derivation.auto._
-        |
-        | case class Foo(@attr bar: Int, @attr baz: Double, @text txt: String)
-        | case class Bar(@attr quxx: Float, foo: Foo, qux: Byte)
-        |
-        | implicitly[ElementEncoder[Bar]]
-        | implicitly[ElementDecoder[Bar]]
-        |""".stripMargin should compile
+         import ru.tinkoff.phobos.encoding._
+         import ru.tinkoff.phobos.decoding._
+         import ru.tinkoff.phobos.syntax._
+         import ru.tinkoff.phobos.derivation.auto._
+
+         case class Foo(@attr bar: Int, @attr baz: Double, @text txt: String)
+         case class Bar(@attr quxx: Float, foo: Foo, qux: Byte)
+
+         implicitly[ElementEncoder[Bar]]
+         implicitly[ElementDecoder[Bar]]
+        """ should compile
     }
 
     "not derive encoder if not imported" in {
       """
-        | import ru.tinkoff.phobos.encoding._
-        | import ru.tinkoff.phobos.syntax._
-        | case class Foo(@attr bar: Int, @attr baz: Double, @text txt: String)
-        | case class Bar(@attr quxx: Float, foo: Foo, qux: Byte)
-        |
-        | implicitly[ElementEncoder[Bar]]
-        |""".stripMargin shouldNot compile
+         import ru.tinkoff.phobos.encoding._
+         import ru.tinkoff.phobos.syntax._
+         case class Foo(@attr bar: Int, @attr baz: Double, @text txt: String)
+         case class Bar(@attr quxx: Float, foo: Foo, qux: Byte)
+
+         implicitly[ElementEncoder[Bar]]
+        """ shouldNot compile
     }
 
     "not derive decoder if not imported" in {
       """
-        | import ru.tinkoff.phobos.decoding._
-        | import ru.tinkoff.phobos.syntax._
-        |
-        | case class Foo(@attr bar: Int, @attr baz: Double, @text txt: String)
-        | case class Bar(@attr quxx: Float, foo: Foo, qux: Byte)
-        |
-        | implicitly[ElementDecoder[Bar]]
-        |""".stripMargin shouldNot compile
+         import ru.tinkoff.phobos.decoding._
+         import ru.tinkoff.phobos.syntax._
+
+         case class Foo(@attr bar: Int, @attr baz: Double, @text txt: String)
+         case class Bar(@attr quxx: Float, foo: Foo, qux: Byte)
+
+         implicitly[ElementDecoder[Bar]]
+        """ shouldNot compile
     }
 
     "derive codecs correctly" in {

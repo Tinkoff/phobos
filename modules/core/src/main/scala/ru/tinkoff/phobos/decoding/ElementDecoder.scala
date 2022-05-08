@@ -35,7 +35,7 @@ trait ElementDecoder[A] { self =>
   def emap[B](f: (List[String], A) => Either[DecodingError, B]): ElementDecoder[B] = new EMappedDecoder(self, f)
 }
 
-object ElementDecoder extends ElementLiteralInstances {
+object ElementDecoder extends ElementLiteralInstances with DerivedElement {
 
   def apply[A](implicit instance: ElementDecoder[A]) = instance
 

@@ -32,9 +32,12 @@ trait XmlDecoder[A] extends XmlDecoderIterable[A] {
     sr.getInputFeeder.endOfInput()
     val cursor = new Cursor(sr)
     try {
-      do {
+      cursor.next()
+      while (
+        cursor.getEventType == XMLStreamConstants.DTD || cursor.getEventType == XMLStreamConstants.START_DOCUMENT
+      ) {
         cursor.next()
-      } while (cursor.getEventType == XMLStreamConstants.DTD || cursor.getEventType == XMLStreamConstants.START_DOCUMENT)
+      }
       elementdecoder
         .decodeAsElement(cursor, localname, namespaceuri)
         .result(cursor.history)

@@ -1,12 +1,12 @@
 package ru.tinkoff.phobos.test
 
 import java.util.concurrent.Executors
-
 import monix.execution.Scheduler
 import monix.reactive.Observable
 import org.scalatest.wordspec.AsyncWordSpec
-import ru.tinkoff.phobos.annotations.{ElementCodec, XmlCodec}
+import ru.tinkoff.phobos.decoding.ElementDecoder
 import ru.tinkoff.phobos.decoding.XmlDecoder
+import ru.tinkoff.phobos.derivation.semiauto._
 import ru.tinkoff.phobos.syntax.text
 import ru.tinkoff.phobos.monix._
 
@@ -15,10 +15,11 @@ class MonixTest extends AsyncWordSpec {
 
   "Monix decoder" should {
     "decode case classes correctly" in {
-      @ElementCodec
       case class Bar(@text txt: Int)
-      @XmlCodec("foo")
+      implicit val barDecoder: ElementDecoder[Bar] = deriveElementDecoder
+
       case class Foo(qux: Int, maybeBar: Option[Bar], bars: List[Bar])
+      implicit val fooDecoder: XmlDecoder[Foo] = deriveXmlDecoder("foo")
 
       val xml = """
         |<foo>

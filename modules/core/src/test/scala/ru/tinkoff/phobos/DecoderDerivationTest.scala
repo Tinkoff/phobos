@@ -4,11 +4,11 @@ import org.scalatest.Assertion
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
 import ru.tinkoff.phobos.SealedClasses.{Animal, Cat, Cow, Dog}
-import ru.tinkoff.phobos.annotations.{ElementCodec, XmlCodec, XmlCodecNs, XmlnsDef}
 import ru.tinkoff.phobos.decoding.{AttributeDecoder, DecodingError, ElementDecoder, TextDecoder, XmlDecoder}
 import ru.tinkoff.phobos.syntax._
 import ru.tinkoff.phobos.configured.naming._
 import ru.tinkoff.phobos.configured.ElementCodecConfig
+import ru.tinkoff.phobos.derivation.semiauto._
 
 class DecoderDerivationTest extends AnyWordSpec with Matchers {
   def pure(str: String): List[Array[Byte]] =
@@ -20,12 +20,13 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
   "Decoder derivation without namespaces" should {
 
     def decodeSimpleCaseClasses(toList: String => List[Array[Byte]]): Assertion = {
-      @ElementCodec
       case class Foo(a: Int, b: String, c: Double)
-      @XmlCodec("bar")
       case class Bar(d: String, foo: Foo, e: Char)
 
-      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
+      implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoder("bar")
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <bar>
                      |   <d>d value</d>
@@ -46,14 +47,15 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode simple case classes async" in decodeSimpleCaseClasses(fromIterable)
 
     def decodeAttributes(toList: String => List[Array[Byte]]): Assertion = {
-      @ElementCodec
       case class Foo(a: Int, @attr b: String, c: Double)
-      @XmlCodec("bar")
       case class Bar(d: String, foo: Foo, @attr e: Char)
+
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
+      implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoder("bar")
 
       val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
 
-      val string = """<?xml version='1.0' encoding='UTF-8'?>
+      val string  = """<?xml version='1.0' encoding='UTF-8'?>
                      | <bar e="e">
                      |   <d>d value</d>
                      |   <foo b="b value">
@@ -77,10 +79,14 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       implicit val alternativeTextDecoder: TextDecoder[Double] =
         TextDecoder.stringDecoder.map(_ => -42.0)
 
-      @ElementCodec
       case class Foo(@attr bar: Int, @text baz: Double)
-      @XmlCodec("qux")
+      object Foo {
+        implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
+      }
       case class Qux(str: String, foo: Foo)
+      object Qux {
+        implicit val quxDecoder: XmlDecoder[Qux] = deriveXmlDecoder("qux")
+      }
 
       val qux = Qux("constant", Foo(24, -42.0))
       val string =
@@ -99,16 +105,17 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "allow to override codecs async" in allowToOverrideCodecs(fromIterable)
 
     def decodeOptions(toList: String => List[Array[Byte]]): Assertion = {
-      @ElementCodec
       case class Foo(a: Option[Int], @attr b: String, c: Option[Double])
-      @XmlCodec("Wrapper")
       case class Wrapper(foo: Option[Foo])
+
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
+      implicit val xmlDecoder: XmlDecoder[Wrapper] = deriveXmlDecoder("Wrapper")
 
       val opt1 = Wrapper(Some(Foo(Some(1), "b", Some(2.0))))
       val opt2 = Wrapper(None)
       val opt3 = Wrapper(Some(Foo(None, "b", None)))
 
-      val string1 = """<?xml version='1.0' encoding='UTF-8'?>
+      val string1  = """<?xml version='1.0' encoding='UTF-8'?>
                       | <Wrapper>
                       |   <foo b="b">
                       |     <a>1</a>
@@ -116,15 +123,15 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
                       |   </foo>
                       | </Wrapper>
                     """.stripMargin
-      val string2 = """<?xml version='1.0' encoding='UTF-8'?>
+      val string2  = """<?xml version='1.0' encoding='UTF-8'?>
                       | <Wrapper/>
                     """.stripMargin
-      val string3 = """<?xml version='1.0' encoding='UTF-8'?>
+      val string3  = """<?xml version='1.0' encoding='UTF-8'?>
                        | <Wrapper>
                        |   <foo b="b"/>
                        | </Wrapper>
                     """.stripMargin
-      val string4 = """<?xml version='1.0' encoding='UTF-8'?>
+      val string4  = """<?xml version='1.0' encoding='UTF-8'?>
                        | <Wrapper>
                        |   <foo/>
                        | </Wrapper>
@@ -140,10 +147,11 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode options async" in decodeOptions(fromIterable)
 
     "decoding malformed XML results in Left informing you where the error occurred" in {
-      @ElementCodec
       case class Foo(a: Int, @attr b: String)
-      @XmlCodec("Wrapper")
       case class Wrapper(foo: List[Foo])
+
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
+      implicit val xmlDecoder: XmlDecoder[Wrapper] = deriveXmlDecoder("Wrapper")
 
       val invalidXmlStringAtFoo =
         """<?xml version='1.0' encoding='UTF-8'?>
@@ -173,12 +181,13 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     }
 
     def decodeNilValues(toList: String => List[Array[Byte]]): Assertion = {
-      @ElementCodec
       case class Foo(a: Int, @attr b: String)
-      @XmlCodec("Wrapper1")
       case class Wrapper1(foo: List[Foo])
-      @XmlCodec("Wrapper2")
       case class Wrapper2(foo: Option[Foo])
+
+      implicit val fooDecoder: ElementDecoder[Foo]   = deriveElementDecoder
+      implicit val xmlDecoder1: XmlDecoder[Wrapper1] = deriveXmlDecoder("Wrapper1")
+      implicit val xmlDecoder2: XmlDecoder[Wrapper2] = deriveXmlDecoder("Wrapper2")
 
       val wrapper1 = Wrapper1(List(Foo(1, "b"), Foo(2, "b2")))
       val wrapper2 = Wrapper2(None)
@@ -211,10 +220,12 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode nil values async" in decodeNilValues(fromIterable)
 
     def decodeLists(toList: String => List[Array[Byte]]): Assertion = {
-      @ElementCodec
       case class Foo(a: Int, @attr b: Option[String], c: Option[Double])
-      @XmlCodec("foos")
       case class Foos(foo: List[Foo])
+
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
+      implicit val xmlDecoder: XmlDecoder[Foos]    = deriveXmlDecoder("foos")
+
       val bar1 = Foos(
         List(
           Foo(1, Some("b value"), Some(3.0)),
@@ -258,12 +269,13 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode lists async" in decodeLists(fromIterable)
 
     def decodeMixedLists(toList: String => List[Array[Byte]]): Assertion = {
-      @ElementCodec
       case class Foo(a: Int, @attr b: Option[String], c: Option[Double])
-      @ElementCodec
       case class Bar(a: String, b: Int)
-      @XmlCodec("foobars")
       case class FooBars(foo: List[Foo], bar: List[Bar])
+
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
+      implicit val barDecoder: ElementDecoder[Bar] = deriveElementDecoder
+      implicit val xmlDecoder: XmlDecoder[FooBars] = deriveXmlDecoder("foobars")
 
       val bar1 = FooBars(
         List(
@@ -317,8 +329,10 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode mixed lists async" in decodeMixedLists(fromIterable)
 
     def decodeByteArrays(toList: String => List[Array[Byte]]): Assertion = {
-      @XmlCodec("foo")
       case class Foo(@text content: Array[Byte])
+
+      implicit val xmlDecoder: XmlDecoder[Foo] = deriveXmlDecoder("foo")
+
       val foo = Foo("foobar".getBytes)
 
       val string = """<?xml version='1.0' encoding='UTF-8'?>
@@ -333,12 +347,13 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode byte arrays async" in decodeByteArrays(fromIterable)
 
     def decodeTextValues(toList: String => List[Array[Byte]]): Assertion = {
-      @ElementCodec
       case class Foo(@attr a: Int, @attr b: String, @text c: Double)
-      @XmlCodec("bar")
       case class Bar(d: String, foo: Foo, e: Char)
 
-      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
+      implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoder("bar")
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <bar>
                      |   <d>d value</d>
@@ -354,11 +369,17 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode text values sync" in decodeTextValues(pure)
     "decode text values async" in decodeTextValues(fromIterable)
 
-    def decodeRecursiveValues(toList: String => List[Array[Byte]]): Assertion = {
-      @XmlCodec("foo")
+    object decodeRecursiveValuesClasses {
       case class Foo(foo: Option[Foo], das: Int)
 
-      val foo = Foo(Some(Foo(Some(Foo(Some(Foo(Some(Foo(None, 4)), 3)), 2)), 1)), 0)
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder[Foo]
+      implicit val xmlDecoder: XmlDecoder[Foo]     = XmlDecoder.fromElementDecoder("foo")
+    }
+
+    def decodeRecursiveValues(toList: String => List[Array[Byte]]): Assertion = {
+      import decodeRecursiveValuesClasses._
+
+      val foo    = Foo(Some(Foo(Some(Foo(Some(Foo(Some(Foo(None, 4)), 3)), 2)), 1)), 0)
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      |<foo>
                      |   <foo>
@@ -385,10 +406,11 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode recursive values async" in decodeRecursiveValues(fromIterable)
 
     def ignoreExtraElements(toList: String => List[Array[Byte]]): Assertion = {
-      @XmlCodec("foo")
       case class Foo(das: Int)
 
-      val foo = Foo(0)
+      implicit val xmlDecoder: XmlDecoder[Foo] = deriveXmlDecoder("foo")
+
+      val foo    = Foo(0)
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      |<foo>
                      |   <foo>
@@ -416,10 +438,11 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "ignore extra elements async" in ignoreExtraElements(fromIterable)
 
     def decodeMixedContent(toList: String => List[Array[Byte]]): Assertion = {
-      @XmlCodec("foo")
       case class Foo(count: Int, buz: String, @text text: String)
 
-      val foo = Foo(1, "Buzz", "Sending  item to ")
+      implicit val xmlDecoder: XmlDecoder[Foo] = deriveXmlDecoder("foo")
+
+      val foo    = Foo(1, "Buzz", "Sending  item to ")
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      |<foo>Sending <count>1</count> item to <buz>Buzz</buz></foo>
                    """.stripMargin
@@ -433,12 +456,13 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode mixed content async" in decodeMixedContent(fromIterable)
 
     def decodeMixedContentForElementsWithSameName(toList: String => List[Array[Byte]]): Assertion = {
-      @ElementCodec
       case class Element2(@text text: String)
-      @ElementCodec
       case class Element1(element: Element2, @text text: String)
-      @XmlCodec("document")
       case class Document(element: Element1)
+
+      implicit val element2decoder: ElementDecoder[Element2] = deriveElementDecoder
+      implicit val element1decoder: ElementDecoder[Element1] = deriveElementDecoder
+      implicit val xmlDecoder: XmlDecoder[Document]          = deriveXmlDecoder("document")
 
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      |<document><element>text1<element>text2</element></element></document>
@@ -455,11 +479,12 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode mixed content for elements with same name async" in decodeMixedContentForElementsWithSameName(fromIterable)
 
     def escapeCharacters(toList: String => List[Array[Byte]]): Assertion = {
-      @XmlCodec("foo")
       case class Foo(@attr baz: String, bar: String)
 
-      val foo = Foo("Esca\"'<>&pe", "Esca\"'<>&pe")
-      val string = """<?xml version='1.0' encoding='UTF-8'?>
+      implicit val xmlDecoder: XmlDecoder[Foo] = deriveXmlDecoder("foo")
+
+      val foo     = Foo("Esca\"'<>&pe", "Esca\"'<>&pe")
+      val string  = """<?xml version='1.0' encoding='UTF-8'?>
                      |<foo baz="Esca&quot;&apos;&lt;>&amp;pe">
                      |  <bar>Esca"'&lt;>&amp;pe</bar>
                      |</foo>
@@ -472,11 +497,12 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "escape characters async" in escapeCharacters(fromIterable)
 
     def decodeWithRenamed(toList: String => List[Array[Byte]]): Assertion = {
-      @XmlCodec("foo")
       case class Foo(@attr baz: String, bar: String, @renamed("foooo") sample: String)
 
-      val foo = Foo("Esca\"'<>&pe", "Esca\"'<>&pe", "somefoo")
-      val string = """<?xml version='1.0' encoding='UTF-8'?>
+      implicit val xmlDecoder: XmlDecoder[Foo] = deriveXmlDecoder("foo")
+
+      val foo     = Foo("Esca\"'<>&pe", "Esca\"'<>&pe", "somefoo")
+      val string  = """<?xml version='1.0' encoding='UTF-8'?>
                      |<foo baz="Esca&quot;&apos;&lt;>&amp;pe">
                      |  <bar>Esca"'&lt;>&amp;pe</bar>
                      |  <foooo>somefoo</foooo>
@@ -490,13 +516,14 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decodes with @renamed async" in decodeWithRenamed(fromIterable)
 
     def decodeWithRenamedNested(toList: String => List[Array[Byte]]): Assertion = {
-      @XmlCodec("foo")
       case class Foo(@attr baz: String, @renamed("theBar") bar: Bar)
-
-      @XmlCodec("bar")
       case class Bar(a: String, b: String)
-      val foo = Foo("Esca\"'<>&pe", Bar("theA", "theB"))
-      val string = """<?xml version='1.0' encoding='UTF-8'?>
+
+      implicit val barDecoder: ElementDecoder[Bar] = deriveElementDecoder
+      implicit val fooXmlDecoder: XmlDecoder[Foo]  = deriveXmlDecoder("foo")
+
+      val foo     = Foo("Esca\"'<>&pe", Bar("theA", "theB"))
+      val string  = """<?xml version='1.0' encoding='UTF-8'?>
                      |<foo baz="Esca&quot;&apos;&lt;>&amp;pe">
                      |  <theBar>
                      |    <a>theA</a>
@@ -512,11 +539,12 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decodes with @renamed nested async" in decodeWithRenamedNested(fromIterable)
 
     def decodeWithRenamedAttribute(toList: String => List[Array[Byte]]): Assertion = {
-      @XmlCodec("foo")
       case class Foo(@attr @renamed("theBaz") baz: String, bar: String)
 
-      val foo = Foo("Esca\"'<>&pe", "Esca\"'<>&pe")
-      val string = """<?xml version='1.0' encoding='UTF-8'?>
+      implicit val xmlDecoder: XmlDecoder[Foo] = deriveXmlDecoder("foo")
+
+      val foo     = Foo("Esca\"'<>&pe", "Esca\"'<>&pe")
+      val string  = """<?xml version='1.0' encoding='UTF-8'?>
                      |<foo theBaz="Esca&quot;&apos;&lt;>&amp;pe">
                      |  <bar>Esca"'&lt;>&amp;pe</bar>
                      |</foo>
@@ -529,12 +557,13 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decodes with @renamed @attr async" in decodeWithRenamedAttribute(fromIterable)
 
     def decodeRenamedTextValues(toList: String => List[Array[Byte]]): Assertion = {
-      @ElementCodec
       case class Foo(@attr a: Int, @attr @renamed("theB") b: String, @text c: Double)
-      @XmlCodec("bar")
       case class Bar(d: String, foo: Foo, e: Char)
 
-      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
+      implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoder("bar")
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <bar>
                      |   <d>d value</d>
@@ -552,12 +581,13 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
 
     def decodeCamelCase(toList: String => List[Array[Byte]]): Assertion = {
       val camelCaseConfig = ElementCodecConfig.default.withStyle(camelCase)
-      @ElementCodec(camelCaseConfig)
       case class Foo(@attr someName: Int, @attr someOther: String, @text c: Double)
-      @XmlCodec("Bar", camelCaseConfig)
       case class Bar(someTopName: String, someFoo: Foo, e: Char)
 
-      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoderConfigured(camelCaseConfig)
+      implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoderConfigured("Bar", camelCaseConfig)
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <Bar>
                      |   <SomeTopName>d value</SomeTopName>
@@ -575,12 +605,13 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
 
     def decodeSnakeCase(toList: String => List[Array[Byte]]): Assertion = {
       val snakeCaseConfig = ElementCodecConfig.default.withStyle(snakeCase)
-      @ElementCodec(snakeCaseConfig)
       case class Foo(@attr someName: Int, @attr someOther: String, @text c: Double)
-      @XmlCodec("bar", snakeCaseConfig)
       case class Bar(someTopName: String, someFoo: Foo, e: Char)
 
-      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoderConfigured(snakeCaseConfig)
+      implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoderConfigured("bar", snakeCaseConfig)
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <bar>
                      |   <some_top_name>d value</some_top_name>
@@ -598,12 +629,13 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
 
     def decodeRenamedPriority(toList: String => List[Array[Byte]]): Assertion = {
       val snakeCaseConfig = ElementCodecConfig.default.withStyle(snakeCase)
-      @ElementCodec(snakeCaseConfig)
       case class Foo(@attr someName: Int, @attr @renamed("i-Have-priority") someOther: String, @text c: Double)
-      @XmlCodec("bar", snakeCaseConfig)
       case class Bar(someTopName: String, @renamed("Me2") someFoo: Foo, e: Char)
 
-      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoderConfigured(snakeCaseConfig)
+      implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoderConfigured("bar", snakeCaseConfig)
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <bar>
                      |   <some_top_name>d value</some_top_name>
@@ -620,10 +652,11 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode with @renamed having priority over naming async" in decodeRenamedPriority(fromIterable)
 
     def decodeWithDefaultDecoders(toList: String => List[Array[Byte]]): Assertion = {
-      @ElementCodec
       case class Default(a: Option[Int], b: Option[String], c: Option[Double])
-      @XmlCodec("foo")
       case class Foo(a: Int, b: String, @default defaults: List[Default])
+
+      implicit val defaultDecoder: ElementDecoder[Default] = deriveElementDecoder
+      implicit val xmlDecoder: XmlDecoder[Foo]             = deriveXmlDecoder("foo")
 
       val foo =
         Foo(
@@ -655,8 +688,9 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
 
   "Decoder derivation for sealed traits" should {
     def decodeSealedTraits(toList: String => List[Array[Byte]]): Assertion = {
-      @ElementCodec
       case class Bar(d: String, foo: SealedClasses.Foo, e: Char)
+
+      implicit val elementDecoder: ElementDecoder[Bar] = deriveElementDecoder
 
       val bar1 = Bar("d value", SealedClasses.Foo1("string"), 'k')
       val bar2 = Bar("d value", SealedClasses.Foo2(1), 'e')
@@ -712,8 +746,9 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode sealed traits async" in decodeSealedTraits(fromIterable)
 
     def decodeSealedTraitsWithCustomDiscriminator(toList: String => List[Array[Byte]]): Assertion = {
-      @ElementCodec
       case class Qux(d: String, bar: SealedClasses.Bar, e: Char)
+
+      implicit val quxElementDecoder: ElementDecoder[Qux] = deriveElementDecoder
 
       val qux1 = Qux("d value", SealedClasses.Bar1("string"), 'k')
       val qux2 = Qux("d value", SealedClasses.Bar2(1), 'e')
@@ -755,8 +790,9 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
           quxDecoder.decodeFromIterable(toList(string3)) == Right(qux3),
       )
 
-      @ElementCodec
       case class Quux(d: String, baz: SealedClasses.Baz, e: Char)
+
+      implicit val quuxElementDecoder: ElementDecoder[Quux] = deriveElementDecoder
 
       val quux1 = Quux("d value", SealedClasses.Baz1("string"), 'k')
       val quux2 = Quux("d value", SealedClasses.Baz2(1), 'e')
@@ -897,8 +933,10 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       notTransformCustomDiscriminatorValues(fromIterable)
 
     def useElementNameAsDiscriminatorIfConfigured(toList: String => List[Array[Byte]]): Assertion = {
-      @XmlCodec("zoo")
       case class Zoo(@default animals: List[Animal])
+
+      implicit val xmlDecoder: XmlDecoder[Zoo] = deriveXmlDecoder("zoo")
+
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                       | <zoo>
                       |   <cow>
@@ -915,7 +953,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
                       |   </cat>
                       | </zoo>
                     """.stripMargin
-      val zoo = Zoo(List(Cow(12.432), Cat("meow"), Dog(1234), Cat("nya")))
+      val zoo    = Zoo(List(Cow(12.432), Cat("meow"), Dog(1234), Cat("nya")))
       XmlDecoder[Zoo].decodeFromIterable(toList(string)) shouldBe Right(zoo)
     }
 
@@ -959,23 +997,24 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
   "Decoder derivation with namespaces" should {
 
     def decodeSimpleCaseClasses(toList: String => List[Array[Byte]]): Assertion = {
-      @XmlnsDef("tinkoff.ru")
       object tkf
+      implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
 
-      @ElementCodec
       case class Foo(
           @xmlns(tkf) a: Int,
           @xmlns(tkf) b: String,
           @xmlns(tkf) c: Double,
       )
-      @XmlCodecNs("bar", tkf)
       case class Bar(
           @xmlns(tkf) d: String,
           @xmlns(tkf) foo: Foo,
           @xmlns(tkf) e: Char,
       )
 
-      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
+      implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoder("bar", tkf)
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <ans1:bar xmlns:ans1="tinkoff.ru">
                      |   <ans1:d>d value</ans1:d>
@@ -996,22 +1035,24 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode simple case classes async" in decodeSimpleCaseClasses(fromIterable)
 
     def decodeAttributes(toList: String => List[Array[Byte]]): Assertion = {
-      @XmlnsDef("tinkoff.ru")
       case object tkf
-      @ElementCodec
+      implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
+
       case class Foo(
           @xmlns(tkf) a: Int,
           @xmlns(tkf) @attr b: String,
           @xmlns(tkf) c: Double,
       )
-      @XmlCodecNs("bar", tkf)
       case class Bar(
           @xmlns(tkf) d: String,
           @xmlns(tkf) foo: Foo,
           @xmlns(tkf) @attr e: Char,
       )
 
-      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
+      implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoder("bar", tkf)
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <ans1:bar xmlns:ans1="tinkoff.ru" ans1:e="e">
                      |   <ans1:d>d value</ans1:d>
@@ -1031,23 +1072,24 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode attributes async" in decodeAttributes(fromIterable)
 
     def decodeNestedNamespaces(toList: String => List[Array[Byte]]): Assertion = {
-      @XmlnsDef("tinkoff.ru")
       case object tkf
-      @ElementCodec
+      implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
       case class Foo(
           @xmlns(tkf) a: Int,
           @attr b: String,
           @xmlns(tkf) c: Double,
       )
-      @XmlCodec("bar")
       case class Bar(
           d: String,
           @xmlns(tkf) foo: Foo,
           @attr e: Char,
       )
 
-      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
-      val string = """<?xml version='1.0' encoding='UTF-8'?>
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
+      implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoder("bar")
+
+      val bar     = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val string  = """<?xml version='1.0' encoding='UTF-8'?>
                      | <bar e="e">
                      |   <d>d value</d>
                      |   <ans1:foo xmlns:ans1="tinkoff.ru" b="b value">
@@ -1065,24 +1107,26 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode nested namespaces async" in decodeNestedNamespaces(fromIterable)
 
     def decodeMultipleNamespaces(toList: String => List[Array[Byte]]): Assertion = {
-      @XmlnsDef("tinkoff.ru")
       case object tkf
-      @XmlnsDef("tcsbank.ru")
+      implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
       case object tcs
-      @ElementCodec
+      implicit val tcsNs: Namespace[tcs.type] = Namespace.mkInstance("tcsbank.ru")
+
       case class Foo(
           @xmlns(tkf) a: Int,
           @attr b: String,
           @xmlns(tkf) c: Double,
       )
-      @XmlCodecNs("bar", tcs)
       case class Bar(
           @xmlns(tcs) d: String,
           @xmlns(tkf) foo: Foo,
           @attr e: Char,
       )
 
-      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
+      implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoder("bar", tcs)
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <ans1:bar xmlns:ans1="tcsbank.ru" e="e">
                      |   <ans1:d>d value</ans1:d>
@@ -1103,21 +1147,22 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
 
     def decodeCamelCase(toList: String => List[Array[Byte]]): Assertion = {
       val camelCaseConfig = ElementCodecConfig.default.withStyle(camelCase)
-      @XmlnsDef("tinkoff.ru")
       case object tkf
-      @ElementCodec(camelCaseConfig)
+      implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
       case class Foo(
           @xmlns(tkf) someName: Int,
           @xmlns(tkf) someOtherName: String,
           @xmlns(tkf) c: Double,
       )
-      @XmlCodecNs("Bar", tkf, camelCaseConfig)
       case class Bar(
           @xmlns(tkf) someTopName: String,
           @xmlns(tkf) someFoo: Foo,
       )
 
-      val bar = Bar("d value", Foo(1, "b value", 3.0))
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoderConfigured(camelCaseConfig)
+      implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoderConfigured("Bar", tkf, camelCaseConfig)
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0))
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <ans1:Bar xmlns:ans1="tinkoff.ru">
                      |   <ans1:SomeTopName>d value</ans1:SomeTopName>
@@ -1138,21 +1183,23 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
 
     def decodeSnakeCase(toList: String => List[Array[Byte]]): Assertion = {
       val snakeCaseConfig = ElementCodecConfig.default.withStyle(snakeCase)
-      @XmlnsDef("tinkoff.ru")
       case object tkf
-      @ElementCodec(snakeCaseConfig)
+      implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
+
       case class Foo(
           @xmlns(tkf) someName: Int,
           @xmlns(tkf) someOtherName: String,
           @xmlns(tkf) c: Double,
       )
-      @XmlCodecNs("bar", tkf, snakeCaseConfig)
       case class Bar(
           @xmlns(tkf) someTopName: String,
           @xmlns(tkf) someFoo: Foo,
       )
 
-      val bar = Bar("d value", Foo(1, "b value", 3.0))
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoderConfigured(snakeCaseConfig)
+      implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoderConfigured("bar", tkf, snakeCaseConfig)
+
+      val bar    = Bar("d value", Foo(1, "b value", 3.0))
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <ans1:bar xmlns:ans1="tinkoff.ru">
                      |   <ans1:some_top_name>d value</ans1:some_top_name>
@@ -1172,14 +1219,15 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode snake_case async" in decodeSnakeCase(fromIterable)
 
     def decodeWithDefaultElementNamespaces(toList: String => List[Array[Byte]]): Assertion = {
-      @XmlnsDef("tinkoff.ru")
       case object tkf
+      implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
 
       val defaultNamespaceConfig = ElementCodecConfig.default.withElementsDefaultNamespace(tkf)
-      @ElementCodec
       case class Foo(a: Int, b: String, c: Double)
-      @XmlCodecNs("bar", tkf, defaultNamespaceConfig)
       case class Bar(@attr d: String, foo: Foo, e: Char)
+
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
+      implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoderConfigured("bar", tkf, defaultNamespaceConfig)
 
       val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string =
@@ -1202,17 +1250,17 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode with default element namespaces async" in decodeWithDefaultElementNamespaces(fromIterable)
 
     def overrideDefaultElementNamespaceWithNamespaceFromAnnotation(toList: String => List[Array[Byte]]): Assertion = {
-      @XmlnsDef("tinkoff.ru")
       case object tkf
-
-      @XmlnsDef("tcsbank.ru")
+      implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
       case object tcs
+      implicit val tcsNs: Namespace[tcs.type] = Namespace.mkInstance("tcsbank.ru")
 
       val defaultNamespaceConfig = ElementCodecConfig.default.withElementsDefaultNamespace(tkf)
-      @ElementCodec
       case class Foo(a: Int, b: String, c: Double)
-      @XmlCodecNs("bar", tkf, defaultNamespaceConfig)
       case class Bar(@attr d: String, @xmlns(tcs) foo: Foo, e: Char)
+
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
+      implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoderConfigured("bar", tkf, defaultNamespaceConfig)
 
       val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string =
@@ -1238,14 +1286,15 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       overrideDefaultElementNamespaceWithNamespaceFromAnnotation(fromIterable)
 
     def decodeWithDefaultAttributeNamespaces(toList: String => List[Array[Byte]]): Assertion = {
-      @XmlnsDef("tinkoff.ru")
       case object tkf
+      implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
 
       val defaultNamespaceConfig = ElementCodecConfig.default.withAttributesDefaultNamespace(tkf)
-      @ElementCodec
       case class Foo(a: Int, b: String, c: Double)
-      @XmlCodecNs("bar", tkf, defaultNamespaceConfig)
       case class Bar(@attr d: String, foo: Foo, @attr e: Char)
+
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
+      implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoderConfigured("bar", tkf, defaultNamespaceConfig)
 
       val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string =
@@ -1267,17 +1316,17 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode with default attribute namespaces async" in decodeWithDefaultAttributeNamespaces(fromIterable)
 
     def overrideDefaultAttributeNamespaceWithNamespaceFromAnnotation(toList: String => List[Array[Byte]]): Assertion = {
-      @XmlnsDef("tinkoff.ru")
       case object tkf
-
-      @XmlnsDef("tcsbank.ru")
+      implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
       case object tcs
+      implicit val tcsNs: Namespace[tcs.type] = Namespace.mkInstance("tcsbank.ru")
 
       val defaultNamespaceConfig = ElementCodecConfig.default.withAttributesDefaultNamespace(tkf)
-      @ElementCodec
       case class Foo(a: Int, b: String, c: Double)
-      @XmlCodecNs("bar", tkf, defaultNamespaceConfig)
       case class Bar(@attr d: String, foo: Foo, @attr @xmlns(tcs) e: Char)
+
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
+      implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoderConfigured("bar", tkf, defaultNamespaceConfig)
 
       val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string =
@@ -1301,13 +1350,14 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       overrideDefaultAttributeNamespaceWithNamespaceFromAnnotation(fromIterable)
 
     def failWhenElementNameIsIncorrect(toList: String => List[Array[Byte]]): Assertion = {
-      @XmlnsDef("tinkoff.ru")
       case object tcs
+      implicit val tcsNs: Namespace[tcs.type] = Namespace.mkInstance("tinkoff.ru")
 
-      @ElementCodec
       case class Foo(a: Int, b: String, c: Double)
-      @XmlCodecNs("bar", tcs)
       case class Bar(@attr d: String, foo: Foo, @attr e: Char)
+
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
+      implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoder("bar", tcs)
 
       val string1 =
         """<?xml version='1.0' encoding='UTF-8'?>
@@ -1346,11 +1396,11 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       failWhenElementNameIsIncorrect(fromIterable)
 
     def decodeSealedTraits(toList: String => List[Array[Byte]]): Assertion = {
-      @XmlnsDef("tinkoff.ru")
       case object tkf
+      implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
 
-      @XmlCodec("aquarium", ElementCodecConfig.default.withNamespaceDefined(tkf))
       case class Aquarium(@xmlns(tkf) fish: List[SealedClasses.Pisces])
+      implicit val xmlDecoder: XmlDecoder[Aquarium] = deriveXmlDecoderConfigured("aquarium", ElementCodecConfig.default.withNamespaceDefined(tkf))
       val string =
         """<?xml version='1.0' encoding='UTF-8'?>
           | <aquarium xmlns:ans1="tinkoff.ru">
@@ -1373,11 +1423,12 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode sealed traits async" in decodeSealedTraits(fromIterable)
 
     def decodeSealedTraitsUsingElementNamesAsDiscriminators(toList: String => List[Array[Byte]]): Assertion = {
-      @XmlnsDef("tinkoff.ru")
       case object tkf
+      implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
 
-      @XmlCodec("shelter", ElementCodecConfig.default.withNamespaceDefined(tkf))
       case class AnimalShelter(@xmlns(tkf) @default animals: List[SealedClasses.Animal])
+      implicit val xmlDecoder: XmlDecoder[AnimalShelter] = deriveXmlDecoderConfigured("shelter", ElementCodecConfig.default.withNamespaceDefined(tkf))
+
       val string =
         """<?xml version='1.0' encoding='UTF-8'?>
           | <shelter xmlns:ans1="tinkoff.ru">
@@ -1402,33 +1453,33 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
   "Decoder derivation compilation" should {
     "fail if wrong attributes" in {
       """
-        | @ElementCodec
         | case class NotAttribute(a: Int)
-        | @ElementCodec
+        | implicit val notAttributeDecoder: ElementDecoder[NotAttribute] = deriveElementDecoder
         | case class Wrapper(@attr attribute: NotAttribute)
+        | implicit val wrapperDecoder: ElementDecoder[Wrapper] = deriveElementDecoder
       """.stripMargin shouldNot typeCheck
     }
 
     "fail if wrong texts" in {
       """
-        | @ElementCodec
         | case class NotText(a: Int)
-        | @ElementCodec
+        | implicit val notTextDecoder: ElementDecoder[NotText] = deriveElementDecoder
         | case class Wrapper(@text text: NotText, @attr a: Int)
+        | implicit val wrapperDecoder: ElementDecoder[Wrapper] = deriveElementDecoder
       """.stripMargin shouldNot typeCheck
     }
 
     "fail if multiple xml annotations" in {
       """
-        | @ElementCodec
         | case class AttrText(@attr @text attrText: Int, b: String)
+        | implicit val attrTextDecoder: ElementDecoder[AttrText] = deriveElementDecoder
       """.stripMargin shouldNot typeCheck
     }
 
     "fail if multiple texts" in {
       """
-        | @ElementCodec
         | case class MultiText(@text a: Int, @text b: String)
+        | implicit val multiTextDecoder: ElementDecoder[MultiText] = deriveElementDecoder
       """.stripMargin shouldNot typeCheck
     }
   }

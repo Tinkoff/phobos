@@ -86,9 +86,10 @@ object catsInstances {
 
       val a = Foldable[F].foldLeft(f, xmlDecoder.elementdecoder) { (decoder: ElementDecoder[A], bytes: Array[Byte]) =>
         sr.getInputFeeder.feedInput(bytes, 0, bytes.length)
-        do {
+        cursor.next()
+        while (cursor.getEventType == XMLStreamConstants.DTD || cursor.getEventType == XMLStreamConstants.START_DOCUMENT) {
           cursor.next()
-        } while (cursor.getEventType == XMLStreamConstants.DTD || cursor.getEventType == XMLStreamConstants.START_DOCUMENT)
+        }
 
         if (decoder.result(cursor.history).isRight) {
           decoder
