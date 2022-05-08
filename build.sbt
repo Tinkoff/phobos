@@ -172,7 +172,7 @@ lazy val `monix` =
     .settings(
       commonDependencies,
       libraryDependencies ++= Seq(
-        "io.monix" %% "monix" % "3.4.0",
+        "io.monix" %% "monix" % "3.4.1",
       ),
     )
     .jvmPlatform(scala3Versions)
