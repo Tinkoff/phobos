@@ -26,7 +26,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
       implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoder("bar")
 
-      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <bar>
                      |   <d>d value</d>
@@ -55,7 +55,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
 
       val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
 
-      val string  = """<?xml version='1.0' encoding='UTF-8'?>
+      val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <bar e="e">
                      |   <d>d value</d>
                      |   <foo b="b value">
@@ -115,7 +115,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       val opt2 = Wrapper(None)
       val opt3 = Wrapper(Some(Foo(None, "b", None)))
 
-      val string1  = """<?xml version='1.0' encoding='UTF-8'?>
+      val string1 = """<?xml version='1.0' encoding='UTF-8'?>
                       | <Wrapper>
                       |   <foo b="b">
                       |     <a>1</a>
@@ -123,15 +123,15 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
                       |   </foo>
                       | </Wrapper>
                     """.stripMargin
-      val string2  = """<?xml version='1.0' encoding='UTF-8'?>
+      val string2 = """<?xml version='1.0' encoding='UTF-8'?>
                       | <Wrapper/>
                     """.stripMargin
-      val string3  = """<?xml version='1.0' encoding='UTF-8'?>
+      val string3 = """<?xml version='1.0' encoding='UTF-8'?>
                        | <Wrapper>
                        |   <foo b="b"/>
                        | </Wrapper>
                     """.stripMargin
-      val string4  = """<?xml version='1.0' encoding='UTF-8'?>
+      val string4 = """<?xml version='1.0' encoding='UTF-8'?>
                        | <Wrapper>
                        |   <foo/>
                        | </Wrapper>
@@ -353,7 +353,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
       implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoder("bar")
 
-      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <bar>
                      |   <d>d value</d>
@@ -379,7 +379,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     def decodeRecursiveValues(toList: String => List[Array[Byte]]): Assertion = {
       import decodeRecursiveValuesClasses._
 
-      val foo    = Foo(Some(Foo(Some(Foo(Some(Foo(Some(Foo(None, 4)), 3)), 2)), 1)), 0)
+      val foo = Foo(Some(Foo(Some(Foo(Some(Foo(Some(Foo(None, 4)), 3)), 2)), 1)), 0)
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      |<foo>
                      |   <foo>
@@ -410,7 +410,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
 
       implicit val xmlDecoder: XmlDecoder[Foo] = deriveXmlDecoder("foo")
 
-      val foo    = Foo(0)
+      val foo = Foo(0)
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      |<foo>
                      |   <foo>
@@ -442,7 +442,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
 
       implicit val xmlDecoder: XmlDecoder[Foo] = deriveXmlDecoder("foo")
 
-      val foo    = Foo(1, "Buzz", "Sending  item to ")
+      val foo = Foo(1, "Buzz", "Sending  item to ")
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      |<foo>Sending <count>1</count> item to <buz>Buzz</buz></foo>
                    """.stripMargin
@@ -483,8 +483,8 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
 
       implicit val xmlDecoder: XmlDecoder[Foo] = deriveXmlDecoder("foo")
 
-      val foo     = Foo("Esca\"'<>&pe", "Esca\"'<>&pe")
-      val string  = """<?xml version='1.0' encoding='UTF-8'?>
+      val foo = Foo("Esca\"'<>&pe", "Esca\"'<>&pe")
+      val string = """<?xml version='1.0' encoding='UTF-8'?>
                      |<foo baz="Esca&quot;&apos;&lt;>&amp;pe">
                      |  <bar>Esca"'&lt;>&amp;pe</bar>
                      |</foo>
@@ -501,8 +501,8 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
 
       implicit val xmlDecoder: XmlDecoder[Foo] = deriveXmlDecoder("foo")
 
-      val foo     = Foo("Esca\"'<>&pe", "Esca\"'<>&pe", "somefoo")
-      val string  = """<?xml version='1.0' encoding='UTF-8'?>
+      val foo = Foo("Esca\"'<>&pe", "Esca\"'<>&pe", "somefoo")
+      val string = """<?xml version='1.0' encoding='UTF-8'?>
                      |<foo baz="Esca&quot;&apos;&lt;>&amp;pe">
                      |  <bar>Esca"'&lt;>&amp;pe</bar>
                      |  <foooo>somefoo</foooo>
@@ -522,8 +522,8 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       implicit val barDecoder: ElementDecoder[Bar] = deriveElementDecoder
       implicit val fooXmlDecoder: XmlDecoder[Foo]  = deriveXmlDecoder("foo")
 
-      val foo     = Foo("Esca\"'<>&pe", Bar("theA", "theB"))
-      val string  = """<?xml version='1.0' encoding='UTF-8'?>
+      val foo = Foo("Esca\"'<>&pe", Bar("theA", "theB"))
+      val string = """<?xml version='1.0' encoding='UTF-8'?>
                      |<foo baz="Esca&quot;&apos;&lt;>&amp;pe">
                      |  <theBar>
                      |    <a>theA</a>
@@ -543,8 +543,8 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
 
       implicit val xmlDecoder: XmlDecoder[Foo] = deriveXmlDecoder("foo")
 
-      val foo     = Foo("Esca\"'<>&pe", "Esca\"'<>&pe")
-      val string  = """<?xml version='1.0' encoding='UTF-8'?>
+      val foo = Foo("Esca\"'<>&pe", "Esca\"'<>&pe")
+      val string = """<?xml version='1.0' encoding='UTF-8'?>
                      |<foo theBaz="Esca&quot;&apos;&lt;>&amp;pe">
                      |  <bar>Esca"'&lt;>&amp;pe</bar>
                      |</foo>
@@ -563,7 +563,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
       implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoder("bar")
 
-      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <bar>
                      |   <d>d value</d>
@@ -587,7 +587,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoderConfigured(camelCaseConfig)
       implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoderConfigured("Bar", camelCaseConfig)
 
-      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <Bar>
                      |   <SomeTopName>d value</SomeTopName>
@@ -611,7 +611,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoderConfigured(snakeCaseConfig)
       implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoderConfigured("bar", snakeCaseConfig)
 
-      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <bar>
                      |   <some_top_name>d value</some_top_name>
@@ -635,7 +635,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoderConfigured(snakeCaseConfig)
       implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoderConfigured("bar", snakeCaseConfig)
 
-      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <bar>
                      |   <some_top_name>d value</some_top_name>
@@ -953,7 +953,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
                       |   </cat>
                       | </zoo>
                     """.stripMargin
-      val zoo    = Zoo(List(Cow(12.432), Cat("meow"), Dog(1234), Cat("nya")))
+      val zoo = Zoo(List(Cow(12.432), Cat("meow"), Dog(1234), Cat("nya")))
       XmlDecoder[Zoo].decodeFromIterable(toList(string)) shouldBe Right(zoo)
     }
 
@@ -1014,7 +1014,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
       implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoder("bar", tkf)
 
-      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <ans1:bar xmlns:ans1="tinkoff.ru">
                      |   <ans1:d>d value</ans1:d>
@@ -1052,7 +1052,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
       implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoder("bar", tkf)
 
-      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <ans1:bar xmlns:ans1="tinkoff.ru" ans1:e="e">
                      |   <ans1:d>d value</ans1:d>
@@ -1088,8 +1088,8 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
       implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoder("bar")
 
-      val bar     = Bar("d value", Foo(1, "b value", 3.0), 'e')
-      val string  = """<?xml version='1.0' encoding='UTF-8'?>
+      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <bar e="e">
                      |   <d>d value</d>
                      |   <ans1:foo xmlns:ans1="tinkoff.ru" b="b value">
@@ -1126,7 +1126,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
       implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoder("bar", tcs)
 
-      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <ans1:bar xmlns:ans1="tcsbank.ru" e="e">
                      |   <ans1:d>d value</ans1:d>
@@ -1162,7 +1162,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoderConfigured(camelCaseConfig)
       implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoderConfigured("Bar", tkf, camelCaseConfig)
 
-      val bar    = Bar("d value", Foo(1, "b value", 3.0))
+      val bar = Bar("d value", Foo(1, "b value", 3.0))
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <ans1:Bar xmlns:ans1="tinkoff.ru">
                      |   <ans1:SomeTopName>d value</ans1:SomeTopName>
@@ -1199,7 +1199,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoderConfigured(snakeCaseConfig)
       implicit val xmlDecoder: XmlDecoder[Bar]     = deriveXmlDecoderConfigured("bar", tkf, snakeCaseConfig)
 
-      val bar    = Bar("d value", Foo(1, "b value", 3.0))
+      val bar = Bar("d value", Foo(1, "b value", 3.0))
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <ans1:bar xmlns:ans1="tinkoff.ru">
                      |   <ans1:some_top_name>d value</ans1:some_top_name>
@@ -1400,7 +1400,8 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
 
       case class Aquarium(@xmlns(tkf) fish: List[SealedClasses.Pisces])
-      implicit val xmlDecoder: XmlDecoder[Aquarium] = deriveXmlDecoderConfigured("aquarium", ElementCodecConfig.default.withNamespaceDefined(tkf))
+      implicit val xmlDecoder: XmlDecoder[Aquarium] =
+        deriveXmlDecoderConfigured("aquarium", ElementCodecConfig.default.withNamespaceDefined(tkf))
       val string =
         """<?xml version='1.0' encoding='UTF-8'?>
           | <aquarium xmlns:ans1="tinkoff.ru">
@@ -1427,7 +1428,8 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
 
       case class AnimalShelter(@xmlns(tkf) @default animals: List[SealedClasses.Animal])
-      implicit val xmlDecoder: XmlDecoder[AnimalShelter] = deriveXmlDecoderConfigured("shelter", ElementCodecConfig.default.withNamespaceDefined(tkf))
+      implicit val xmlDecoder: XmlDecoder[AnimalShelter] =
+        deriveXmlDecoderConfigured("shelter", ElementCodecConfig.default.withNamespaceDefined(tkf))
 
       val string =
         """<?xml version='1.0' encoding='UTF-8'?>
