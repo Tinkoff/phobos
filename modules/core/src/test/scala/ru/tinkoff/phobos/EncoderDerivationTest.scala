@@ -1145,7 +1145,8 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
 
       case class Aquarium(@xmlns(tkf) fish: List[SealedClasses.Pisces])
-      implicit val xmlEncoder: XmlEncoder[Aquarium] = deriveXmlEncoderConfigured("aquarium", ElementCodecConfig.default.withNamespaceDefined(tkf))
+      implicit val xmlEncoder: XmlEncoder[Aquarium] =
+        deriveXmlEncoderConfigured("aquarium", ElementCodecConfig.default.withNamespaceDefined(tkf))
 
       val string =
         """<?xml version='1.0' encoding='UTF-8'?>
@@ -1170,7 +1171,8 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
 
       case class AnimalShelter(@xmlns(tkf) animals: List[SealedClasses.Animal])
-      implicit val xmlEncoder: XmlEncoder[AnimalShelter] = deriveXmlEncoderConfigured("shelter", ElementCodecConfig.default.withNamespaceDefined(tkf))
+      implicit val xmlEncoder: XmlEncoder[AnimalShelter] =
+        deriveXmlEncoderConfigured("shelter", ElementCodecConfig.default.withNamespaceDefined(tkf))
 
       val string =
         """<?xml version='1.0' encoding='UTF-8'?>
