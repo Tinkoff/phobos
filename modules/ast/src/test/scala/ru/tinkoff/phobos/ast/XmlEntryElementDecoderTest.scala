@@ -1,7 +1,7 @@
 package ru.tinkoff.phobos.ast
 
 import com.softwaremill.diffx.generic.auto._
-import com.softwaremill.diffx.scalatest.DiffMatcher
+import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.scalatest.EitherValues
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -9,15 +9,15 @@ import ru.tinkoff.phobos.Namespace
 import ru.tinkoff.phobos.decoding.{DecodingError, XmlDecoder}
 import cats.syntax.either._
 
-class XmlEntryElementDecoderTest extends AnyWordSpec with Matchers with DiffMatcher with EitherValues {
+class XmlEntryElementDecoderTest extends AnyWordSpec with Matchers with DiffShouldMatcher with EitherValues {
 
   "XmlEntry decoder" should {
     "decodes simple Xml into ast correctly" in {
       val sampleXml                = """<?xml version='1.0' encoding='UTF-8'?><ast foo="5"><bar>bazz</bar></ast>"""
-      val decodedAst               = XmlDecoder.fromElementDecoder[XmlEntry]("ast").decode(sampleXml).right.value
+      val decodedAst               = XmlDecoder.fromElementDecoder[XmlEntry]("ast").decode(sampleXml).value
       val expectedResult: XmlEntry = xml(attr("foo") := 5, node("bar") := "bazz")
 
-      decodedAst should matchTo(expectedResult)
+      decodedAst shouldMatchTo (expectedResult)
     }
 
     "decodes complicated Xml into ast correctly" in {
@@ -46,7 +46,7 @@ class XmlEntryElementDecoderTest extends AnyWordSpec with Matchers with DiffMatc
         ),
       )
 
-      decodedAst should matchTo(expectedResult.asRight[DecodingError])
+      decodedAst shouldMatchTo (expectedResult.asRight[DecodingError])
     }
 
     "works fine when for elements with same name" in {
@@ -66,7 +66,7 @@ class XmlEntryElementDecoderTest extends AnyWordSpec with Matchers with DiffMatc
           encoded,
         )
 
-      result.map(util.AstTransformer.sortNodeValues) should matchTo(
+      result.map(util.AstTransformer.sortNodeValues) shouldMatchTo (
         util.AstTransformer.sortNodeValues(n).asRight[DecodingError],
       )
     }

@@ -10,9 +10,6 @@ import java.time.OffsetDateTime
 class TextEncoderTest extends AnyWordSpec with Matchers with EncoderTestBase {
   "TextEncoder instance" should {
     "exists for OffsetDateTime and works properly" in {
-
-      val encoder = TextEncoder[OffsetDateTime]
-
       val buff = new ByteArrayOutputStream(512)
       val sw   = buildStreamWriter(new WriterConfig(), buff)
 

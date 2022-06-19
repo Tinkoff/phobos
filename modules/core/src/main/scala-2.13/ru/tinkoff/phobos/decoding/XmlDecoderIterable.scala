@@ -11,7 +11,7 @@ trait XmlDecoderIterable[A] { xmlDecoder: XmlDecoder[A] =>
     val sr: XmlStreamReader = createStreamReader(charset)
     val cursor              = new Cursor(sr)
 
-    val a = iterable.foldLeft(elementdecoder) { (decoder: ElementDecoder[A], bytes: Array[Byte]) =>
+    val a = iterable.iterator.foldLeft(elementdecoder) { (decoder: ElementDecoder[A], bytes: Array[Byte]) =>
       sr.getInputFeeder.feedInput(bytes, 0, bytes.length)
       do {
         cursor.next()

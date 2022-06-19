@@ -10,6 +10,9 @@ import ru.tinkoff.phobos.configured.naming._
 import ru.tinkoff.phobos.configured.ElementCodecConfig
 import ru.tinkoff.phobos.derivation.semiauto._
 
+import scala.annotation.nowarn
+
+@nowarn("msg=is never used")
 class EncoderDerivationTest extends AnyWordSpec with Matchers {
 
   "Encoder derivation without namespaces" should {

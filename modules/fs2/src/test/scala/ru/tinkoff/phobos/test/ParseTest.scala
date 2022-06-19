@@ -5,8 +5,6 @@ import ru.tinkoff.phobos.decoding.XmlDecoder
 import ru.tinkoff.phobos.syntax.text
 import ru.tinkoff.phobos.fs2._
 import fs2.Stream
-import cats.instances.future._
-import cats.syntax.flatMap._
 import cats.effect.IO
 import cats.effect.unsafe.{IORuntimeConfig, Scheduler, IORuntime}
 import org.scalatest.Inspectors

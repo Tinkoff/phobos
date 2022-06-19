@@ -338,6 +338,12 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
               case $decoderStateObj.DecodingElement(name) =>
                 name match {
                   case ..$decodeElements
+                  case unknown =>
+                    new $decodingPkg.ElementDecoder.FailedDecoder[$classType](
+                      cursor.error(
+                        s"Illegal decoder state: DecodingElement($${unknown}). It's a library bug. Please report it"
+                      )
+                    )
                 }
 
               case $decoderStateObj.IgnoringElement(name, namespace, depth) =>

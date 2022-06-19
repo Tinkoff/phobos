@@ -10,6 +10,9 @@ import ru.tinkoff.phobos.derivation.semiauto._
 import ru.tinkoff.phobos.syntax.text
 import ru.tinkoff.phobos.monix._
 
+import scala.annotation.nowarn
+
+@nowarn("msg=is never used")
 class MonixTest extends AsyncWordSpec {
   implicit val scheduler: Scheduler = Scheduler(Executors.newScheduledThreadPool(4))
 
@@ -31,7 +34,7 @@ class MonixTest extends AsyncWordSpec {
         |""".stripMargin
 
       val foo        = Foo(1234, Some(Bar(1)), List(Bar(2), Bar(3)))
-      val observable = Observable.fromIterable(xml.toIterable.map(x => Array(x.toByte)))
+      val observable = Observable.fromIterable(xml.toList.map(x => Array(x.toByte)))
       XmlDecoder[Foo]
         .decodeFromObservable(observable)
         .map(result => assert(result == foo))

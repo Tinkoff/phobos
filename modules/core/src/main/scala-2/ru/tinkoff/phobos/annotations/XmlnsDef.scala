@@ -1,5 +1,6 @@
 package ru.tinkoff.phobos.annotations
 
+import scala.annotation.nowarn
 import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.reflect.macros.blackbox
 
@@ -14,6 +15,7 @@ private final class XmlnsDefImpl(ctx: blackbox.Context) extends CodecAnnotation(
   def instances(typ: Tree): Seq[Tree] = {
     val pkg          = q"ru.tinkoff.phobos"
     val instanceName = TermName(c.freshName("namespaceInstance"))
+    @nowarn("msg=not.*?exhaustive")
     val uri = c.prefix.tree match {
       case q"new XmlnsDef($uri)" => uri
     }

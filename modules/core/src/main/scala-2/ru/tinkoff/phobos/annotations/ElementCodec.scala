@@ -1,6 +1,8 @@
 package ru.tinkoff.phobos.annotations
 
 import ru.tinkoff.phobos.configured.ElementCodecConfig
+
+import scala.annotation.nowarn
 import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.reflect.macros.blackbox
 
@@ -15,6 +17,7 @@ private final class ElementCodecImpl(ctx: blackbox.Context) extends CodecAnnotat
   def instances(typ: Tree): Seq[Tree] = {
     val pkg = q"ru.tinkoff.phobos"
 
+    @nowarn("msg=not.*?exhaustive")
     val config = c.prefix.tree match {
       case q"new ElementCodec"          => defaultConfig.tree
       case q"new ElementCodec($config)" => config

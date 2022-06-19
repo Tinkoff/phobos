@@ -6,7 +6,9 @@ import ru.tinkoff.phobos.syntax.*
 
 import scala.quoted.*
 import scala.compiletime.*
+import scala.annotation.nowarn
 
+@nowarn("msg=Use errorAndAbort")
 object common {
 
   private[derivation] sealed trait FieldCategory

@@ -4,6 +4,7 @@ package ru.tinkoff.phobos.derivation
  * Copy-pasted from https://github.com/propensive/magnolia
  */
 
+import scala.annotation.nowarn
 import scala.collection.mutable
 import scala.reflect.macros.blackbox
 
@@ -52,6 +53,7 @@ private[derivation] object CompileTimeState {
     override def toString: String =
       frames.mkString(" a stack:\n", "\n", "\n")
 
+    @nowarn("msg=outer reference.*cannot be checked")
     final case class Frame(path: TypePath, searchType: C#Type, term: C#TermName)
   }
 

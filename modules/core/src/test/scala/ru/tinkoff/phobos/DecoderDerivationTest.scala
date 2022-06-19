@@ -10,6 +10,9 @@ import ru.tinkoff.phobos.configured.naming._
 import ru.tinkoff.phobos.configured.ElementCodecConfig
 import ru.tinkoff.phobos.derivation.semiauto._
 
+import scala.annotation.nowarn
+
+@nowarn("msg=is never used")
 class DecoderDerivationTest extends AnyWordSpec with Matchers {
   def pure(str: String): List[Array[Byte]] =
     List(str.getBytes("UTF-8"))
@@ -146,7 +149,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode options sync" in decodeOptions(pure)
     "decode options async" in decodeOptions(fromIterable)
 
-    "decoding malformed XML results in Left informing you where the error occurred" in {
+    "decode malformed XML results in Left informing where the error occurred" in {
       case class Foo(a: Int, @attr b: String)
       case class Wrapper(foo: List[Foo])
 

@@ -2,6 +2,8 @@ package ru.tinkoff.phobos.annotations
 
 import ru.tinkoff.phobos.Namespace
 import ru.tinkoff.phobos.configured.ElementCodecConfig
+
+import scala.annotation.nowarn
 import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.reflect.macros.blackbox
 
@@ -17,7 +19,7 @@ private final class XmlCodecNsImpl(ctx: blackbox.Context) extends CodecAnnotatio
 
   def instances(typ: Tree): Seq[Tree] = {
     val pkg = q"ru.tinkoff.phobos"
-    val (nsInstance, localName, config) = c.prefix.tree match {
+    val (nsInstance, localName, config) = (c.prefix.tree: @nowarn("msg=not.*?exhaustive")) match {
       case q"new XmlCodecNs($localName, $nsInstance)"              => (nsInstance, localName, defaultConfig.tree)
       case q"new XmlCodecNs($localName, $nsInstance, $config)"     => (nsInstance, localName, config)
       case q"new XmlCodecNs[$_]($localName, $nsInstance, $config)" => (nsInstance, localName, config)
