@@ -1,12 +1,12 @@
 package ru.tinkoff.phobos.ast
 
-import com.softwaremill.diffx.scalatest.DiffMatcher
+import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import ru.tinkoff.phobos.Namespace
 import ru.tinkoff.phobos.encoding.XmlEncoder
 
-class XmlEntryElementEncoderTest extends AnyWordSpec with DiffMatcher with Matchers {
+class XmlEntryElementEncoderTest extends AnyWordSpec with DiffShouldMatcher with Matchers {
   "XmlEntry encoder" should {
     "encodes simple Xml ast correctly" in {
       val ast = xml(attr("foo") := 5, node("bar") := "bazz")

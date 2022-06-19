@@ -6,12 +6,15 @@ import eu.timepit.refined.string.MatchesRegex
 import eu.timepit.refined.types.numeric.NonNegLong
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import ru.tinkoff.phobos.annotations.{ElementCodec, XmlCodec}
+import ru.tinkoff.phobos.annotations.{XmlCodec, ElementCodec}
 import ru.tinkoff.phobos.decoding.XmlDecoder
-import ru.tinkoff.phobos.syntax.{attr, text}
+import ru.tinkoff.phobos.syntax.{text, attr}
 import ru.tinkoff.phobos.testString._
 import shapeless.{Witness => W}
 
+import scala.annotation.nowarn
+
+@nowarn("msg=is never used")
 class RefinedDecodersTest extends AnyWordSpec with Matchers {
   type NumericAtLeastTwo = MatchesRegex[W.`"[0-9]{2,}"`.T]
 

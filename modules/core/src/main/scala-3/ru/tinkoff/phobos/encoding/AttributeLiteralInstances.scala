@@ -5,5 +5,5 @@ private[encoding] trait AttributeLiteralInstances {
       implicit encoder: AttributeEncoder[A],
       valueOfL: ValueOf[L],
   ): AttributeEncoder[L] =
-    encoder.contramap(identity)
+    encoder.contramap(_ => valueOfL.value)
 }

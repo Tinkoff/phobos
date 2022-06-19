@@ -2,7 +2,6 @@ package ru.tinkoff.phobos.ast
 
 import ru.tinkoff.phobos.traverse.DecodingTraversalLogic
 import AstTraversalLogic._
-import ru.tinkoff.phobos.decoding.DecodingError
 import scala.collection.mutable
 
 class AstTraversalLogic private () extends DecodingTraversalLogic[Accumulator, XmlEntry] {

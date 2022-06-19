@@ -10,6 +10,9 @@ import ru.tinkoff.phobos.decoding.ElementDecoder
 import ru.tinkoff.phobos.derivation.semiauto.deriveElementDecoder
 import ru.tinkoff.phobos.derivation.semiauto.deriveXmlDecoder
 
+import scala.annotation.nowarn
+
+@nowarn("msg=is never used")
 class Fs2Test extends AsyncWordSpec {
 
   "Fs2 decoder" should {

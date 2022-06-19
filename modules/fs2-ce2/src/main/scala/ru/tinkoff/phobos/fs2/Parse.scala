@@ -6,7 +6,6 @@ import fs2._
 import ru.tinkoff.phobos.decoding._
 import com.fasterxml.aalto.AsyncXMLStreamReader.EVENT_INCOMPLETE
 import javax.xml.stream.XMLStreamConstants._
-import javax.xml.stream.events.StartElement
 import scala.annotation.tailrec
 
 object Parse {

@@ -4,14 +4,17 @@ import ru.tinkoff.phobos.Namespace
 import ru.tinkoff.phobos.configured.ElementCodecConfig
 import ru.tinkoff.phobos.derivation.CompileTimeState.{ChainedImplicit, Stack}
 import ru.tinkoff.phobos.derivation.Derivation.DirectlyReentrantException
-import ru.tinkoff.phobos.syntax.{attr, default, discriminator, renamed, text, xmlns}
+import ru.tinkoff.phobos.syntax.{xmlns, default, attr, renamed, text, discriminator}
 
+import scala.annotation.nowarn
+import scala.annotation.nowarn
 import scala.reflect.macros.blackbox
 
 private[phobos] abstract class Derivation(val c: blackbox.Context) {
 
   import c.universe._
 
+  @nowarn("msg=outer reference.*cannot be checked")
   final case class CaseClassParam(
       localName: String,
       xmlName: Tree,
@@ -19,7 +22,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
       paramType: Type,
       category: ParamCategory,
   )
-
+  @nowarn("msg=outer reference.*cannot be checked")
   final case class SealedTraitSubtype(
       constructorName: Tree,
       subtypeType: Type,

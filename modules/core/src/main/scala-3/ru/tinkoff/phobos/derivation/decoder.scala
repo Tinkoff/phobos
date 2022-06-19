@@ -9,11 +9,14 @@ import ru.tinkoff.phobos.derivation.common.*
 import ru.tinkoff.phobos.derivation.decoder.DecoderState.IgnoringElement
 import ru.tinkoff.phobos.syntax.*
 
+import scala.annotation.nowarn
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.compiletime.*
 import scala.quoted.*
 
+@nowarn("msg=Use errorAndAbort")
+@nowarn("msg=Use methodMember")
 object decoder {
 
   inline def deriveElementDecoder[T](
@@ -258,7 +261,17 @@ object decoder {
       name: Expr[String],
   ) = {
     import quotes.reflect.*
-    Match(name.asTerm, decodeElementCases[T](groups.getOrElse(FieldCategory.element, Nil), go, c, currentFieldStates)).asExprOf[ElementDecoder[T]]
+    val default = {
+      val symbol = Symbol.newBind(Symbol.spliceOwner, "unknown", Flags.EmptyFlags, TypeRepr.of[String])
+      CaseDef(Bind(symbol, Typed(Ref(symbol), TypeTree.of[String])), None, '{
+        new ElementDecoder.FailedDecoder[T](
+          $c.error(
+            s"Illegal decoder state: DecodingElement(${${Ref(symbol).asExprOf[String]}}). It's a library bug. Please report it"
+          )
+        )
+      }.asTerm)
+    }
+    Match(name.asTerm, decodeElementCases[T](groups.getOrElse(FieldCategory.element, Nil), go, c, currentFieldStates) :+ default).asExprOf[ElementDecoder[T]]
   }
 
   private def ignoringElement[T: Type](using Quotes)(

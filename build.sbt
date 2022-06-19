@@ -30,11 +30,14 @@ def commonSettings(id: String) =
     scalacOptions ++= List(
       "-language:experimental.macros",
       "-language:implicitConversions",
+      "-language:higherKinds",
+      "-feature",
+      "-deprecation",
     ),
     scalacOptions ++=
       (CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((3, _))  => List("-Xcheck-macros")
-        case Some((2, 13)) => List("-Ymacro-annotations")
+        case Some((2, 13)) => List("-Ymacro-annotations", "-Xlint")
         case Some((2, 12)) => List("-Ypartial-unification")
         case _ => Nil
       }
@@ -95,9 +98,9 @@ lazy val `ast` =
     .settings(
       commonDependencies,
       libraryDependencies ++= Seq(
-        "org.scalacheck"         %% "scalacheck"      % "1.16.0" % "test",
-        "com.softwaremill.diffx" %% "diffx-scalatest" % "0.7.1"  % "test",
-        "org.typelevel"          %% "cats-core"       % "2.7.0",
+        "org.scalacheck"         %% "scalacheck"             % "1.16.0" % "test",
+        "com.softwaremill.diffx" %% "diffx-scalatest-should" % "0.7.1"  % "test",
+        "org.typelevel"          %% "cats-core"              % "2.7.0",
       ),
       Test / testOptions += Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "3"),
     )

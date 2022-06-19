@@ -1,7 +1,7 @@
 package ru.tinkoff.phobos.traverse
 
 import cats.syntax.either._
-import com.softwaremill.diffx.scalatest.DiffMatcher
+import com.softwaremill.diffx.scalatest.DiffShouldMatcher
 import com.softwaremill.diffx.generic.auto._
 import org.scalatest.EitherValues
 import org.scalatest.matchers.should.Matchers
@@ -9,7 +9,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import ru.tinkoff.phobos.ast.XmlLeaf
 import ru.tinkoff.phobos.decoding.{DecodingError, ElementDecoder, XmlDecoder}
 
-class GenericElementDecoderTest extends AnyWordSpec with Matchers with DiffMatcher with EitherValues {
+class GenericElementDecoderTest extends AnyWordSpec with Matchers with DiffShouldMatcher with EitherValues {
   import GenericElementDecoderTest._
   "GenericElementDecoder" should {
     "work correctly with immutable accumulators" in {
@@ -29,14 +29,14 @@ class GenericElementDecoderTest extends AnyWordSpec with Matchers with DiffMatch
         ),
       )
 
-      xmlDecoder.decode(sampleXml) should matchTo(expectedResult0.asRight[DecodingError])
+      xmlDecoder.decode(sampleXml) shouldMatchTo (expectedResult0.asRight[DecodingError])
 
       val xmlWithoutAttrs =
         """<?xml version='1.0' encoding='UTF-8'?><ans1:ast xmlns:ans1="https://tinkoff.ru"><bar>bazz</bar><array><elem>11111111111111</elem><elem>11111111111112</elem></array><nested><scala>2.13</scala><dotty>0.13</dotty><scala-4/></nested></ans1:ast>"""
 
       val expectedResult1 = Acc(Map.empty)
 
-      xmlDecoder.decode(xmlWithoutAttrs) should matchTo(expectedResult1.asRight[DecodingError])
+      xmlDecoder.decode(xmlWithoutAttrs) shouldMatchTo (expectedResult1.asRight[DecodingError])
     }
   }
 }

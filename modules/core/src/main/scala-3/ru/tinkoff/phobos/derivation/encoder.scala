@@ -6,9 +6,11 @@ import ru.tinkoff.phobos.syntax.*
 import ru.tinkoff.phobos.encoding.*
 import ru.tinkoff.phobos.derivation.common.*
 
+import scala.annotation.nowarn
 import scala.compiletime.*
 import scala.quoted.*
 
+@nowarn("msg=Use errorAndAbort")
 object encoder {
 
   inline def deriveElementEncoder[T](
