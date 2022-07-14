@@ -149,8 +149,8 @@ lazy val `fs2` =
     .settings(
       commonDependencies,
       libraryDependencies ++= Seq(
-        "co.fs2" %% "fs2-core" % "3.2.7",
-        "co.fs2" %% "fs2-io"   % "3.2.7" % "test",
+        "co.fs2" %% "fs2-core" % "3.2.10",
+        "co.fs2" %% "fs2-io"   % "3.2.10" % "test",
       ),
     )
     .jvmPlatform(scala3Versions)
