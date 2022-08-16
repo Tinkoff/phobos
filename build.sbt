@@ -8,7 +8,7 @@ lazy val commonDependencies =
   libraryDependencies ++=
     List(
       "com.fasterxml"  % "aalto-xml" % "1.3.2",
-      "org.scalatest" %% "scalatest" % "3.2.12" % "test",
+      "org.scalatest" %% "scalatest" % "3.2.13" % "test",
       "org.scalactic" %% "scalactic" % "3.2.13" % "test",
     ) ++
       (CrossVersion.partialVersion(scalaVersion.value) match {
@@ -149,8 +149,8 @@ lazy val `fs2` =
     .settings(
       commonDependencies,
       libraryDependencies ++= Seq(
-        "co.fs2" %% "fs2-core" % "3.2.7",
-        "co.fs2" %% "fs2-io"   % "3.2.7" % "test",
+        "co.fs2" %% "fs2-core" % "3.2.12",
+        "co.fs2" %% "fs2-io"   % "3.2.12" % "test",
       ),
     )
     .jvmPlatform(scala3Versions)
