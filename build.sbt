@@ -187,7 +187,7 @@ lazy val `refined` =
     .settings(
       commonDependencies,
       libraryDependencies ++= Seq(
-        "eu.timepit" %% "refined" % "0.9.29",
+        "eu.timepit" %% "refined" % "0.10.1",
       ),
     )
     .jvmPlatform(scala2Versions)
