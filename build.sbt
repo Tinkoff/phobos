@@ -73,7 +73,7 @@ lazy val `akka-http` =
       commonDependencies,
       libraryDependencies ++= Seq(
         "com.typesafe.akka" %% "akka-stream" % "2.6.20" % "provided",
-        "com.typesafe.akka" %% "akka-http"   % "10.2.9",
+        "com.typesafe.akka" %% "akka-http"   % "10.2.10",
       )
     )
     .jvmPlatform(scala2Versions)
@@ -149,8 +149,8 @@ lazy val `fs2` =
     .settings(
       commonDependencies,
       libraryDependencies ++= Seq(
-        "co.fs2" %% "fs2-core" % "3.2.12",
-        "co.fs2" %% "fs2-io"   % "3.2.12" % "test",
+        "co.fs2" %% "fs2-core" % "3.2.14",
+        "co.fs2" %% "fs2-io"   % "3.2.14" % "test",
       ),
     )
     .jvmPlatform(scala3Versions)
