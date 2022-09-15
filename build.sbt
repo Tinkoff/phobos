@@ -72,7 +72,7 @@ lazy val `akka-http` =
     .settings(
       commonDependencies,
       libraryDependencies ++= Seq(
-        "com.typesafe.akka" %% "akka-stream" % "2.6.19" % "provided",
+        "com.typesafe.akka" %% "akka-stream" % "2.6.20" % "provided",
         "com.typesafe.akka" %% "akka-http"   % "10.2.10",
       )
     )
@@ -85,8 +85,8 @@ lazy val `akka-stream`   =
     .settings(
       commonDependencies,
       libraryDependencies ++= Seq(
-        "com.typesafe.akka" %% "akka-stream"  % "2.6.19",
-        "com.typesafe.akka" %% "akka-testkit" % "2.6.19" % Test,
+        "com.typesafe.akka" %% "akka-stream"  % "2.6.20",
+        "com.typesafe.akka" %% "akka-testkit" % "2.6.20" % Test,
       )
     )
     .jvmPlatform(scala3Versions)
