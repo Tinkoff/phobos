@@ -99,7 +99,7 @@ lazy val `ast` =
       commonDependencies,
       libraryDependencies ++= Seq(
         "org.scalacheck"         %% "scalacheck"             % "1.16.0" % "test",
-        "com.softwaremill.diffx" %% "diffx-scalatest-should" % "0.7.1"  % "test",
+        "com.softwaremill.diffx" %% "diffx-scalatest-should" % "0.8.2"  % "test",
         "org.typelevel"          %% "cats-core"              % "2.8.0",
       ),
       Test / testOptions += Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "3"),
