@@ -8,7 +8,7 @@ lazy val commonDependencies =
   libraryDependencies ++=
     List(
       "com.fasterxml"  % "aalto-xml" % "1.3.2",
-      "org.scalatest" %% "scalatest" % "3.2.13" % "test",
+      "org.scalatest" %% "scalatest" % "3.2.14" % "test",
       "org.scalactic" %% "scalactic" % "3.2.13" % "test",
     ) ++
       (CrossVersion.partialVersion(scalaVersion.value) match {
