@@ -98,7 +98,7 @@ lazy val `ast` =
     .settings(
       commonDependencies,
       libraryDependencies ++= Seq(
-        "org.scalacheck"         %% "scalacheck"             % "1.16.0" % "test",
+        "org.scalacheck"         %% "scalacheck"             % "1.17.0" % "test",
         "com.softwaremill.diffx" %% "diffx-scalatest-should" % "0.7.1"  % "test",
         "org.typelevel"          %% "cats-core"              % "2.8.0",
       ),
