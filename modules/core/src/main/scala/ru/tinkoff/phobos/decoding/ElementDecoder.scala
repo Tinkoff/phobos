@@ -154,7 +154,7 @@ object ElementDecoder extends ElementLiteralInstances with DerivedElement {
 
   implicit val stringDecoder: ElementDecoder[String] = new StringDecoder()
 
-  implicit val unitDecoder: ElementDecoder[Unit] = new ConstDecoder[Unit](())
+  implicit val unitDecoder: ElementDecoder[Unit] = stringDecoder.map(_ => ())
 
   implicit val booleanDecoder: ElementDecoder[Boolean] =
     stringDecoder.emap((history, string) =>
