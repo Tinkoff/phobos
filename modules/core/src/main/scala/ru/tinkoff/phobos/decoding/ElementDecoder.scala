@@ -204,7 +204,7 @@ object ElementDecoder extends ElementLiteralInstances with DerivedElement {
       def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String]): ElementDecoder[Option[A]] = {
         if (c.isStartElement) {
           ElementDecoder.errorIfWrongName[Option[A]](c, localName, namespaceUri).getOrElse {
-            if (ElementDecoder.isNil(c) || (c.isEmptyElement && c.getAttributeInfo.getAttributeCount == 0)) {
+            if (ElementDecoder.isNil(c)) {
               c.next()
               new ConstDecoder(None)
             } else {

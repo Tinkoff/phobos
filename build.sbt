@@ -8,8 +8,8 @@ lazy val commonDependencies =
   libraryDependencies ++=
     List(
       "com.fasterxml"  % "aalto-xml" % "1.3.2",
-      "org.scalatest" %% "scalatest" % "3.2.13" % "test",
-      "org.scalactic" %% "scalactic" % "3.2.13" % "test",
+      "org.scalatest" %% "scalatest" % "3.2.14" % "test",
+      "org.scalactic" %% "scalactic" % "3.2.14" % "test",
     ) ++
       (CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, 12)) => List(
@@ -44,8 +44,8 @@ def commonSettings(id: String) =
     )
   )
 
-lazy val scala2Versions = List("2.12.16", "2.13.8")
-lazy val scala3Versions = List("2.12.16", "2.13.8", "3.1.3")
+lazy val scala2Versions = List("2.12.17", "2.13.10")
+lazy val scala3Versions = List("2.12.17", "2.13.10", "3.1.3")
 
 lazy val `core` =
   (projectMatrix in file(s"modules/core"))
@@ -98,8 +98,8 @@ lazy val `ast` =
     .settings(
       commonDependencies,
       libraryDependencies ++= Seq(
-        "org.scalacheck"         %% "scalacheck"             % "1.16.0" % "test",
-        "com.softwaremill.diffx" %% "diffx-scalatest-should" % "0.7.1"  % "test",
+        "org.scalacheck"         %% "scalacheck"             % "1.17.0" % "test",
+        "com.softwaremill.diffx" %% "diffx-scalatest-should" % "0.8.2"  % "test",
         "org.typelevel"          %% "cats-core"              % "2.8.0",
       ),
       Test / testOptions += Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "3"),
@@ -149,8 +149,8 @@ lazy val `fs2` =
     .settings(
       commonDependencies,
       libraryDependencies ++= Seq(
-        "co.fs2" %% "fs2-core" % "3.2.14",
-        "co.fs2" %% "fs2-io"   % "3.2.14" % "test",
+        "co.fs2" %% "fs2-core" % "3.3.0",
+        "co.fs2" %% "fs2-io"   % "3.3.0" % "test",
       ),
     )
     .jvmPlatform(scala3Versions)
