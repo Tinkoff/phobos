@@ -44,8 +44,8 @@ def commonSettings(id: String) =
     )
   )
 
-lazy val scala2Versions = List("2.12.16", "2.13.10")
-lazy val scala3Versions = List("2.12.16", "2.13.10", "3.1.3")
+lazy val scala2Versions = List("2.12.17", "2.13.10")
+lazy val scala3Versions = List("2.12.17", "2.13.10", "3.1.3")
 
 lazy val `core` =
   (projectMatrix in file(s"modules/core"))
@@ -149,8 +149,8 @@ lazy val `fs2` =
     .settings(
       commonDependencies,
       libraryDependencies ++= Seq(
-        "co.fs2" %% "fs2-core" % "3.2.14",
-        "co.fs2" %% "fs2-io"   % "3.2.14" % "test",
+        "co.fs2" %% "fs2-core" % "3.3.0",
+        "co.fs2" %% "fs2-io"   % "3.3.0" % "test",
       ),
     )
     .jvmPlatform(scala3Versions)
