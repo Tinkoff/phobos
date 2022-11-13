@@ -9,7 +9,7 @@ lazy val commonDependencies =
     List(
       "com.fasterxml"  % "aalto-xml" % "1.3.2",
       "org.scalatest" %% "scalatest" % "3.2.13" % "test",
-      "org.scalactic" %% "scalactic" % "3.2.13" % "test",
+      "org.scalactic" %% "scalactic" % "3.2.14" % "test",
     ) ++
       (CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, 12)) => List(
