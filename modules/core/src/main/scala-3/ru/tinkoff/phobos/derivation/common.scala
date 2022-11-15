@@ -44,7 +44,9 @@ object common {
       val fieldCategory    = extractFieldCategory(classSymbol, fieldSymbol, fieldAnnotations)
       val fieldXmlName     = extractFieldXmlName(config, classSymbol, fieldSymbol, fieldAnnotations, fieldCategory)
       val fieldNamespace   = extractFeildNamespace(config, classSymbol, fieldSymbol, fieldAnnotations, fieldCategory)
-      ProductTypeField()(fieldSymbol.name, fieldXmlName, fieldNamespace, classTypeRepr.memberType(fieldSymbol), fieldCategory)
+      ProductTypeField(using quotes)(
+        fieldSymbol.name, fieldXmlName, fieldNamespace, classTypeRepr.memberType(fieldSymbol), fieldCategory
+      )
     }
     val textCount    = fields.count(_.category == FieldCategory.text)
     val defaultCount = fields.count(_.category == FieldCategory.default)
@@ -72,7 +74,7 @@ object common {
 
     traitSymbol.children.map { childSymbol =>
       val xmlName = extractChildXmlName(config, traitSymbol, childSymbol)
-      SumTypeChild()(xmlName, TypeIdent(childSymbol).tpe)
+      SumTypeChild(using quotes)(xmlName, TypeIdent(childSymbol).tpe)
     }
   }
 
