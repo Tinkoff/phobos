@@ -100,7 +100,7 @@ lazy val `ast` =
       libraryDependencies ++= Seq(
         "org.scalacheck"         %% "scalacheck"             % "1.17.0" % "test",
         "com.softwaremill.diffx" %% "diffx-scalatest-should" % "0.8.2"  % "test",
-        "org.typelevel"          %% "cats-core"              % "2.8.0",
+        "org.typelevel"          %% "cats-core"              % "2.9.0",
       ),
       Test / testOptions += Tests.Argument(TestFrameworks.ScalaCheck, "-verbosity", "3"),
     )
@@ -113,7 +113,7 @@ lazy val `cats` =
     .settings(
       commonDependencies,
       libraryDependencies ++= Seq(
-        "org.typelevel" %% "cats-core" % "2.8.0",
+        "org.typelevel" %% "cats-core" % "2.9.0",
       ),
     )
     .jvmPlatform(scala3Versions)
