@@ -45,7 +45,7 @@ def commonSettings(id: String) =
   )
 
 lazy val scala2Versions = List("2.12.17", "2.13.10")
-lazy val scala3Versions = List("2.12.17", "2.13.10", "3.1.3")
+lazy val scala3Versions = List("2.12.17", "2.13.10", "3.2.1")
 
 lazy val `core` =
   (projectMatrix in file(s"modules/core"))
