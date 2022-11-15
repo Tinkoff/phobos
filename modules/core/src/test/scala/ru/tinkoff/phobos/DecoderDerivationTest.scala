@@ -134,16 +134,10 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
                        |   <foo b="b"/>
                        | </Wrapper>
                     """.stripMargin
-      val string4 = """<?xml version='1.0' encoding='UTF-8'?>
-                       | <Wrapper>
-                       |   <foo/>
-                       | </Wrapper>
-                    """.stripMargin
       val decoded1 = XmlDecoder[Wrapper].decodeFromIterable(toList(string1))
       val decoded2 = XmlDecoder[Wrapper].decodeFromIterable(toList(string2))
       val decoded3 = XmlDecoder[Wrapper].decodeFromIterable(toList(string3))
-      val decoded4 = XmlDecoder[Wrapper].decodeFromIterable(toList(string4))
-      assert(decoded1 == Right(opt1) && decoded2 == Right(opt2) && decoded3 == Right(opt3) && decoded4 == Right(opt2))
+      assert(decoded1 == Right(opt1) && decoded2 == Right(opt2) && decoded3 == Right(opt3))
     }
 
     "decode options sync" in decodeOptions(pure)

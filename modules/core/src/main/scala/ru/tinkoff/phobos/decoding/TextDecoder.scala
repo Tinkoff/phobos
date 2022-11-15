@@ -106,7 +106,7 @@ object TextDecoder extends TextLiteralInstances {
 
   implicit val stringDecoder: TextDecoder[String] = new StringDecoder()
 
-  implicit val unitDecoder: TextDecoder[Unit] = new ConstDecoder[Unit](())
+  implicit val unitDecoder: TextDecoder[Unit] = stringDecoder.map(_ => ())
 
   implicit val booleanDecoder: TextDecoder[Boolean] =
     stringDecoder.emap((history, string) =>

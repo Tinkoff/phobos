@@ -154,7 +154,7 @@ object ElementDecoder extends ElementLiteralInstances with DerivedElement {
 
   implicit val stringDecoder: ElementDecoder[String] = new StringDecoder()
 
-  implicit val unitDecoder: ElementDecoder[Unit] = new ConstDecoder[Unit](())
+  implicit val unitDecoder: ElementDecoder[Unit] = stringDecoder.map(_ => ())
 
   implicit val booleanDecoder: ElementDecoder[Boolean] =
     stringDecoder.emap((history, string) =>
@@ -204,7 +204,7 @@ object ElementDecoder extends ElementLiteralInstances with DerivedElement {
       def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String]): ElementDecoder[Option[A]] = {
         if (c.isStartElement) {
           ElementDecoder.errorIfWrongName[Option[A]](c, localName, namespaceUri).getOrElse {
-            if (ElementDecoder.isNil(c) || (c.isEmptyElement && c.getAttributeInfo.getAttributeCount == 0)) {
+            if (ElementDecoder.isNil(c)) {
               c.next()
               new ConstDecoder(None)
             } else {

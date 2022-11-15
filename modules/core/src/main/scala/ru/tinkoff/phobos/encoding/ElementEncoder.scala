@@ -45,7 +45,8 @@ object ElementEncoder extends ElementLiteralInstances with DerivedElement {
 
   implicit val unitEncoder: ElementEncoder[Unit] =
     new ElementEncoder[Unit] {
-      def encodeAsElement(a: Unit, sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String]): Unit = ()
+      def encodeAsElement(a: Unit, sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String]): Unit =
+        namespaceUri.fold(sw.writeEmptyElement(localName))(ns => sw.writeEmptyElement(ns, localName))
     }
 
   implicit val booleanEncoder: ElementEncoder[Boolean]                     = stringEncoder.contramap(_.toString)
@@ -81,7 +82,11 @@ object ElementEncoder extends ElementLiteralInstances with DerivedElement {
 
   implicit def someEncoder[A](implicit e: ElementEncoder[A]): ElementEncoder[Some[A]] = e.contramap(_.get)
 
-  implicit val noneEncoder: ElementEncoder[None.type] = unitEncoder.contramap(_ => ())
+  implicit val noneEncoder: ElementEncoder[None.type] =
+    new ElementEncoder[None.type] {
+      def encodeAsElement(a: None.type, sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String]): Unit =
+        ()
+    }
 
   implicit def iteratorEncoder[A](implicit encoder: ElementEncoder[A]): ElementEncoder[Iterator[A]] =
     new ElementEncoder[Iterator[A]] {
