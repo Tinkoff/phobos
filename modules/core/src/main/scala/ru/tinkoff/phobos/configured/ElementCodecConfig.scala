@@ -11,7 +11,7 @@ final case class ElementCodecConfig(
     useElementNameAsDiscriminator: Boolean,
     attributesDefaultNamespace: Option[String] = None,
     elementsDefaultNamespace: Option[String] = None,
-    defineNamespaces: List[String] = Nil,
+    defineNamespaces: List[(String, Option[String])] = Nil,
 ) {
   def withElementsRenamed(transform: String => String): ElementCodecConfig =
     copy(transformElementNames = transform)
@@ -44,10 +44,10 @@ final case class ElementCodecConfig(
     copy(elementsDefaultNamespace = Some(ns.getNamespace))
 
   def withNamespaceDefined(namespace: String): ElementCodecConfig =
-    copy(defineNamespaces = namespace :: defineNamespaces)
+    copy(defineNamespaces = (namespace, None) :: defineNamespaces)
 
   def withNamespaceDefined[NS](namespace: NS)(implicit ns: Namespace[NS]): ElementCodecConfig =
-    copy(defineNamespaces = ns.getNamespace :: defineNamespaces)
+    copy(defineNamespaces = (ns.getNamespace, ns.getPreferredPrefix) :: defineNamespaces)
 }
 
 object ElementCodecConfig {

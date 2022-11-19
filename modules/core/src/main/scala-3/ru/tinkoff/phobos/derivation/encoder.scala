@@ -122,7 +122,7 @@ object encoder {
     val groups = fields.groupBy(_.category)
 
     '{new ElementEncoder[T]{
-      def encodeAsElement(a: T, sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String]): Unit = {
+      def encodeAsElement(a: T, sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String], preferredNamespacePrefix: Option[String]): Unit = {
         namespaceUri.fold(sw.writeStartElement(localName))(ns => sw.writeStartElement(ns, localName))
         $config.defineNamespaces.foreach { uri =>
           if (sw.getNamespaceContext.getPrefix(uri) == null) sw.writeNamespace(uri)
@@ -152,10 +152,10 @@ object encoder {
     '{
       val instance = summonInline[ElementEncoder[T]]
       if ($config.useElementNameAsDiscriminator) {
-        instance.encodeAsElement(${childValue}, $sw, ${child.xmlName}, $namespaceUri)
+        instance.encodeAsElement(${childValue}, localName = ${child.xmlName}, preferredNamespacePrefix = )
       } else {
         $sw.memorizeDiscriminator($config.discriminatorNamespace, $config.discriminatorLocalName, ${child.xmlName})
-        instance.encodeAsElement(${childValue}, $sw, $localName, $namespaceUri)
+        instance.encodeAsElement(${childValue}, preferredNamespacePrefix = )
       }
     }
   }
@@ -165,7 +165,7 @@ object encoder {
 
     '{
       new ElementEncoder[T] {
-        def encodeAsElement(a: T, sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String]): Unit = {
+        def encodeAsElement(a: T, sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String], preferredNamespacePrefix: Option[String]): Unit = {
           ${
             val alternatives =
               extractSumTypeChildren[T](config).map { child =>
