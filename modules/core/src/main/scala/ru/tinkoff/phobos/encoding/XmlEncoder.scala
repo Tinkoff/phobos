@@ -1,7 +1,8 @@
 package ru.tinkoff.phobos.encoding
 
-import java.io.ByteArrayOutputStream
-
+import java.io.{ByteArrayOutputStream, StringReader, StringWriter}
+import javax.xml.transform._
+import javax.xml.transform.stream._
 import com.fasterxml.aalto.stax.OutputFactoryImpl
 import org.codehaus.stax2.XMLStreamWriter2
 import ru.tinkoff.phobos.Namespace
@@ -59,6 +60,25 @@ trait XmlEncoder[A] {
     os.toByteArray
   }
 
+  /** Warning: Use .encodePrettyWithConfig only for debugging, as it is less performant. For production use
+    * .encodeWithConfig
+    */
+  def encodePrettyWithConfig(a: A, config: XmlEncoderConfig, ident: Int = 2): String =
+    beautifyXml(encodeWithConfig(a, config), ident)
+
+  /** Warning: Use .encodePretty only for debugging, as it is less performant. For production use .encode
+    */
+  def encodePretty(a: A, charset: String = "UTF-8", ident: Int = 2): String =
+    beautifyXml(encode(a, charset), ident)
+
+  private def beautifyXml(xml: String, ident: Int): String = {
+    val t = XmlEncoder.transformerFactory.newTransformer()
+    t.setOutputProperty(OutputKeys.INDENT, "yes")
+    t.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", ident.toString)
+    val out = new StringWriter()
+    t.transform(new StreamSource(new StringReader(xml)), new StreamResult(out))
+    out.toString
+  }
 }
 
 object XmlEncoder {
@@ -69,19 +89,22 @@ object XmlEncoder {
     factory
   }
 
+  private lazy val transformerFactory =
+    TransformerFactory.newInstance()
+
   def apply[A](implicit instance: XmlEncoder[A]): XmlEncoder[A] = instance
 
   def fromElementEncoder[A](localName: String, namespaceUri: Option[String], preferredNamespacePrefix: Option[String])(
       implicit elementEncoder: ElementEncoder[A],
   ): XmlEncoder[A] = {
-    val _localName = localName
-    val _namespaceUri = namespaceUri
-    val _elementEncoder = elementEncoder
+    val _localName                = localName
+    val _namespaceUri             = namespaceUri
+    val _elementEncoder           = elementEncoder
     val _preferredNamespacePrefix = preferredNamespacePrefix
     new XmlEncoder[A] {
-      val localName: String                 = _localName
-      val namespaceUri: Option[String]      = _namespaceUri
-      val elementEncoder: ElementEncoder[A] = _elementEncoder
+      val localName: String                                 = _localName
+      val namespaceUri: Option[String]                      = _namespaceUri
+      val elementEncoder: ElementEncoder[A]                 = _elementEncoder
       override val preferredNamespacePrefix: Option[String] = _preferredNamespacePrefix
     }
   }
