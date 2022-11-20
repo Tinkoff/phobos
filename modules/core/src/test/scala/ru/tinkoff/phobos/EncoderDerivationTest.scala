@@ -1191,6 +1191,66 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val animalShelter = AnimalShelter(List(Cat("meow"), Dog(1234)))
       XmlEncoder[AnimalShelter].encode(animalShelter) shouldBe string
     }
+
+    "encode namespaces with preferred prefixes" in {
+      case object tkf
+      implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru", preferredPrefix = Some("tkf"))
+
+      case object tkf2
+      implicit val tkfNs2: Namespace[tkf2.type] = Namespace.mkInstance("tinkoff.ru")
+
+      case class Bar(@xmlns(tkf2) c: String, @xmlns(tkf) d: String)
+      implicit val barEncoder: ElementEncoder[Bar] = deriveElementEncoder
+      case class Foo(@xmlns(tkf) a: String, @xmlns(tkf) b: Int, @xmlns(tkf) bar: Bar)
+      implicit val fooEncoder: XmlEncoder[Foo] = deriveXmlEncoder("foo", tkf)
+
+      val foo = Foo("string", 1, Bar("gnirts", "string"))
+      val string =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <tkf:foo xmlns:tkf="tinkoff.ru">
+          |   <tkf:a>string</tkf:a>
+          |   <tkf:b>1</tkf:b>
+          |   <tkf:bar>
+          |     <tkf:c>gnirts</tkf:c>
+          |     <tkf:d>string</tkf:d>
+          |   </tkf:bar>
+          | </tkf:foo>
+        """.stripMargin.minimized
+
+      XmlEncoder[Foo].encode(foo) shouldBe string
+    }
+
+    "declare namespaces with preferred prefixes from config" in {
+      case object tkf
+      implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru", preferredPrefix = Some("tkf"))
+
+      case object tcs
+      implicit val tcsNs: Namespace[tcs.type] = Namespace.mkInstance("tcsbank.ru", preferredPrefix = Some("tcs"))
+
+      val config = ElementCodecConfig.default.withNamespaceDefined(tkf).withNamespaceDefined(tcs)
+
+      final case class Foo(
+          @xmlns(tcs) a: Int,
+          @xmlns(tcs) b: String,
+          @xmlns(tcs) c: Double,
+      )
+
+      implicit val xmlEncoder: XmlEncoder[Foo] = deriveXmlEncoderConfigured("foo", config)
+
+      val foo    = Foo(1, "b value", 3.0)
+      val string = XmlEncoder[Foo].encode(foo)
+
+      assert(
+        string ==
+          """<?xml version='1.0' encoding='UTF-8'?>
+            | <foo xmlns:tcs="tcsbank.ru" xmlns:tkf="tinkoff.ru">
+            |   <tcs:a>1</tcs:a>
+            |   <tcs:b>b value</tcs:b>
+            |   <tcs:c>3.0</tcs:c>
+            | </foo>
+     """.stripMargin.minimized,
+      )
+    }
   }
 
   "Encoder derivation compilation" should {

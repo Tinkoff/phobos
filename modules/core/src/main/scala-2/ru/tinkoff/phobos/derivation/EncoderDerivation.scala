@@ -41,10 +41,10 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 
       cq"""sub: ${subtype.subtypeType.resultType} =>
              if ($config.useElementNameAsDiscriminator) {
-               $ref.encodeAsElement(sub, sw, ${subtype.constructorName}, namespaceUri)
+               $ref.encodeAsElement(sub, sw, ${subtype.constructorName}, namespaceUri, preferredNamespacePrefix)
              } else {
                sw.memorizeDiscriminator($config.discriminatorNamespace, $config.discriminatorLocalName, ${subtype.constructorName})
-               $ref.encodeAsElement(sub, sw, localName, namespaceUri)
+               $ref.encodeAsElement(sub, sw, localName, namespaceUri, preferredNamespacePrefix)
              }
       """
     }
@@ -57,7 +57,8 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
           a: $classType,
           sw: _root_.ru.tinkoff.phobos.encoding.PhobosStreamWriter,
           localName: $javaPkg.String,
-          namespaceUri: $scalaPkg.Option[$javaPkg.String]
+          namespaceUri: $scalaPkg.Option[$javaPkg.String],
+          preferredNamespacePrefix: $scalaPkg.Option[$javaPkg.String],
         ): $scalaPkg.Unit = {
           a match {
             case ..$alternatives
@@ -122,7 +123,7 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 
         preAssignments.append(assigned)
 
-        q"$ref.encodeAsElement(a.${TermName(param.localName)}, sw, ${param.xmlName}, ${param.namespaceUri})"
+        q"$ref.encodeAsElement(a.${TermName(param.localName)}, sw, ${param.xmlName}, ${param.namespaceUri}, ${param.preferredNamespacePrefix})"
       }
 
     q"""
@@ -133,11 +134,15 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
          a: $classType,
          sw: _root_.ru.tinkoff.phobos.encoding.PhobosStreamWriter,
          localName: $javaPkg.String,
-         namespaceUri: $scalaPkg.Option[$javaPkg.String]
+         namespaceUri: $scalaPkg.Option[$javaPkg.String],
+         preferredNamespacePrefix: $scalaPkg.Option[$javaPkg.String],
        ): $scalaPkg.Unit = {
-         namespaceUri.fold(sw.writeStartElement(localName))(ns => sw.writeStartElement(ns, localName))
-         $config.defineNamespaces.foreach { uri =>
-           if (sw.getNamespaceContext.getPrefix(uri) == null) sw.writeNamespace(uri)
+         namespaceUri.fold(sw.writeStartElement(localName))(ns => sw.writeStartElement(preferredNamespacePrefix.orNull, localName, ns))
+         $config.defineNamespaces.foreach {
+           case (uri, $scalaPkg.Some(prefix)) =>
+             if (sw.getNamespaceContext.getPrefix(uri) == null) sw.writeNamespace(prefix, uri)
+           case (uri, $scalaPkg.None) =>
+             if (sw.getNamespaceContext.getPrefix(uri) == null) sw.writeNamespace(uri)
          }
 
          ..$encodeAttributes

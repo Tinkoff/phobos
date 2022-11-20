@@ -19,12 +19,24 @@ import java.time.format.DateTimeFormatter
   * typeclass, it should be passed in encodeAsElement method.
   */
 trait ElementEncoder[A] { self =>
-  def encodeAsElement(a: A, sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String]): Unit
+  def encodeAsElement(
+      a: A,
+      sw: PhobosStreamWriter,
+      localName: String,
+      namespaceUri: Option[String],
+      preferredNamespacePrefix: Option[String] = None,
+  ): Unit
 
   def contramap[B](f: B => A): ElementEncoder[B] =
     new ElementEncoder[B] {
-      def encodeAsElement(b: B, sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String]): Unit =
-        self.encodeAsElement(f(b), sw, localName, namespaceUri)
+      def encodeAsElement(
+          b: B,
+          sw: PhobosStreamWriter,
+          localName: String,
+          namespaceUri: Option[String],
+          preferredNamespacePrefix: Option[String],
+      ): Unit =
+        self.encodeAsElement(f(b), sw, localName, namespaceUri, preferredNamespacePrefix)
     }
 }
 
@@ -36,8 +48,16 @@ object ElementEncoder extends ElementLiteralInstances with DerivedElement {
     */
   implicit val stringEncoder: ElementEncoder[String] =
     new ElementEncoder[String] {
-      def encodeAsElement(a: String, sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String]): Unit = {
-        namespaceUri.fold(sw.writeStartElement(localName))(ns => sw.writeStartElement(ns, localName))
+      def encodeAsElement(
+          a: String,
+          sw: PhobosStreamWriter,
+          localName: String,
+          namespaceUri: Option[String],
+          preferredNamespacePrefix: Option[String],
+      ): Unit = {
+        namespaceUri.fold(sw.writeStartElement(localName))(ns =>
+          sw.writeStartElement(preferredNamespacePrefix.orNull, localName, ns),
+        )
         sw.writeCharacters(a)
         sw.writeEndElement()
       }
@@ -45,8 +65,16 @@ object ElementEncoder extends ElementLiteralInstances with DerivedElement {
 
   implicit val unitEncoder: ElementEncoder[Unit] =
     new ElementEncoder[Unit] {
-      def encodeAsElement(a: Unit, sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String]): Unit =
-        namespaceUri.fold(sw.writeEmptyElement(localName))(ns => sw.writeEmptyElement(ns, localName))
+      def encodeAsElement(
+          a: Unit,
+          sw: PhobosStreamWriter,
+          localName: String,
+          namespaceUri: Option[String],
+          preferredNamespacePrefix: Option[String],
+      ): Unit =
+        namespaceUri.fold(sw.writeEmptyElement(localName))(ns =>
+          sw.writeEmptyElement(preferredNamespacePrefix.orNull, ns, localName),
+        )
     }
 
   implicit val booleanEncoder: ElementEncoder[Boolean]                     = stringEncoder.contramap(_.toString)
@@ -76,15 +104,27 @@ object ElementEncoder extends ElementLiteralInstances with DerivedElement {
 
   implicit def optionEncoder[A](implicit encoder: ElementEncoder[A]): ElementEncoder[Option[A]] =
     new ElementEncoder[Option[A]] {
-      def encodeAsElement(a: Option[A], sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String]): Unit =
-        a.foreach(encoder.encodeAsElement(_, sw, localName, namespaceUri))
+      def encodeAsElement(
+          a: Option[A],
+          sw: PhobosStreamWriter,
+          localName: String,
+          namespaceUri: Option[String],
+          preferredNamespacePrefix: Option[String],
+      ): Unit =
+        a.foreach((a: A) => encoder.encodeAsElement(a, sw, localName, namespaceUri, preferredNamespacePrefix))
     }
 
   implicit def someEncoder[A](implicit e: ElementEncoder[A]): ElementEncoder[Some[A]] = e.contramap(_.get)
 
   implicit val noneEncoder: ElementEncoder[None.type] =
     new ElementEncoder[None.type] {
-      def encodeAsElement(a: None.type, sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String]): Unit =
+      def encodeAsElement(
+          a: None.type,
+          sw: PhobosStreamWriter,
+          localName: String,
+          namespaceUri: Option[String],
+          preferredNamespacePrefix: Option[String],
+      ): Unit =
         ()
     }
 
@@ -95,8 +135,9 @@ object ElementEncoder extends ElementLiteralInstances with DerivedElement {
           sw: PhobosStreamWriter,
           localName: String,
           namespaceUri: Option[String],
+          preferredNamespacePrefix: Option[String],
       ): Unit =
-        as.foreach(a => encoder.encodeAsElement(a, sw, localName, namespaceUri))
+        as.foreach(a => encoder.encodeAsElement(a, sw, localName, namespaceUri, preferredNamespacePrefix))
     }
 
   implicit def seqEncoder[A](implicit encoder: ElementEncoder[A]): ElementEncoder[Seq[A]] =

@@ -18,9 +18,10 @@ import ru.tinkoff.phobos.encoding.XmlEncoder.XmlEncoderConfig
   * This typeclass wraps ElementEncoder[A] and provides element name and StreamWriter.
   */
 trait XmlEncoder[A] {
-  val localname: String
-  val namespaceuri: Option[String]
-  val elementencoder: ElementEncoder[A]
+  val localName: String
+  val namespaceUri: Option[String]
+  val preferredNamespacePrefix: Option[String] = None
+  val elementEncoder: ElementEncoder[A]
 
   def encode(a: A, charset: String = "UTF-8"): String =
     new String(encodeToBytes(a, charset), charset)
@@ -30,7 +31,7 @@ trait XmlEncoder[A] {
     val sw =
       new PhobosStreamWriter(XmlEncoder.factory.createXMLStreamWriter(os, charset).asInstanceOf[XMLStreamWriter2])
     sw.writeStartDocument()
-    elementencoder.encodeAsElement(a, sw, localname, namespaceuri)
+    elementEncoder.encodeAsElement(a, sw, localName, namespaceUri, preferredNamespacePrefix)
     sw.writeEndDocument()
     sw.flush()
     sw.close()
@@ -49,7 +50,7 @@ trait XmlEncoder[A] {
     if (config.writeProlog) {
       sw.writeStartDocument(config.encoding, config.version)
     }
-    elementencoder.encodeAsElement(a, sw, localname, namespaceuri)
+    elementEncoder.encodeAsElement(a, sw, localName, namespaceUri, preferredNamespacePrefix)
     if (config.writeProlog) {
       sw.writeEndDocument()
     }
@@ -70,28 +71,34 @@ object XmlEncoder {
 
   def apply[A](implicit instance: XmlEncoder[A]): XmlEncoder[A] = instance
 
-  def fromElementEncoder[A](localName: String, namespaceUri: Option[String])(
+  def fromElementEncoder[A](localName: String, namespaceUri: Option[String], preferredNamespacePrefix: Option[String])(
       implicit elementEncoder: ElementEncoder[A],
-  ): XmlEncoder[A] =
+  ): XmlEncoder[A] = {
+    val _localName = localName
+    val _namespaceUri = namespaceUri
+    val _elementEncoder = elementEncoder
+    val _preferredNamespacePrefix = preferredNamespacePrefix
     new XmlEncoder[A] {
-      val localname: String                 = localName
-      val namespaceuri: Option[String]      = namespaceUri
-      val elementencoder: ElementEncoder[A] = elementEncoder
+      val localName: String                 = _localName
+      val namespaceUri: Option[String]      = _namespaceUri
+      val elementEncoder: ElementEncoder[A] = _elementEncoder
+      override val preferredNamespacePrefix: Option[String] = _preferredNamespacePrefix
     }
+  }
 
   def fromElementEncoder[A](localName: String)(implicit elementEncoder: ElementEncoder[A]): XmlEncoder[A] =
-    fromElementEncoder(localName, None)
+    fromElementEncoder(localName, None, None)
 
   def fromElementEncoderNs[A, NS](localName: String, namespaceInstance: NS)(
       implicit elementEncoder: ElementEncoder[A],
       namespace: Namespace[NS],
   ): XmlEncoder[A] =
-    fromElementEncoder(localName, Some(namespace.getNamespace))
+    fromElementEncoder(localName, Some(namespace.getNamespace), namespace.getPreferredPrefix)
 
   def fromElementEncoderNs[A, NS](
       localName: String,
   )(implicit elementEncoder: ElementEncoder[A], namespace: Namespace[NS]): XmlEncoder[A] =
-    fromElementEncoder(localName, Some(namespace.getNamespace))
+    fromElementEncoder(localName, Some(namespace.getNamespace), namespace.getPreferredPrefix)
 
   final case class XmlEncoderConfig(
       encoding: String,

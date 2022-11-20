@@ -7,7 +7,6 @@ import ru.tinkoff.phobos.derivation.Derivation.DirectlyReentrantException
 import ru.tinkoff.phobos.syntax.{xmlns, default, attr, renamed, text, discriminator}
 
 import scala.annotation.nowarn
-import scala.annotation.nowarn
 import scala.reflect.macros.blackbox
 
 private[phobos] abstract class Derivation(val c: blackbox.Context) {
@@ -19,6 +18,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
       localName: String,
       xmlName: Tree,
       namespaceUri: Tree,
+      preferredNamespacePrefix: Tree,
       paramType: Type,
       category: ParamCategory,
   )
@@ -141,16 +141,16 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
           }
         }
 
-        def fetchNamespace(param: TermSymbol, paramCategory: ParamCategory): Tree =
+        def fetchNamespace(param: TermSymbol, paramCategory: ParamCategory): (Tree, Tree) =
           param.annotations.collectFirst {
             case annot if annot.tree.tpe <:< xmlnsType =>
               Option(c.inferImplicitValue(appliedType(namespaceType, annot.tree.tpe.typeArgs.head))).map { tree =>
-                q"_root_.scala.Some($tree.getNamespace)"
+                (q"_root_.scala.Some($tree.getNamespace)", q"$tree.getPreferredPrefix")
               }.getOrElse(error(s"Namespace typeclass not found for ${annot.tree.tpe.typeArgs.head}"))
           }.getOrElse(paramCategory match {
-            case ParamCategory.element   => q"""$config.elementsDefaultNamespace"""
-            case ParamCategory.attribute => q"""$config.attributesDefaultNamespace"""
-            case _                       => q"_root_.scala.None"
+            case ParamCategory.element   => (q"""$config.elementsDefaultNamespace""", q"_root_.scala.None")
+            case ParamCategory.attribute => (q"""$config.attributesDefaultNamespace""", q"_root_.scala.None")
+            case _                       => (q"_root_.scala.None", q"_root_.scala.None")
           })
 
         val repeatedParamClass = definitions.RepeatedParamClass
@@ -178,7 +178,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
 
         val params = caseParams.zip(annotations).map { case (paramType, param) =>
           val category  = fetchCategory(param)
-          val namespace = fetchNamespace(param, category)
+          val (namespace, preferredNamespacePrefix) = fetchNamespace(param, category)
           val localName = param.name.decodedName.toString
           val xmlName: Tree = param.annotations.collectFirst {
             case annotation if annotation.tree.tpe =:= renamedType =>
@@ -197,7 +197,7 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
               case _ => localNameTree
             }
           }
-          CaseClassParam(localName, xmlName, namespace, paramType, category)
+          CaseClassParam(localName, xmlName, namespace, preferredNamespacePrefix, paramType, category)
         }
 
         val attributeParamsNumber = params.count(_.category == ParamCategory.attribute)
