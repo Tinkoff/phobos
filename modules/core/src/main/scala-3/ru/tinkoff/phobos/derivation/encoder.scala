@@ -21,9 +21,10 @@ object encoder {
   inline def deriveXmlEncoder[T](
     inline localName: String,
     inline namespace: Option[String],
+    inline preferredNamespacePrefix: Option[String],
     inline config: ElementCodecConfig
   ): XmlEncoder[T] =
-    ${deriveXmlEncoderImpl('{localName}, '{namespace}, '{config})}
+    ${deriveXmlEncoderImpl('{localName}, '{namespace}, '{preferredNamespacePrefix}, '{config})}
 
   def deriveElementEncoderImpl[T: Type](config: Expr[ElementCodecConfig])(using Quotes): Expr[ElementEncoder[T]] = {
     import quotes.reflect.*
@@ -42,9 +43,10 @@ object encoder {
   def deriveXmlEncoderImpl[T: Type](
     localName: Expr[String],
     namespace: Expr[Option[String]],
+    preferredNamespacePrefix: Expr[Option[String]],
     config: Expr[ElementCodecConfig],
   )(using Quotes): Expr[XmlEncoder[T]] =
-    '{XmlEncoder.fromElementEncoder[T]($localName, $namespace)(${deriveElementEncoderImpl(config)})}
+    '{XmlEncoder.fromElementEncoder[T]($localName, $namespace, $preferredNamespacePrefix)(${deriveElementEncoderImpl(config)})}
 
   // PRODUCT
 
@@ -123,9 +125,12 @@ object encoder {
 
     '{new ElementEncoder[T]{
       def encodeAsElement(a: T, sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String], preferredNamespacePrefix: Option[String]): Unit = {
-        namespaceUri.fold(sw.writeStartElement(localName))(ns => sw.writeStartElement(ns, localName))
-        $config.defineNamespaces.foreach { uri =>
-          if (sw.getNamespaceContext.getPrefix(uri) == null) sw.writeNamespace(uri)
+        namespaceUri.fold(sw.writeStartElement(localName))(ns => sw.writeStartElement(preferredNamespacePrefix.orNull, localName, ns))
+        $config.defineNamespaces.foreach {
+          case (uri, Some(prefix)) =>
+            if (sw.getNamespaceContext.getPrefix(uri) == null) sw.writeNamespace(prefix, uri)
+          case (uri, None) =>
+            if (sw.getNamespaceContext.getPrefix(uri) == null) sw.writeNamespace(uri)
         }
 
         ${encodeAttributes[T](groups.getOrElse(FieldCategory.attribute, Nil), 'sw, 'a)}
@@ -146,16 +151,17 @@ object encoder {
     sw: Expr[PhobosStreamWriter],
     localName: Expr[String],
     namespaceUri: Expr[Option[String]],
+    preferredNamespacePrefix: Expr[Option[String]],
   ): Expr[Unit] = {
     import quotes.reflect.*
 
     '{
       val instance = summonInline[ElementEncoder[T]]
       if ($config.useElementNameAsDiscriminator) {
-        instance.encodeAsElement(${childValue}, localName = ${child.xmlName}, preferredNamespacePrefix = )
+        instance.encodeAsElement(${childValue}, $sw, ${child.xmlName}, $namespaceUri, $preferredNamespacePrefix)
       } else {
         $sw.memorizeDiscriminator($config.discriminatorNamespace, $config.discriminatorLocalName, ${child.xmlName})
-        instance.encodeAsElement(${childValue}, preferredNamespacePrefix = )
+        instance.encodeAsElement(${childValue}, $sw, $localName, $namespaceUri, $preferredNamespacePrefix)
       }
     }
   }
@@ -172,7 +178,7 @@ object encoder {
                 child.typeRepr.asType match {
                   case '[t] =>
                     val childValueSymbol = Symbol.newBind(Symbol.spliceOwner, "child", Flags.EmptyFlags, TypeRepr.of[t])
-                    val encode = encodeChild(config, child, Ref(childValueSymbol).asExprOf[t], 'sw, 'localName, 'namespaceUri)
+                    val encode = encodeChild(config, child, Ref(childValueSymbol).asExprOf[t], 'sw, 'localName, 'namespaceUri, 'preferredNamespacePrefix)
                     CaseDef(Bind(childValueSymbol, Typed(Ref(childValueSymbol), TypeTree.of[t])), None, encode.asTerm)
                 }
               }
