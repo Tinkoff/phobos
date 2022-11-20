@@ -7,7 +7,6 @@ import ru.tinkoff.phobos.derivation.Derivation.DirectlyReentrantException
 import ru.tinkoff.phobos.syntax.{xmlns, default, attr, renamed, text, discriminator}
 
 import scala.annotation.nowarn
-import scala.annotation.nowarn
 import scala.reflect.macros.blackbox
 
 private[phobos] abstract class Derivation(val c: blackbox.Context) {
