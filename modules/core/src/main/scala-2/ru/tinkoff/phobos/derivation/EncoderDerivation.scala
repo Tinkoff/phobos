@@ -138,6 +138,9 @@ class EncoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
          preferredNamespacePrefix: $scalaPkg.Option[$javaPkg.String],
        ): $scalaPkg.Unit = {
          namespaceUri.fold(sw.writeStartElement(localName))(ns => sw.writeStartElement(preferredNamespacePrefix.orNull, localName, ns))
+         $config.scopeDefaultNamespace.foreach { uri =>
+           sw.writeAttribute("xmlns", uri)
+         }
          $config.defineNamespaces.foreach {
            case (uri, $scalaPkg.Some(prefix)) =>
              if (sw.getNamespaceContext.getPrefix(uri) == null) sw.writeNamespace(prefix, uri)

@@ -72,7 +72,7 @@ object SealedClasses {
   case class PantheraLeo(name: String, strength: Double, speed: Double) extends Mammalia
 
   object Mammalia {
-    val config                                                = ElementCodecConfig.default.withConstructorsRenamed(snakeCase)
+    val config                                                = ElementCodecConfig.default.withConstructorNamesTransformed(snakeCase)
     implicit val canisEncoder: ElementEncoder[CanisLupus]     = deriveElementEncoder
     implicit val pantheraEncoder: ElementEncoder[PantheraLeo] = deriveElementEncoder
     implicit val mammaliaEncoder: ElementEncoder[Mammalia]    = deriveElementEncoderConfigured(config)
@@ -104,7 +104,7 @@ object SealedClasses {
   case class CarcharodonCarcharias(name: String, teethNumber: Long) extends Pisces
 
   object Pisces {
-    val config                                                             = ElementCodecConfig.default.withConstructorsRenamed(snakeCase)
+    val config                                                             = ElementCodecConfig.default.withConstructorNamesTransformed(snakeCase)
     implicit val amphiprionEncoder: ElementEncoder[Amphiprion]             = deriveElementEncoder
     implicit val carcharodonEncoder: ElementEncoder[CarcharodonCarcharias] = deriveElementEncoder
     implicit val piscesEncoder: ElementEncoder[Pisces]                     = deriveElementEncoderConfigured(config)
@@ -120,7 +120,7 @@ object SealedClasses {
   case class Cow(moo: Double)  extends Animal
 
   object Animal {
-    val config                                         = ElementCodecConfig.default.usingElementNamesAsDiscriminator.withConstructorsRenamed(snakeCase)
+    val config                                         = ElementCodecConfig.default.usingElementNamesAsDiscriminator.withConstructorNamesTransformed(snakeCase)
     implicit val catEncoder: ElementEncoder[Cat]       = deriveElementEncoder
     implicit val dogEncoder: ElementEncoder[Dog]       = deriveElementEncoder
     implicit val cowEncoder: ElementEncoder[Cow]       = deriveElementEncoder

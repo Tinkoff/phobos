@@ -577,7 +577,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode @renamed text values async" in decodeRenamedTextValues(fromIterable)
 
     def decodeCamelCase(toList: String => List[Array[Byte]]): Assertion = {
-      val camelCaseConfig = ElementCodecConfig.default.withStyle(camelCase)
+      val camelCaseConfig = ElementCodecConfig.default.withFieldNamesTransformed(camelCase)
       case class Foo(@attr someName: Int, @attr someOther: String, @text c: Double)
       case class Bar(someTopName: String, someFoo: Foo, e: Char)
 
@@ -601,7 +601,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode CamelCase async" in decodeCamelCase(fromIterable)
 
     def decodeSnakeCase(toList: String => List[Array[Byte]]): Assertion = {
-      val snakeCaseConfig = ElementCodecConfig.default.withStyle(snakeCase)
+      val snakeCaseConfig = ElementCodecConfig.default.withFieldNamesTransformed(snakeCase)
       case class Foo(@attr someName: Int, @attr someOther: String, @text c: Double)
       case class Bar(someTopName: String, someFoo: Foo, e: Char)
 
@@ -625,7 +625,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode snake_case async" in decodeSnakeCase(fromIterable)
 
     def decodeRenamedPriority(toList: String => List[Array[Byte]]): Assertion = {
-      val snakeCaseConfig = ElementCodecConfig.default.withStyle(snakeCase)
+      val snakeCaseConfig = ElementCodecConfig.default.withFieldNamesTransformed(snakeCase)
       case class Foo(@attr someName: Int, @attr @renamed("i-Have-priority") someOther: String, @text c: Double)
       case class Bar(someTopName: String, @renamed("Me2") someFoo: Foo, e: Char)
 
@@ -1143,7 +1143,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode multiple namespaces async" in decodeMultipleNamespaces(fromIterable)
 
     def decodeCamelCase(toList: String => List[Array[Byte]]): Assertion = {
-      val camelCaseConfig = ElementCodecConfig.default.withStyle(camelCase)
+      val camelCaseConfig = ElementCodecConfig.default.withFieldNamesTransformed(camelCase)
       case object tkf
       implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
       case class Foo(
@@ -1179,7 +1179,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     "decode CamelCase async" in decodeCamelCase(fromIterable)
 
     def decodeSnakeCase(toList: String => List[Array[Byte]]): Assertion = {
-      val snakeCaseConfig = ElementCodecConfig.default.withStyle(snakeCase)
+      val snakeCaseConfig = ElementCodecConfig.default.withFieldNamesTransformed(snakeCase)
       case object tkf
       implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
 
@@ -1447,6 +1447,120 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       decodeSealedTraitsUsingElementNamesAsDiscriminators(pure)
     "decode sealed traits using element names as discriminators async" in
       decodeSealedTraitsUsingElementNamesAsDiscriminators(fromIterable)
+
+    def decodeElementsWithScopeNamespaceFromConfig(toList: String => List[Array[Byte]]): Assertion = {
+      case object tkf
+      implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
+
+      case object tcs
+      implicit val tcsNs: Namespace[tcs.type] = Namespace.mkInstance("tcsbank.ru")
+
+      final case class Foo(
+          d: Int,
+          @xmlns(tcs) e: String,
+          f: Double,
+      )
+      implicit val fooEncoder: ElementDecoder[Foo] = deriveElementDecoder
+
+      final case class Bar(@xmlns(tcs) a: Int, b: String, c: Double, foo: Foo)
+      val config                               = ElementCodecConfig.default.withScopeDefaultNamespace(tkf)
+      implicit val barEncoder: XmlDecoder[Bar] = deriveXmlDecoderConfigured("bar", config)
+
+      val bar = Bar(123, "b value", 1.234, Foo(321, "e value", 4.321))
+      val string1 =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <bar xmlns="tinkoff.ru">
+          |   <ans1:a xmlns:ans1="tcsbank.ru">123</ans1:a>
+          |   <b>b value</b>
+          |   <c>1.234</c>
+          |   <foo>
+          |     <d>321</d>
+          |     <ans2:e xmlns:ans2="tcsbank.ru">e value</ans2:e>
+          |     <f>4.321</f>
+          |   </foo>
+          | </bar>
+          |""".stripMargin
+
+      val string2 =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <ans1:bar xmlns:ans1="tinkoff.ru" xmlns:ans2="tcsbank.ru">
+          |   <ans2:a>123</ans2:a>
+          |   <ans1:b>b value</ans1:b>
+          |   <ans1:c>1.234</ans1:c>
+          |   <ans1:foo>
+          |     <ans1:d>321</ans1:d>
+          |     <ans2:e>e value</ans2:e>
+          |     <ans1:f>4.321</ans1:f>
+          |   </ans1:foo>
+          | </ans1:bar>
+          |""".stripMargin
+
+      XmlDecoder[Bar].decode(string1) shouldBe Right(bar)
+      XmlDecoder[Bar].decode(string2) shouldBe Right(bar)
+    }
+
+    "decode elements with scope namespace from config sync" in decodeElementsWithScopeNamespaceFromConfig(pure)
+    "decode elements with scope namespace from config async" in decodeElementsWithScopeNamespaceFromConfig(fromIterable)
+
+    def decodeElementsWithNestedScopeNamespacesFromConfig(toList: String => List[Array[Byte]]): Assertion = {
+      case object tkf
+      implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
+
+      case object tcs
+      implicit val tcsNs: Namespace[tcs.type] = Namespace.mkInstance("tcsbank.ru")
+
+      case object xmp
+      implicit val xmlNs: Namespace[xmp.type] = Namespace.mkInstance("example.org")
+
+      final case class Foo(
+          d: Int,
+          @xmlns(tcs) e: String,
+          f: Double,
+      )
+      val fooConfig                                = ElementCodecConfig.default.withScopeDefaultNamespace(xmp)
+      implicit val fooEncoder: ElementDecoder[Foo] = deriveElementDecoderConfigured(fooConfig)
+
+      final case class Bar(@xmlns(tcs) a: Int, b: String, c: Double, foo: Foo)
+      val barConfig                            = ElementCodecConfig.default.withScopeDefaultNamespace(tkf)
+      implicit val barEncoder: XmlDecoder[Bar] = deriveXmlDecoderConfigured("bar", barConfig)
+
+      val bar = Bar(123, "b value", 1.234, Foo(321, "e value", 4.321))
+      val string1 =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <bar xmlns="tinkoff.ru">
+          |   <ans1:a xmlns:ans1="tcsbank.ru">123</ans1:a>
+          |   <b>b value</b>
+          |   <c>1.234</c>
+          |   <foo xmlns="example.org">
+          |     <d>321</d>
+          |     <ans2:e xmlns:ans2="tcsbank.ru">e value</ans2:e>
+          |     <f>4.321</f>
+          |   </foo>
+          | </bar>
+          |""".stripMargin
+
+      val string2 =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <ans1:bar xmlns:ans1="tinkoff.ru" xmlns:ans2="tcsbank.ru">
+          |   <ans2:a>123</ans2:a>
+          |   <ans1:b>b value</ans1:b>
+          |   <ans1:c>1.234</ans1:c>
+          |   <ans3:foo xmlns:ans3="example.org">
+          |     <ans3:d>321</ans3:d>
+          |     <ans2:e>e value</ans2:e>
+          |     <ans3:f>4.321</ans3:f>
+          |   </ans3:foo>
+          | </ans1:bar>
+          |""".stripMargin
+
+      XmlDecoder[Bar].decode(string1) shouldBe Right(bar)
+      XmlDecoder[Bar].decode(string2) shouldBe Right(bar)
+    }
+
+    "decode elements with nested scope namespaces from config sync" in
+      decodeElementsWithNestedScopeNamespacesFromConfig(pure)
+    "decode elements with nested scope namespaces from config async" in
+      decodeElementsWithNestedScopeNamespacesFromConfig(fromIterable)
   }
 
   "Decoder derivation compilation" should {

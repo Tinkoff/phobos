@@ -347,7 +347,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
     }
 
     "encode CamelCase" in {
-      val camelCaseConfig = ElementCodecConfig.default.withStyle(camelCase)
+      val camelCaseConfig = ElementCodecConfig.default.withFieldNamesTransformed(camelCase)
       case class Foo(@attr someName: Int, @attr someOther: String, @text c: Double)
       case class Bar(someTopName: String, someFoo: Foo, e: Char)
 
@@ -370,7 +370,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
     }
 
     "encode snake_case" in {
-      val snakeCaseConfig = ElementCodecConfig.default.withStyle(snakeCase)
+      val snakeCaseConfig = ElementCodecConfig.default.withFieldNamesTransformed(snakeCase)
       case class Foo(@attr someName: Int, @attr someOther: String, @text c: Double)
       case class Bar(someTopName: String, someFoo: Foo, e: Char)
 
@@ -818,7 +818,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
     }
 
     "encode CamelCase" in {
-      val camelCaseConfig = ElementCodecConfig.default.withStyle(camelCase)
+      val camelCaseConfig = ElementCodecConfig.default.withFieldNamesTransformed(camelCase)
       case object tkf
       implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
       case class Foo(
@@ -853,7 +853,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
     }
 
     "encode snake_case" in {
-      val snakeCaseConfig = ElementCodecConfig.default.withStyle(snakeCase)
+      val snakeCaseConfig = ElementCodecConfig.default.withFieldNamesTransformed(snakeCase)
       case object tkf
       implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
       case class Foo(
@@ -888,7 +888,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
     }
 
     "encode with @renamed having priority over naming" in {
-      val snakeCaseConfig = ElementCodecConfig.default.withStyle(snakeCase)
+      val snakeCaseConfig = ElementCodecConfig.default.withFieldNamesTransformed(snakeCase)
       case class Foo(@attr someName: Int, @attr @renamed("i-Have-priority") someOther: String, @text c: Double)
       case class Bar(someTopName: String, @renamed("Me2") someFoo: Foo, e: Char)
 
@@ -1249,6 +1249,84 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
             |   <tcs:c>3.0</tcs:c>
             | </foo>
      """.stripMargin.minimized,
+      )
+    }
+
+    "declare scope namespace from config" in {
+      case object tkf
+      implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
+
+      case object tcs
+      implicit val tcsNs: Namespace[tcs.type] = Namespace.mkInstance("tcsbank.ru")
+
+      final case class Foo(
+          d: Int,
+          @xmlns(tcs) e: String,
+          f: Double,
+      )
+      implicit val fooEncoder: ElementEncoder[Foo] = deriveElementEncoder
+
+      final case class Bar(@xmlns(tcs) a: Int, b: String, c: Double, foo: Foo)
+      val config                               = ElementCodecConfig.default.withScopeDefaultNamespace(tkf)
+      implicit val barEncoder: XmlEncoder[Bar] = deriveXmlEncoderConfigured("bar", config)
+
+      val bar    = Bar(123, "b value", 1.234, Foo(321, "e value", 4.321))
+      val string = XmlEncoder[Bar].encode(bar)
+      assert(
+        string ==
+          """<?xml version='1.0' encoding='UTF-8'?>
+          | <bar xmlns="tinkoff.ru">
+          |   <ans1:a xmlns:ans1="tcsbank.ru">123</ans1:a>
+          |   <b>b value</b>
+          |   <c>1.234</c>
+          |   <foo>
+          |     <d>321</d>
+          |     <ans2:e xmlns:ans2="tcsbank.ru">e value</ans2:e>
+          |     <f>4.321</f>
+          |   </foo>
+          | </bar>
+          |""".stripMargin.minimized,
+      )
+    }
+
+    "declare nested scope namespaces from config" in {
+      case object tkf
+      implicit val tkfNs: Namespace[tkf.type] = Namespace.mkInstance("tinkoff.ru")
+
+      case object tcs
+      implicit val tcsNs: Namespace[tcs.type] = Namespace.mkInstance("tcsbank.ru")
+
+      case object xmp
+      implicit val xmlNs: Namespace[xmp.type] = Namespace.mkInstance("example.org")
+
+      final case class Foo(
+          d: Int,
+          @xmlns(tcs) e: String,
+          f: Double,
+      )
+      val fooConfig                                = ElementCodecConfig.default.withScopeDefaultNamespace(xmp)
+      implicit val fooEncoder: ElementEncoder[Foo] = deriveElementEncoderConfigured(fooConfig)
+
+      final case class Bar(@xmlns(tcs) a: Int, b: String, c: Double, foo: Foo)
+      val barConfig                            = ElementCodecConfig.default.withScopeDefaultNamespace(tkf)
+      implicit val barEncoder: XmlEncoder[Bar] = deriveXmlEncoderConfigured("bar", barConfig)
+
+      val bar    = Bar(123, "b value", 1.234, Foo(321, "e value", 4.321))
+      val string = XmlEncoder[Bar].encode(bar)
+      assert(
+        string ==
+          """<?xml version='1.0' encoding='UTF-8'?>
+            | <bar xmlns="tinkoff.ru">
+            |   <ans1:a xmlns:ans1="tcsbank.ru">123</ans1:a>
+            |   <b>b value</b>
+            |   <c>1.234</c>
+            |   <foo xmlns="example.org">
+            |     <d>321</d>
+            |     <ans2:e xmlns:ans2="tcsbank.ru">e value</ans2:e>
+            |     <f>4.321</f>
+            |   </foo>
+            | </bar>
+            |""".stripMargin.minimized,
       )
     }
   }

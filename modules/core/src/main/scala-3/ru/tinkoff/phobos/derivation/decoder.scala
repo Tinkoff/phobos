@@ -115,7 +115,7 @@ object decoder {
                 val res = ${currentFieldStates}
                   .getOrElse(${Expr(element.localName)}, summonInline[ElementDecoder[t]])
                   .asInstanceOf[ElementDecoder[t]]
-                  .decodeAsElement($c, ${element.xmlName}, ${element.namespaceUri})
+                  .decodeAsElement($c, ${element.xmlName}, ${element.namespaceUri}.orElse($c.getScopeDefaultNamespace))
                 ${currentFieldStates}.update(${Expr(element.localName)}, res)
                 if (res.isCompleted) {
                   res.result(${element.xmlName} :: $c.history) match {
@@ -158,7 +158,7 @@ object decoder {
                 val res = $currentFieldStates
                   .getOrElse(${Expr(default.localName)}, summonInline[ElementDecoder[t]])
                   .asInstanceOf[ElementDecoder[t]]
-                  .decodeAsElement($c, name, namespace)
+                  .decodeAsElement($c, name, namespace.orElse($c.getScopeDefaultNamespace))
                 $currentFieldStates.update(${Expr(default.localName)}, res)
                 if (res.isCompleted) {
                   res.result(name :: $c.history) match {
@@ -243,6 +243,7 @@ object decoder {
         } match {
           case Right(result) =>
             $c.next()
+            $c.unsetScopeDefaultNamespace()
             new ConstDecoder[T](result)
           case Left(error) =>
             new FailedDecoder[T](error)
@@ -305,7 +306,7 @@ object decoder {
              val res = $currentFieldStates
                 .getOrElse(${Expr(default.localName)}, summonInline[ElementDecoder[t]])
                 .asInstanceOf[ElementDecoder[t]]
-                .decodeAsElement($c, $state.name, $state.namespace)
+                .decodeAsElement($c, $state.name, $state.namespace.orElse($c.getScopeDefaultNamespace))
              $currentFieldStates.update(${Expr(default.localName)}, res)
              if (res.isCompleted) {
                res.result($state.name :: $c.history) match {
@@ -339,7 +340,11 @@ object decoder {
             } else currentState match {
               case DecoderState.New =>
                 if (c.isStartElement) {
-                  ElementDecoder.errorIfWrongName[T](c, localName, namespaceUri) match {
+                  val newNamespaceUri =
+                    if (c.getScopeDefaultNamespace == namespaceUri) $config.scopeDefaultNamespace
+                    else $config.scopeDefaultNamespace.orElse(namespaceUri)
+                  $config.scopeDefaultNamespace.foreach(c.setScopeDefaultNamespace)
+                  ElementDecoder.errorIfWrongName[T](c, localName, newNamespaceUri.orElse(c.getScopeDefaultNamespace)) match {
                     case None =>
                       ${decodeAttributes(groups, 'c, 'currentFieldStates)}
                       c.next()
@@ -407,7 +412,7 @@ object decoder {
               CaseDef(Bind(symbol, Typed(Ref(symbol), TypeTree.of[String])), Some(Apply(Select(Ref(symbol), eq), List(child.xmlName.asTerm))), child.typeRepr.asType match {
                   case '[t] => '{
                     summonInline[ElementDecoder[t]]
-                      .decodeAsElement(c, c.getLocalName, Option(c.getNamespaceURI).filter(_.nonEmpty))
+                      .decodeAsElement(c, c.getLocalName, Option(c.getNamespaceURI).filter(_.nonEmpty).orElse(c.getScopeDefaultNamespace))
                       .map(_.asInstanceOf[T])
                   }.asTerm
                 })
