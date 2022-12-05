@@ -34,6 +34,18 @@ class Cursor(private val sr: XmlStreamReader) {
   def history: List[String]              = historyStack
   def error(text: String): DecodingError = DecodingError(text, historyStack)
 
+  var scopeDefaultNamespaceStack: List[String] = Nil
+  def setScopeDefaultNamespace(uri: String): Unit = {
+    scopeDefaultNamespaceStack = uri :: scopeDefaultNamespaceStack
+  }
+
+  def getScopeDefaultNamespace: Option[String] =
+    scopeDefaultNamespaceStack.headOption
+
+  def unsetScopeDefaultNamespace(): Unit = {
+    scopeDefaultNamespaceStack = scopeDefaultNamespaceStack.drop(1)
+  }
+
   def getAttributeInfo: AttributeInfo                         = sr.getAttributeInfo
   def getLocationInfo: LocationInfo                           = sr.getLocationInfo
   def getText(w: Writer, preserveContents: Boolean): Int      = sr.getText(w, preserveContents)

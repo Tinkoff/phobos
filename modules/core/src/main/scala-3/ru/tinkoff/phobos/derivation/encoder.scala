@@ -126,6 +126,9 @@ object encoder {
     '{new ElementEncoder[T]{
       def encodeAsElement(a: T, sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String], preferredNamespacePrefix: Option[String]): Unit = {
         namespaceUri.fold(sw.writeStartElement(localName))(ns => sw.writeStartElement(preferredNamespacePrefix.orNull, localName, ns))
+        $config.scopeDefaultNamespace.foreach { uri =>
+          sw.writeAttribute("xmlns", uri)
+        }
         $config.defineNamespaces.foreach {
           case (uri, Some(prefix)) =>
             if (sw.getNamespaceContext.getPrefix(uri) == null) sw.writeNamespace(prefix, uri)

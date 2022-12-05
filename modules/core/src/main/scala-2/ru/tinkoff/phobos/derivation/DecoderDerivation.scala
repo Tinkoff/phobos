@@ -44,7 +44,8 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
 
       cq""" 
         discriminator if discriminator == `${subtype.constructorName}` =>
-           $ref.decodeAsElement(cursor, cursor.getLocalName, Option(cursor.getNamespaceURI).filter(_.nonEmpty)).map(d => d: $classType)
+           $ref.decodeAsElement(cursor, cursor.getLocalName, Option(cursor.getNamespaceURI).filter(_.nonEmpty).orElse(cursor.getScopeDefaultNamespace))
+             .map(d => d: $classType)
       """
     }.toBuffer
 
@@ -162,7 +163,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
           decodeElements.append(
             cq"""
               `$xmlNameVal`  =>
-                $tempName = $tempName.decodeAsElement(cursor, $xmlNameVal, ${param.namespaceUri})
+                $tempName = $tempName.decodeAsElement(cursor, $xmlNameVal, ${param.namespaceUri}.orElse(cursor.getScopeDefaultNamespace))
                 if ($tempName.isCompleted) {
                   $tempName.result($xmlNameVal :: cursor.history) match {
                     case $scalaPkg.Right(_) => go($decoderStateObj.DecodingSelf)
@@ -244,7 +245,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
           )
 
           decodeDefault.append((elementName: Tree, elementNamespace: Tree) => q"""
-              $tempName = $tempName.decodeAsElement(cursor, $elementName, $elementNamespace)
+              $tempName = $tempName.decodeAsElement(cursor, $elementName, $elementNamespace.orElse(cursor.getScopeDefaultNamespace))
               if ($tempName.isCompleted) {
                 $tempName.result(cursor.history) match {
                   case $scalaPkg.Right(_) => go($decoderStateObj.DecodingSelf)
@@ -286,13 +287,18 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
             } else currentState match {
               case $decoderStateObj.New =>
                 if (cursor.isStartElement) {
-                  $decodingPkg.ElementDecoder.errorIfWrongName[$classType](cursor, localName, namespaceUri) match {
-                    case $scalaPkg.Some(error) => error
-                    case $scalaPkg.None =>
-                      ..$decodeAttributes
-                      cursor.next()
-                      go($decoderStateObj.DecodingSelf)
-                  }
+                  val newNamespaceUri =
+                    if (cursor.getScopeDefaultNamespace == namespaceUri) $config.scopeDefaultNamespace
+                    else $config.scopeDefaultNamespace.orElse(namespaceUri)
+                  $config.scopeDefaultNamespace.foreach(cursor.setScopeDefaultNamespace)
+                  $decodingPkg.ElementDecoder
+                    .errorIfWrongName[$classType](cursor, localName, newNamespaceUri.orElse(cursor.getScopeDefaultNamespace)) match {
+                      case $scalaPkg.Some(error) => error
+                      case $scalaPkg.None =>
+                        ..$decodeAttributes
+                        cursor.next()
+                        go($decoderStateObj.DecodingSelf)
+                    }
                 } else {
                   new $decodingPkg.ElementDecoder.FailedDecoder[$classType](cursor.error("Illegal state: not START_ELEMENT"))
                 }
@@ -320,6 +326,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
                       $classConstruction match {
                         case $scalaPkg.Right(result) =>
                           cursor.next()
+                          cursor.unsetScopeDefaultNamespace()
                           new $decodingPkg.ElementDecoder.ConstDecoder[$classType](result)
 
                         case $scalaPkg.Left(error) =>
