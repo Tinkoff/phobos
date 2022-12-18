@@ -137,7 +137,7 @@ lazy val `enumeratum` =
     .settings(
       commonDependencies,
       libraryDependencies ++= Seq(
-        "com.beachape" %% "enumeratum" % "1.7.0",
+        "com.beachape" %% "enumeratum" % "1.7.2",
       ),
     )
     .jvmPlatform(scala2Versions)
