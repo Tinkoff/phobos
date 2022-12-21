@@ -13,7 +13,7 @@ Scala 2.12, 2.13 and 3.1 are supported. Scala 3.0 is supported in `core-3-0` mod
 Add phobos-core to your dependencies:
 
 ```
-libraryDependencies += "ru.tinkoff" %% "phobos-core" % "0.19.0"
+libraryDependencies += "ru.tinkoff" %% "phobos-core" % "0.19.1"
 ```
 
 Then try this code out in `sbt console` or in a separate source file:
@@ -66,7 +66,7 @@ Performance details can be found out in [phobos-benchmark repository](https://gi
 There are several additional modules for some specific cases. 
 These modules could be added with command below:
 ```
-libraryDependencies += "ru.tinkoff" %% "phobos-<module>" % "0.19.0"
+libraryDependencies += "ru.tinkoff" %% "phobos-<module>" % "0.19.1"
 ```
 Where `<module>` is module name.
 
