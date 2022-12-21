@@ -326,7 +326,7 @@ class DecoderDerivation(ctx: blackbox.Context) extends Derivation(ctx) {
                       $classConstruction match {
                         case $scalaPkg.Right(result) =>
                           cursor.next()
-                          cursor.unsetScopeDefaultNamespace()
+                          $config.scopeDefaultNamespace.foreach(_ => cursor.unsetScopeDefaultNamespace())
                           new $decodingPkg.ElementDecoder.ConstDecoder[$classType](result)
 
                         case $scalaPkg.Left(error) =>

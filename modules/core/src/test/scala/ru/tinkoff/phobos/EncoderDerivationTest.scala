@@ -1259,10 +1259,14 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       case object tcs
       implicit val tcsNs: Namespace[tcs.type] = Namespace.mkInstance("tcsbank.ru")
 
+      final case class Qux(g: String, h: Int)
+      implicit val quxEncoder: ElementEncoder[Qux] = deriveElementEncoder
+
       final case class Foo(
           d: Int,
           @xmlns(tcs) e: String,
           f: Double,
+          qux: List[Qux],
       )
       implicit val fooEncoder: ElementEncoder[Foo] = deriveElementEncoder
 
@@ -1270,7 +1274,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val config                               = ElementCodecConfig.default.withScopeDefaultNamespace(tkf)
       implicit val barEncoder: XmlEncoder[Bar] = deriveXmlEncoderConfigured("bar", config)
 
-      val bar    = Bar(123, "b value", 1.234, Foo(321, "e value", 4.321))
+      val bar    = Bar(123, "b value", 1.234, Foo(321, "e value", 4.321, List(Qux("g value 1", 1), Qux("g value 2", 2))))
       val string = XmlEncoder[Bar].encode(bar)
       assert(
         string ==
@@ -1283,6 +1287,14 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
           |     <d>321</d>
           |     <ans2:e xmlns:ans2="tcsbank.ru">e value</ans2:e>
           |     <f>4.321</f>
+          |     <qux>
+          |       <g>g value 1</g>
+          |       <h>1</h>
+          |     </qux>
+          |     <qux>
+          |       <g>g value 2</g>
+          |       <h>2</h>
+          |     </qux>
           |   </foo>
           | </bar>
           |""".stripMargin.minimized,

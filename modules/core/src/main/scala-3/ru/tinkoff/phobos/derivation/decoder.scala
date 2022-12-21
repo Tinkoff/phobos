@@ -181,6 +181,7 @@ object decoder {
     c: Expr[Cursor],
     localName: Expr[String],
     currentFieldStates: Expr[mutable.AnyRefMap[String, Any]],
+    config: Expr[ElementCodecConfig],
   ) = {
     import quotes.reflect.*
 
@@ -243,7 +244,7 @@ object decoder {
         } match {
           case Right(result) =>
             $c.next()
-            $c.unsetScopeDefaultNamespace()
+            $config.scopeDefaultNamespace.foreach(_ => $c.unsetScopeDefaultNamespace())
             new ConstDecoder[T](result)
           case Left(error) =>
             new FailedDecoder[T](error)
@@ -359,7 +360,7 @@ object decoder {
                 if (c.isStartElement) {
                   ${decodeStartElement[T](groups, 'go, 'c, 'currentFieldStates)}
                 } else if (c.isEndElement) {
-                  ${decodeEndElement[T](fields, 'go, 'c, 'localName, 'currentFieldStates)}
+                  ${decodeEndElement[T](fields, 'go, 'c, 'localName, 'currentFieldStates, config)}
                 } else {
                   c.next()
                   go(DecoderState.DecodingSelf)
