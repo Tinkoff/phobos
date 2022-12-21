@@ -1455,10 +1455,14 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       case object tcs
       implicit val tcsNs: Namespace[tcs.type] = Namespace.mkInstance("tcsbank.ru")
 
+      final case class Qux(g: String, h: Int)
+      implicit val quxDecoder: ElementDecoder[Qux] = deriveElementDecoder
+
       final case class Foo(
           d: Int,
           @xmlns(tcs) e: String,
           f: Double,
+          qux: List[Qux]
       )
       implicit val fooEncoder: ElementDecoder[Foo] = deriveElementDecoder
 
@@ -1466,7 +1470,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       val config                               = ElementCodecConfig.default.withScopeDefaultNamespace(tkf)
       implicit val barEncoder: XmlDecoder[Bar] = deriveXmlDecoderConfigured("bar", config)
 
-      val bar = Bar(123, "b value", 1.234, Foo(321, "e value", 4.321))
+      val bar = Bar(123, "b value", 1.234, Foo(321, "e value", 4.321, List(Qux("g value 1", 1), Qux("g value 2", 2))))
       val string1 =
         """<?xml version='1.0' encoding='UTF-8'?>
           | <bar xmlns="tinkoff.ru">
@@ -1477,6 +1481,14 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
           |     <d>321</d>
           |     <ans2:e xmlns:ans2="tcsbank.ru">e value</ans2:e>
           |     <f>4.321</f>
+          |     <qux>
+          |       <g>g value 1</g>
+          |       <h>1</h>
+          |     </qux>
+          |     <qux>
+          |       <g>g value 2</g>
+          |       <h>2</h>
+          |     </qux>
           |   </foo>
           | </bar>
           |""".stripMargin
@@ -1491,6 +1503,14 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
           |     <ans1:d>321</ans1:d>
           |     <ans2:e>e value</ans2:e>
           |     <ans1:f>4.321</ans1:f>
+          |     <ans1:qux>
+          |       <ans1:g>g value 1</ans1:g>
+          |       <ans1:h>1</ans1:h>
+          |     </ans1:qux>
+          |     <ans1:qux>
+          |       <ans1:g>g value 2</ans1:g>
+          |       <ans1:h>2</ans1:h>
+          |     </ans1:qux>
           |   </ans1:foo>
           | </ans1:bar>
           |""".stripMargin
