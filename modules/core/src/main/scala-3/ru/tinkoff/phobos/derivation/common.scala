@@ -39,8 +39,10 @@ object common {
     val classTypeRepr = TypeRepr.of[T]
     val classSymbol = classTypeRepr.typeSymbol
 
-    val fields = classSymbol.primaryConstructor.paramSymss.flatten.map { fieldSymbol =>
-      val fieldAnnotations = fieldSymbol.annotations.map(_.asExpr)
+    // Extracting first non-type parameter list. Size of this parameter list must be equal to size of .caseFields
+    val constructorFields = classSymbol.primaryConstructor.paramSymss.filterNot(_.exists(_.isType)).head
+    val fields = classSymbol.caseFields.zip(constructorFields).map { (fieldSymbol, constructorFieldSymbol) =>
+      val fieldAnnotations = constructorFieldSymbol.annotations.map(_.asExpr)
       val fieldCategory    = extractFieldCategory(classSymbol, fieldSymbol, fieldAnnotations)
       val fieldXmlName     = extractFieldXmlName(config, classSymbol, fieldSymbol, fieldAnnotations, fieldCategory)
       val fieldNamespace   = extractFeildNamespace(config, classSymbol, fieldSymbol, fieldAnnotations, fieldCategory)

@@ -2,12 +2,12 @@
 [![Maven Central](https://img.shields.io/maven-central/v/ru.tinkoff/phobos-core_2.13.svg)](https://search.maven.org/search?q=ru.tinkoff.phobos-core)
 [![Build](https://github.com/TinkoffCreditSystems/phobos/actions/workflows/scala.yml/badge.svg)](https://github.com/TinkoffCreditSystems/phobos/actions/workflows/scala.yml)
 [![Scala Steward](https://img.shields.io/badge/Scala_Steward-helping-blue.svg?style=flat&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAQCAMAAAARSr4IAAAAVFBMVEUAAACHjojlOy5NWlrKzcYRKjGFjIbp293YycuLa3pYY2LSqql4f3pCUFTgSjNodYRmcXUsPD/NTTbjRS+2jomhgnzNc223cGvZS0HaSD0XLjbaSjElhIr+AAAAAXRSTlMAQObYZgAAAHlJREFUCNdNyosOwyAIhWHAQS1Vt7a77/3fcxxdmv0xwmckutAR1nkm4ggbyEcg/wWmlGLDAA3oL50xi6fk5ffZ3E2E3QfZDCcCN2YtbEWZt+Drc6u6rlqv7Uk0LdKqqr5rk2UCRXOk0vmQKGfc94nOJyQjouF9H/wCc9gECEYfONoAAAAASUVORK5CYII=)](https://scala-steward.org)
-[![Discord](https://img.shields.io/badge/chat-discord%20(en%2Fru)-blue)](https://discord.gg/S9Ad88t)
+[![Discord](https://img.shields.io/badge/chat-discord-blue)](https://discord.gg/S9Ad88t)
 
 Phobos is an XML data-binding library based on stream parsing. 
 It depends only on [aalto-xml](https://github.com/FasterXML/aalto-xml/) for parsing.
 
-Scala 2.12, 2.13 and 3.1 are supported. Scala 3.0 is supported in `core-3-0` module. See [Supported Scala versions](#supported-scala-versions) for more details.
+Scala 2.12, 2.13 and 3 are supported. See [Supported Scala versions](#supported-scala-versions) for more details.
 
 ## QuickStart
 Add phobos-core to your dependencies:
@@ -86,28 +86,24 @@ Where `<module>` is module name.
 
 
 ## Supported Scala versions
-Most modules support Scala 2.12, 2.13 and 3.1. 
+Most modules support Scala 2.12, 2.13 and 3. 
 Dependencies for some modules don't support Scala 3, thus these modules support only Scala 2.x.
-Most module dependencies are compiled for Scala 3.1, and they can not be used with Scala 3.0, 
-because Scala 3 [TASTy files are not forward compatible](https://contributors.scala-lang.org/t/improving-scala-3-forward-compatibility/5298).
-Module `core` is also compiled for Scala 3.1, but core features may be used via `core-3-0` module.
 
-Detailed information about supported Scala versions is in the table. Available versions for modules are marked with ✓.
+Detailed information about supported Scala versions is in the table below. Available versions for modules are marked with ✓.
 
-| Module name | 2.12 | 2.13 | 3.0 | 3.1 |
-|-------------|------|------|-----|-----|
-| core        |  ✓   |  ✓   |     |  ✓  |
-| core-3-0    |      |      |  ✓  |     |
-| akka-http   |  ✓   |  ✓   |     |     |
-| akka-stream |  ✓   |  ✓   |     |  ✓  |
-| ast         |  ✓   |  ✓   |     |     |
-| cats        |  ✓   |  ✓   |     |  ✓  |
-| derevo      |  ✓   |  ✓   |     |     |
-| enumeratum  |  ✓   |  ✓   |     |     |
-| fs2         |  ✓   |  ✓   |     |  ✓  |
-| fs2-ce2     |  ✓   |  ✓   |     |  ✓  |
-| monix       |  ✓   |  ✓   |     |  ✓  |
-| refined     |  ✓   |  ✓   |     |     |
+| Module name | 2.12 | 2.13 | 3 |
+|-------------|------|------|---|
+| core        |  ✓   |  ✓   | ✓ |
+| akka-http   |  ✓   |  ✓   |   |
+| akka-stream |  ✓   |  ✓   | ✓ |
+| ast         |  ✓   |  ✓   |   |
+| cats        |  ✓   |  ✓   | ✓ |
+| derevo      |  ✓   |  ✓   |   |
+| enumeratum  |  ✓   |  ✓   |   |
+| fs2         |  ✓   |  ✓   | ✓ |
+| fs2-ce2     |  ✓   |  ✓   | ✓ |
+| monix       |  ✓   |  ✓   | ✓ |
+| refined     |  ✓   |  ✓   |   |
 
 ## XSD and WSDL code-generation support
 Classes from XSD could be generated using [deimos](https://github.com/Tinkoff/deimos) library.
