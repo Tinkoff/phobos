@@ -391,6 +391,78 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
           """.stripMargin.minimized,
       )
     }
+
+    "work for higher kinded data" in {
+      case class Foo[F[_]](a: F[Int], b: F[String], c: F[Int])
+      implicit val fooOptionEncoder: XmlEncoder[Foo[Option]] = deriveXmlEncoder("foo")
+      implicit val fooListEncoder: XmlEncoder[Foo[List]] = deriveXmlEncoder("foo")
+
+      val fooOption = Foo[Option](Some(123), Some("b value"), None)
+      val fooList = Foo[List](List(123), List("b value 1", "b value 2", "b value 3"), Nil)
+
+      val fooOptionString =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <foo>
+          |   <a>123</a>
+          |   <b>b value</b>
+          | </foo>
+        """.stripMargin.minimized
+      val fooListString =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <foo>
+          |   <a>123</a>
+          |   <b>b value 1</b>
+          |   <b>b value 2</b>
+          |   <b>b value 3</b>
+          | </foo>
+        """.stripMargin.minimized
+
+      assert(fooOptionEncoder.encode(fooOption) == fooOptionString)
+      assert(fooListEncoder.encode(fooList) == fooListString)
+    }
+
+    "work for nested higher-kinded data" in {
+      case class Foo[F[_]](a: F[Int], b: F[String], c: F[Int])
+      implicit val fooOptionEncoder: ElementEncoder[Foo[Option]] = deriveElementEncoder
+      implicit val fooListEncoder: ElementEncoder[Foo[List]] = deriveElementEncoder
+
+      case class Bar[F[_], G[_]](@attr qux: G[String], foo: F[Foo[F]])
+      implicit val barOptionEncoder: XmlEncoder[Bar[Option, Option]] = deriveXmlEncoder("bar")
+      implicit val barListEncoder: XmlEncoder[Bar[List, Option]] = deriveXmlEncoder("bar")
+
+      val barOption =
+        Bar[Option, Option](Some("qux value"), Some(Foo[Option](Some(123), Some("b value"), None)))
+      val barList =
+        Bar[List, Option](
+          Some("qux value"),
+          List(Foo[List](List(123), List("b value 1", "b value 2", "b value 3"), Nil))
+        )
+
+      val barOptionString =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <bar qux="qux value">
+          |   <foo>
+          |     <a>123</a>
+          |     <b>b value</b>
+          |   </foo>
+          | </bar>
+        """.stripMargin.minimized
+
+      val barListString =
+        """<?xml version='1.0' encoding='UTF-8'?>
+          | <bar qux="qux value">
+          |   <foo>
+          |     <a>123</a>
+          |     <b>b value 1</b>
+          |     <b>b value 2</b>
+          |     <b>b value 3</b>
+          |   </foo>
+          | </bar>
+        """.stripMargin.minimized
+
+      assert(barOptionEncoder.encode(barOption) == barOptionString)
+      assert(barListEncoder.encode(barList) == barListString)
+    }
   }
 
   "Encoder derivation for sealed traits" should {

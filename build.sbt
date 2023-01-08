@@ -53,19 +53,6 @@ lazy val `core` =
     .settings(commonDependencies)
     .jvmPlatform(scala3Versions)
 
-lazy val `core-3-0` =
-  (projectMatrix in file(s"modules/core"))
-    .settings(commonSettings("core-3-0"))
-    .settings(
-      target := file("modules/core/target30"),
-      libraryDependencies ++= List(
-        "com.fasterxml"  % "aalto-xml" % "1.3.2",
-        "org.scalatest" %% "scalatest" % "3.2.11" % "test",
-        "org.scalactic" %% "scalactic" % "3.2.11" % "test",
-      )
-    )
-    .jvmPlatform(List("3.0.2"))
-
 lazy val `akka-http` =
   (projectMatrix in file(s"modules/akka-http"))
     .settings(commonSettings("akka-http"))
@@ -196,7 +183,6 @@ lazy val `refined` =
 lazy val modules: Seq[ProjectReference] =
   Seq(
     `core`.projectRefs,
-    `core-3-0`.projectRefs,
     `akka-http`.projectRefs,
     `akka-stream`.projectRefs,
     `ast`.projectRefs,

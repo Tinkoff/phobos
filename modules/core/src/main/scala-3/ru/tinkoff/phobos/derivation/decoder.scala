@@ -188,10 +188,16 @@ object decoder {
     '{$c.getLocalName match {
       case name if name == $localName =>
         ${
+          val classTypeRepr = TypeRepr.of[T]
+          val primaryConstructor = Select(New(TypeTree.of[T]), classTypeRepr.typeSymbol.primaryConstructor)
+          val primaryConstructorTypeApplied = classTypeRepr match {
+            case AppliedType(_, params) => TypeApply(primaryConstructor, params.map(Inferred.apply))
+            case _ => primaryConstructor
+          }
           fields
-            .foldLeft[List[Term] => Expr[Either[DecodingError, T]]](
-              terms => '{Right(${Apply(Select(New(TypeTree.of[T]), TypeRepr.of[T].typeSymbol.primaryConstructor), terms).asExprOf[T]})}
-            ) { (acc, field) => params =>
+            .foldLeft[List[Term] => Expr[Either[DecodingError, T]]]{
+              terms => '{Right(${Apply(primaryConstructorTypeApplied, terms).asExprOf[T]})}
+            } { (acc, field) => params =>
               field.typeRepr.asType match {
                 case '[t] =>
                   val fSymbol = Symbol.newMethod(
