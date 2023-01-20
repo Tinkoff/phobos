@@ -395,10 +395,10 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
     "work for higher kinded data" in {
       case class Foo[F[_]](a: F[Int], b: F[String], c: F[Int])
       implicit val fooOptionEncoder: XmlEncoder[Foo[Option]] = deriveXmlEncoder("foo")
-      implicit val fooListEncoder: XmlEncoder[Foo[List]] = deriveXmlEncoder("foo")
+      implicit val fooListEncoder: XmlEncoder[Foo[List]]     = deriveXmlEncoder("foo")
 
       val fooOption = Foo[Option](Some(123), Some("b value"), None)
-      val fooList = Foo[List](List(123), List("b value 1", "b value 2", "b value 3"), Nil)
+      val fooList   = Foo[List](List(123), List("b value 1", "b value 2", "b value 3"), Nil)
 
       val fooOptionString =
         """<?xml version='1.0' encoding='UTF-8'?>
@@ -424,18 +424,18 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
     "work for nested higher-kinded data" in {
       case class Foo[F[_]](a: F[Int], b: F[String], c: F[Int])
       implicit val fooOptionEncoder: ElementEncoder[Foo[Option]] = deriveElementEncoder
-      implicit val fooListEncoder: ElementEncoder[Foo[List]] = deriveElementEncoder
+      implicit val fooListEncoder: ElementEncoder[Foo[List]]     = deriveElementEncoder
 
       case class Bar[F[_], G[_]](@attr qux: G[String], foo: F[Foo[F]])
       implicit val barOptionEncoder: XmlEncoder[Bar[Option, Option]] = deriveXmlEncoder("bar")
-      implicit val barListEncoder: XmlEncoder[Bar[List, Option]] = deriveXmlEncoder("bar")
+      implicit val barListEncoder: XmlEncoder[Bar[List, Option]]     = deriveXmlEncoder("bar")
 
       val barOption =
         Bar[Option, Option](Some("qux value"), Some(Foo[Option](Some(123), Some("b value"), None)))
       val barList =
         Bar[List, Option](
           Some("qux value"),
-          List(Foo[List](List(123), List("b value 1", "b value 2", "b value 3"), Nil))
+          List(Foo[List](List(123), List("b value 1", "b value 2", "b value 3"), Nil)),
         )
 
       val barOptionString =
