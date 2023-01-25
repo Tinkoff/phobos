@@ -14,7 +14,8 @@ class ElementEncoderTest extends AnyWordSpec with Matchers with EncoderTestBase 
       val buff = new ByteArrayOutputStream(512)
       val sw   = buildStreamWriter(new WriterConfig(), buff)
 
-      ElementEncoder[OffsetDateTime].encodeAsElement(OffsetDateTime.parse("2019-10-27T18:27:26.1279855+05:00"), sw, "Date", None, None)
+      ElementEncoder[OffsetDateTime]
+        .encodeAsElement(OffsetDateTime.parse("2019-10-27T18:27:26.1279855+05:00"), sw, "Date", None, None)
 
       sw.flush()
 

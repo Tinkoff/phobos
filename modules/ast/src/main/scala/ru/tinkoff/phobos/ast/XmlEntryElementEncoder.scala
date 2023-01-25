@@ -4,7 +4,13 @@ import ru.tinkoff.phobos.encoding.{ElementEncoder, PhobosStreamWriter}
 
 private[phobos] object XmlEntryElementEncoder extends ElementEncoder[XmlEntry] {
 
-  override def encodeAsElement(entry: XmlEntry, sw: PhobosStreamWriter, localName: String, namespaceUri: Option[String], preferredNamespacePrefix: Option[String]): Unit = {
+  override def encodeAsElement(
+      entry: XmlEntry,
+      sw: PhobosStreamWriter,
+      localName: String,
+      namespaceUri: Option[String],
+      preferredNamespacePrefix: Option[String],
+  ): Unit = {
     entry match {
       case leaf: XmlLeaf =>
         leaf.companion.elementEncoder.encodeAsElement(leaf.value, sw, localName, namespaceUri, preferredNamespacePrefix)

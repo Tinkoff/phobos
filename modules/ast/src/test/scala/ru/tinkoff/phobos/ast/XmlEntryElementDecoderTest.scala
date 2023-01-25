@@ -67,7 +67,7 @@ class XmlEntryElementDecoderTest extends AnyWordSpec with Matchers with DiffShou
         )
 
       result.map(util.AstTransformer.sortNodeValues) shouldMatchTo (
-        util.AstTransformer.sortNodeValues(n).asRight[DecodingError],
+        util.AstTransformer.sortNodeValues(n).asRight[DecodingError]
       )
     }
   }
