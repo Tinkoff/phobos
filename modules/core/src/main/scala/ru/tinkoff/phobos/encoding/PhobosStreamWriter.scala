@@ -1,15 +1,20 @@
 package ru.tinkoff.phobos.encoding
 
 import java.math.BigInteger
-
 import javax.xml.namespace.{NamespaceContext, QName}
 import javax.xml.stream.XMLStreamException
 import org.codehaus.stax2.typed.Base64Variant
 import org.codehaus.stax2.{XMLStreamLocation2, XMLStreamReader2, XMLStreamWriter2}
 import org.codehaus.stax2.validation.{ValidationProblemHandler, XMLValidationSchema, XMLValidator}
-import PhobosStreamWriter.prefixBase
+import PhobosStreamWriter.{isValidXmlCharacter, prefixBase}
 
-final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
+/** [[PhobosStreamWriter]] implements most methods of [[XMLStreamWriter2]], but it does not extends [[XMLStreamWriter2]]
+  *
+  * Unlike [[XMLStreamWriter2]], [[PhobosStreamWriter]] does not throw any exceptions if it is used to write invalid
+  * characters. Such characters are simply filtered out. However, [[PhobosStreamWriter]] can still throw exceptions if
+  * it is used to write invalid attribute or element names or namespaces with invalid characters.
+  */
+final class PhobosStreamWriter(sw: XMLStreamWriter2) {
 
   private var discriminatorLocalName: Option[String] = None
   private var discriminatorNamespace: Option[String] = None
@@ -49,9 +54,6 @@ final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
   def getEncoding: String =
     sw.getEncoding
 
-  def writeCData(text: Array[Char], start: Int, len: Int): Unit =
-    sw.writeCData(text, start, len)
-
   def writeDTD(rootName: String, systemId: String, publicId: String, internalSubset: String): Unit =
     sw.writeDTD(rootName, systemId, publicId, internalSubset)
 
@@ -62,19 +64,10 @@ final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
     sw.writeStartDocument(version, encoding, standAlone)
 
   def writeSpace(text: String): Unit =
-    sw.writeSpace(text)
-
-  def writeSpace(text: Array[Char], offset: Int, length: Int): Unit =
-    sw.writeSpace(text, offset, length)
+    sw.writeSpace(text.filter(_.isWhitespace))
 
   def writeRaw(text: String): Unit =
-    sw.writeRaw(text)
-
-  def writeRaw(text: String, offset: Int, length: Int): Unit =
-    sw.writeRaw(text, offset, length)
-
-  def writeRaw(text: Array[Char], offset: Int, length: Int): Unit =
-    sw.writeRaw(text, offset, length)
+    sw.writeRaw(filterXmlText(text))
 
   def copyEventFromReader(r: XMLStreamReader2, preserveEventData: Boolean): Unit =
     sw.copyEventFromReader(r, preserveEventData)
@@ -226,13 +219,13 @@ final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
     sw.flush()
 
   def writeAttribute(localName: String, value: String): Unit =
-    sw.writeAttribute(localName, value)
+    sw.writeAttribute(localName, filterXmlText(value))
 
   def writeAttribute(prefix: String, namespaceURI: String, localName: String, value: String): Unit =
-    sw.writeAttribute(prefix, namespaceURI, localName, value)
+    sw.writeAttribute(prefix, namespaceURI, localName, filterXmlText(value))
 
   def writeAttribute(namespaceURI: String, localName: String, value: String): Unit =
-    sw.writeAttribute(namespaceURI, localName, value)
+    sw.writeAttribute(namespaceURI, localName, filterXmlText(value))
 
   def writeNamespace(prefix: String, namespaceURI: String): Unit =
     sw.writeNamespace(prefix, namespaceURI)
@@ -264,7 +257,7 @@ final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
     sw.writeDefaultNamespace(namespaceURI)
 
   def writeComment(data: String): Unit =
-    sw.writeComment(data)
+    sw.writeComment(filterXmlText(data))
 
   def writeProcessingInstruction(target: String): Unit =
     sw.writeProcessingInstruction(target)
@@ -273,7 +266,7 @@ final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
     sw.writeProcessingInstruction(target, data)
 
   def writeCData(data: String): Unit =
-    sw.writeCData(data)
+    sw.writeCData(filterXmlText(data))
 
   def writeDTD(dtd: String): Unit =
     sw.writeDTD(dtd)
@@ -291,10 +284,7 @@ final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
     sw.writeStartDocument(encoding, version)
 
   def writeCharacters(text: String): Unit =
-    sw.writeCharacters(text)
-
-  def writeCharacters(text: Array[Char], start: Int, len: Int): Unit =
-    sw.writeCharacters(text, start, len)
+    sw.writeCharacters(filterXmlText(text))
 
   def getPrefix(uri: String): String =
     sw.getPrefix(uri)
@@ -326,8 +316,16 @@ final class PhobosStreamWriter(sw: XMLStreamWriter2) extends XMLStreamWriter2 {
   def setValidationProblemHandler(h: ValidationProblemHandler): ValidationProblemHandler =
     sw.setValidationProblemHandler(h)
 
+  private def filterXmlText(string: String) =
+    if (string.forall(PhobosStreamWriter.isValidXmlCharacter)) string
+    else string.filter(PhobosStreamWriter.isValidXmlCharacter)
 }
 
 object PhobosStreamWriter {
   val prefixBase = "ans"
+
+  def isValidXmlCharacter(char: Char): Boolean =
+    !(char < ' '
+      || 0xd800 <= char && char <= 0xdfff
+      || char == 0xfffe || char == 0xffff)
 }

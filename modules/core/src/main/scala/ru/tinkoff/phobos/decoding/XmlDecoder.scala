@@ -42,8 +42,8 @@ trait XmlDecoder[A] extends XmlDecoderIterable[A] {
         .decodeAsElement(cursor, localname, namespaceuri)
         .result(cursor.history)
     } catch {
-      case e: WFCException =>
-        Left(DecodingError(e.getMessage, cursor.history))
+      case e: Throwable =>
+        Left(DecodingError(Option(e.getMessage).getOrElse("No message provided"), cursor.history))
     }
   }
 

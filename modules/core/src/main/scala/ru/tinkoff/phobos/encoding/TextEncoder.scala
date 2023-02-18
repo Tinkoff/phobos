@@ -28,7 +28,7 @@ object TextEncoder extends TextLiteralInstances {
     */
   implicit val stringEncoder: TextEncoder[String] =
     new TextEncoder[String] {
-      def encodeAsText(a: String, sw: PhobosStreamWriter): Unit = sw.writeRaw(a)
+      def encodeAsText(a: String, sw: PhobosStreamWriter): Unit = sw.writeCharacters(a)
     }
 
   implicit val unitEncoder: TextEncoder[Unit] =
