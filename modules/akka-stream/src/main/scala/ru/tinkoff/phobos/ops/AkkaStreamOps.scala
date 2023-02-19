@@ -39,7 +39,7 @@ private[phobos] trait AkkaStreamOps {
       }
       .map {
         case None =>
-          throw DecodingError("Got an internal error while decoding byte stream", Nil)
+          throw DecodingError("Got an internal error while decoding byte stream", Nil, None)
 
         case Some(SinkDecoderState(_, cursor, elementDecoder)) =>
           elementDecoder.result(cursor.history)

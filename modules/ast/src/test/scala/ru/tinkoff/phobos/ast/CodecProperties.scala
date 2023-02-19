@@ -13,15 +13,12 @@ class CodecProperties extends Properties("Ast codecs") {
   private val decoder = XmlDecoder.fromElementDecoder[XmlEntry]("test")
 
   property("decode(encode(ast)) === ast") = forAll { entry: XmlEntry =>
-    decoder.decode(
-      encoder.encode(entry),
-    ) == Right(entry)
+    encoder.encode(entry).flatMap(decoder.decode(_)) == Right(entry)
   }
 
   property("encode(decode(xmlAst)) === xmlAst") = forAll { entry: XmlEntry =>
     val encoded = encoder.encode(entry)
-
-    decoder.decode(encoded).map(encoder.encode(_)) == Right(encoded)
+    encoded.flatMap(decoder.decode(_)).map(encoder.encode(_)) == Right(encoded)
   }
 }
 

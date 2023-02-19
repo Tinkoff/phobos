@@ -9,7 +9,7 @@ import ru.tinkoff.phobos.encoding.XmlEncoder
 object application {
   implicit def soapApplicationXmlMarshaller[T](implicit encoder: XmlEncoder[T]): ToEntityMarshaller[T] =
     Marshaller.withFixedContentType(MediaTypes.`application/xml` withCharset HttpCharsets.`UTF-8`) { body =>
-      HttpEntity(MediaTypes.`application/xml` withCharset HttpCharsets.`UTF-8`, encoder.encode(body))
+      HttpEntity(MediaTypes.`application/xml` withCharset HttpCharsets.`UTF-8`, encoder.encodeUnsafe(body))
     }
 
   implicit def soapApplicationXmlUnmarshaller[T](implicit decoder: XmlDecoder[T]): FromEntityUnmarshaller[T] =

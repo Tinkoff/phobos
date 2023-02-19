@@ -16,7 +16,7 @@ class XmlEntryElementEncoderTest extends AnyWordSpec with DiffShouldMatcher with
           .fromElementEncoder[XmlEntry]("ast")
           .encode(ast)
 
-      assert(result == """<?xml version='1.0' encoding='UTF-8'?><ast foo="5"><bar>bazz</bar></ast>""")
+      assert(result == Right("""<?xml version='1.0' encoding='UTF-8'?><ast foo="5"><bar>bazz</bar></ast>"""))
     }
     "encodes nested Xml ast correctly" in {
       case object tinkoff {
@@ -46,7 +46,9 @@ class XmlEntryElementEncoderTest extends AnyWordSpec with DiffShouldMatcher with
           .encode(ast)
 
       assert(
-        result == """<?xml version='1.0' encoding='UTF-8'?><ans1:ast xmlns:ans1="https://tinkoff.ru" foo="5"><bar>bazz</bar><array foo2="true" foo3="false"><elem>11111111111111</elem><elem>11111111111112</elem></array><nested><scala>2.13</scala><dotty>0.13</dotty><scala-4/></nested></ans1:ast>""",
+        result == Right(
+          """<?xml version='1.0' encoding='UTF-8'?><ans1:ast xmlns:ans1="https://tinkoff.ru" foo="5"><bar>bazz</bar><array foo2="true" foo3="false"><elem>11111111111111</elem><elem>11111111111112</elem></array><nested><scala>2.13</scala><dotty>0.13</dotty><scala-4/></nested></ans1:ast>""",
+        ),
       )
     }
   }

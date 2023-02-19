@@ -6,7 +6,7 @@ import javax.xml.stream.XMLStreamException
 import org.codehaus.stax2.typed.Base64Variant
 import org.codehaus.stax2.{XMLStreamLocation2, XMLStreamReader2, XMLStreamWriter2}
 import org.codehaus.stax2.validation.{ValidationProblemHandler, XMLValidationSchema, XMLValidator}
-import PhobosStreamWriter.{isValidXmlCharacter, prefixBase}
+import PhobosStreamWriter.prefixBase
 
 /** [[PhobosStreamWriter]] implements most methods of [[XMLStreamWriter2]], but it does not extends [[XMLStreamWriter2]]
   *

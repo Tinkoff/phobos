@@ -10,7 +10,8 @@ package object decoding {
   private[decoding] def wrapException[A](f: String => A) =
     (history: List[String], string: String) =>
       Try(f(string)) match {
-        case Failure(exception) => Left(DecodingError(exception.getMessage, history))
-        case Success(a)         => Right(a)
+        case Failure(exception) =>
+          Left(DecodingError(Option(exception.getMessage).getOrElse("No text provided"), history, Some(exception)))
+        case Success(a) => Right(a)
       }
 }

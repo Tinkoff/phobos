@@ -24,10 +24,40 @@ trait XmlEncoder[A] {
   val preferredNamespacePrefix: Option[String] = None
   val elementEncoder: ElementEncoder[A]
 
-  def encode(a: A, charset: String = "UTF-8"): String =
-    new String(encodeToBytes(a, charset), charset)
+  // Methods below previously returned a pure value, now these methods return Either to handle encoding errors.
+  // Use -Unsafe versions for the old behavior.
+  //
+  // Encoding may fail if resulting XML document has illegal characters (https://www.w3.org/TR/xml11/#charsets)
+  // or if attribute and element names are invalid, for example "1stElement".
 
-  def encodeToBytes(a: A, charset: String = "UTF-8"): Array[Byte] = {
+  def encode(a: A, charset: String = "UTF-8"): Either[EncodingError, String] =
+    wrapXmlException(encodeUnsafe(a, charset))
+
+  def encodeToBytes(a: A, charset: String = "UTF-8"): Either[EncodingError, Array[Byte]] =
+    wrapXmlException(encodeToBytesUnsafe(a, charset))
+
+  def encodeWithConfig(a: A, config: XmlEncoderConfig): Either[EncodingError, String] =
+    wrapXmlException(encodeWithConfigUnsafe(a, config))
+
+  def encodeToBytesWithConfig(a: A, config: XmlEncoderConfig): Either[EncodingError, Array[Byte]] =
+    wrapXmlException(encodeToBytesWithConfigUnsafe(a, config))
+
+  def encodePrettyWithConfig(a: A, config: XmlEncoderConfig, ident: Int = 2): Either[EncodingError, String] =
+    wrapXmlException(encodePrettyWithConfigUnsafe(a, config, ident))
+
+  def encodePretty(a: A, charset: String = "UTF-8", ident: Int = 2): Either[EncodingError, String] =
+    wrapXmlException(encodePrettyUnsafe(a, charset, ident))
+
+  // Methods below can throw exceptions in some rare cases. Use "safe" methods returning Either,
+  // if you are not sure about the correctness of the data being encoded.
+  //
+  // These method may throw if resulting XML document has illegal characters ([[https://www.w3.org/TR/xml11/#charsets]])
+  // or if attribute and element names are invalid, for example "1stElement".
+
+  def encodeUnsafe(a: A, charset: String = "UTF-8"): String =
+    new String(encodeToBytesUnsafe(a, charset), charset)
+
+  def encodeToBytesUnsafe(a: A, charset: String = "UTF-8"): Array[Byte] = {
     val os = new ByteArrayOutputStream
     val sw =
       new PhobosStreamWriter(XmlEncoder.factory.createXMLStreamWriter(os, charset).asInstanceOf[XMLStreamWriter2])
@@ -39,10 +69,10 @@ trait XmlEncoder[A] {
     os.toByteArray
   }
 
-  def encodeWithConfig(a: A, config: XmlEncoderConfig): String =
-    new String(encodeToBytesWithConfig(a, config), config.encoding)
+  def encodeWithConfigUnsafe(a: A, config: XmlEncoderConfig): String =
+    new String(encodeToBytesWithConfigUnsafe(a, config), config.encoding)
 
-  def encodeToBytesWithConfig(a: A, config: XmlEncoderConfig): Array[Byte] = {
+  def encodeToBytesWithConfigUnsafe(a: A, config: XmlEncoderConfig): Array[Byte] = {
     val os = new ByteArrayOutputStream
     val sw =
       new PhobosStreamWriter(
@@ -63,13 +93,17 @@ trait XmlEncoder[A] {
   /** Warning: Use .encodePrettyWithConfig only for debugging, as it is less performant. For production use
     * .encodeWithConfig
     */
-  def encodePrettyWithConfig(a: A, config: XmlEncoderConfig, ident: Int = 2): String =
-    beautifyXml(encodeWithConfig(a, config), ident)
+  def encodePrettyWithConfigUnsafe(a: A, config: XmlEncoderConfig, ident: Int = 2): String =
+    beautifyXml(encodeWithConfigUnsafe(a, config), ident)
 
   /** Warning: Use .encodePretty only for debugging, as it is less performant. For production use .encode
     */
-  def encodePretty(a: A, charset: String = "UTF-8", ident: Int = 2): String =
-    beautifyXml(encode(a, charset), ident)
+  def encodePrettyUnsafe(a: A, charset: String = "UTF-8", ident: Int = 2): String =
+    beautifyXml(encodeUnsafe(a, charset), ident)
+
+  private def wrapXmlException[B](xml: => B): Either[EncodingError, B] =
+    try { Right(xml) }
+    catch { case e: Throwable => Left(EncodingError(Option(e.getMessage).getOrElse("No message provided"), Some(e))) }
 
   private def beautifyXml(xml: String, ident: Int): String = {
     val t = XmlEncoder.transformerFactory.newTransformer()

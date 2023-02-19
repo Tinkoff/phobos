@@ -41,7 +41,7 @@ class LiteralDecodingTest extends AnyWordSpec with Matchers {
         """.stripMargin
       val decoded = XmlDecoder[Foo].decodeFromIterable(toList(string))
       decoded should
-        matchPattern { case Left(DecodingError("Failed to decode literal type. Expected: Ok, actual: Error", _)) => }
+        matchPattern { case Left(DecodingError("Failed to decode literal type. Expected: Ok, actual: Error", _, _)) => }
     }
 
     "fail on attributes with incorrect value sync" in failOnAttributesWithIncorrectValue(pure)
@@ -75,7 +75,7 @@ class LiteralDecodingTest extends AnyWordSpec with Matchers {
         """.stripMargin
       val decoded = XmlDecoder[Foo].decodeFromIterable(toList(string))
       decoded should
-        matchPattern { case Left(DecodingError("Failed to decode literal type. Expected: Ok, actual: Error", _)) => }
+        matchPattern { case Left(DecodingError("Failed to decode literal type. Expected: Ok, actual: Error", _, _)) => }
     }
 
     "fail on elements with incorrect value sync" in failOnElementsWithIncorrectValue(pure)
@@ -109,7 +109,7 @@ class LiteralDecodingTest extends AnyWordSpec with Matchers {
         """.stripMargin
       val decoded = XmlDecoder[Foo].decodeFromIterable(toList(string))
       decoded should
-        matchPattern { case Left(DecodingError("Failed to decode literal type. Expected: Ok, actual: Error", _)) => }
+        matchPattern { case Left(DecodingError("Failed to decode literal type. Expected: Ok, actual: Error", _, _)) => }
     }
 
     "fail on elements with incorrect value sync" in failOnElementsWithIncorrectValue(pure)

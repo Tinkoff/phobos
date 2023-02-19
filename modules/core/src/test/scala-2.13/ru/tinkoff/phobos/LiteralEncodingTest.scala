@@ -15,9 +15,9 @@ class LiteralEncodingTest extends AnyWordSpec {
       val string = XmlEncoder[Foo].encode(Foo("Ok"))
       assert(
         string ==
-          """<?xml version='1.0' encoding='UTF-8'?>
+          Right("""<?xml version='1.0' encoding='UTF-8'?>
             | <foo status="Ok"/>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -28,9 +28,9 @@ class LiteralEncodingTest extends AnyWordSpec {
       val string = XmlEncoder[Foo].encode(Foo("Ok"))
       assert(
         string ==
-          """<?xml version='1.0' encoding='UTF-8'?>
+          Right("""<?xml version='1.0' encoding='UTF-8'?>
             | <foo><status>Ok</status></foo>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -41,9 +41,9 @@ class LiteralEncodingTest extends AnyWordSpec {
       val string = XmlEncoder[Foo].encode(Foo("Ok"))
       assert(
         string ==
-          """<?xml version='1.0' encoding='UTF-8'?>
+          Right("""<?xml version='1.0' encoding='UTF-8'?>
             | <foo>Ok</foo>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
   }

@@ -161,20 +161,25 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       val decodedResultInvalidFoo   = XmlDecoder[Wrapper].decode(invalidXmlStringAtFoo)
       val decodedResultInvalidTotal = XmlDecoder[Wrapper].decode(totallyInvalidXml)
 
-      assert(
-        decodedResultInvalidFoo == Left(
-          DecodingError(
-            "Unexpected end tag: expected </foo>\n at [row,col {unknown-source}]: [3,8]",
-            List("foo", "foo", "Wrapper"),
-          ),
-        ),
-      )
+      decodedResultInvalidFoo should matchPattern {
+        case Left(
+              DecodingError(
+                "Unexpected end tag: expected </foo>\n at [row,col {unknown-source}]: [3,8]",
+                List("foo", "foo", "Wrapper"),
+                _,
+              ),
+            ) =>
+      }
 
-      assert(
-        decodedResultInvalidTotal == Left(
-          DecodingError("Unexpected character 'L' (code 76) in prolog\n at [row,col {unknown-source}]: [1,2]", Nil),
-        ),
-      )
+      decodedResultInvalidTotal should matchPattern {
+        case Left(
+              DecodingError(
+                "Unexpected character 'L' (code 76) in prolog\n at [row,col {unknown-source}]: [1,2]",
+                Nil,
+                _,
+              ),
+            ) =>
+      }
     }
 
     def decodeNilValues(toList: String => List[Array[Byte]]): Assertion = {
@@ -813,7 +818,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
           barDecoder.decodeFromIterable(toList(string2)) == Right(bar2) &&
           barDecoder.decodeFromIterable(toList(string3)) == Right(bar3) &&
           barDecoder.decodeFromIterable(toList(string4)) ==
-          Left(DecodingError("Unknown type discriminator value: 'Qux'", List("foo", "bar"))),
+          Left(DecodingError("Unknown type discriminator value: 'Qux'", List("foo", "bar"), None)),
       )
     }
 
@@ -1060,7 +1065,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       animalXmlDecoder.decode(catString) shouldBe Right(Cat("meow"))
       animalXmlDecoder.decode(dogString) shouldBe Right(Dog(1234))
       animalXmlDecoder.decode(robotString) shouldBe
-        Left(DecodingError("Unknown type discriminator value: 'robot'", List("robot")))
+        Left(DecodingError("Unknown type discriminator value: 'robot'", List("robot"), None))
     }
 
     "override element name with discriminator in xml decoder if configured sync" in
@@ -1458,9 +1463,9 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       val decoded2 = XmlDecoder[Bar].decode(string2)
 
       assert(
-        decoded1 == Left(DecodingError("Invalid local name. Expected 'bar', but found 'wrong'", List("wrong"))) &&
+        decoded1 == Left(DecodingError("Invalid local name. Expected 'bar', but found 'wrong'", List("wrong"), None)) &&
           decoded2 == Left(
-            DecodingError("Invalid namespace. Expected 'tinkoff.ru', but found 'tcsbank.ru'", List("bar")),
+            DecodingError("Invalid namespace. Expected 'tinkoff.ru', but found 'tcsbank.ru'", List("bar"), None),
           ),
       )
     }

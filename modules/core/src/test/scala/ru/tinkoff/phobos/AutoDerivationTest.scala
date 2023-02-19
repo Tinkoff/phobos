@@ -71,7 +71,7 @@ class AutoDerivationTest extends AnyWordSpec with Matchers {
        |""".stripMargin
 
       val encoder = XmlEncoder.fromElementEncoder[Baz]("baz")
-      assert(encoder.encode(baz) == bazXml.minimized)
+      assert(encoder.encode(baz) == Right(bazXml.minimized))
 
       val decoder = XmlDecoder.fromElementDecoder[Baz]("baz")
       assert(decoder.decode(bazXml) == Right(baz))

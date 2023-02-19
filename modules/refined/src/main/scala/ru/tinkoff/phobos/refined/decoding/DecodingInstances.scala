@@ -53,6 +53,7 @@ trait DecodingInstances {
     DecodingError(
       s"Failed to verify $P refinement for value=$rawValue of raw type $T: $error",
       history,
+      None,
     )
   }
 }

@@ -1,7 +1,7 @@
 package ru.tinkoff.phobos.decoding
 
 import javax.xml.stream.XMLStreamConstants
-import com.fasterxml.aalto.{AsyncByteArrayFeeder, WFCException}
+import com.fasterxml.aalto.AsyncByteArrayFeeder
 import com.fasterxml.aalto.async.{AsyncByteArrayScanner, AsyncStreamReaderImpl}
 import com.fasterxml.aalto.stax.InputFactoryImpl
 import ru.tinkoff.phobos.Namespace
@@ -43,7 +43,7 @@ trait XmlDecoder[A] extends XmlDecoderIterable[A] {
         .result(cursor.history)
     } catch {
       case e: Throwable =>
-        Left(DecodingError(Option(e.getMessage).getOrElse("No message provided"), cursor.history))
+        Left(DecodingError(Option(e.getMessage).getOrElse("No message provided"), cursor.history, Some(e)))
     }
   }
 
