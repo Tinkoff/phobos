@@ -11,7 +11,7 @@ trait XmlEnum[A <: EnumEntry] { this: Enum[A] =>
 
   def decodeFromString(history: List[String], str: String): Either[DecodingError, A] = this.withNameOption(str) match {
     case Some(member) => Right(member)
-    case _            => Left(DecodingError(s"'$str' in not a member of enum $this", history))
+    case _            => Left(DecodingError(s"'$str' in not a member of enum $this", history, None))
   }
 
   implicit val enumElementDecoder: ElementDecoder[A]     = ElementDecoder.stringDecoder.emap(decodeFromString)

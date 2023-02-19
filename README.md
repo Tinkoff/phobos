@@ -49,10 +49,10 @@ val journey =
     arrival = TravelPoint("Germany", "Munich")
   )
 
-val xml: String = XmlEncoder[Journey].encode(journey)
+val xml = XmlEncoder[Journey].encode(journey)
 println(xml)
 
-val decodedJourney = XmlDecoder[Journey].decode(xml)
+val decodedJourney = xml.flatMap(XmlDecoder[Journey].decode(_))
 println(decodedJourney)
 
 assert(Right(journey) == decodedJourney)

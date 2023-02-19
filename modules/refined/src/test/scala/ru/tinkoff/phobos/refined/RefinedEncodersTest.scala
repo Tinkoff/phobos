@@ -30,7 +30,7 @@ class RefinedEncodersTest extends AnyWordSpec with Matchers {
          | </test>
        """.stripMargin.minimized
 
-      XmlEncoder[Test].encode(value) shouldEqual expectedResult
+      XmlEncoder[Test].encode(value) shouldEqual Right(expectedResult)
     }
 
     "encode elements correctly" in {
@@ -47,7 +47,7 @@ class RefinedEncodersTest extends AnyWordSpec with Matchers {
          | </test>
         """.stripMargin.minimized
 
-      XmlEncoder[Test].encode(value) shouldEqual expectedResult
+      XmlEncoder[Test].encode(value) shouldEqual Right(expectedResult)
     }
 
     "encode text correctly" in {
@@ -58,16 +58,15 @@ class RefinedEncodersTest extends AnyWordSpec with Matchers {
 
       val qux = Qux("42", Foo(42, NonNegLong(1000L)))
       val xml = XmlEncoder[Qux].encode(qux)
-      assert(
-        xml ==
-          """
+      val string =
+        """
             | <?xml version='1.0' encoding='UTF-8'?>
             | <qux>
             |   <str>42</str>
             |   <foo bar="42">1000</foo>
             | </qux>
-          """.stripMargin.minimized,
-      )
+          """.stripMargin.minimized
+      assert(xml == Right(string))
     }
   }
 }

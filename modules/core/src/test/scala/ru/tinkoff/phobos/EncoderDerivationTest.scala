@@ -27,7 +27,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = xmlEncoder.encode(bar)
       assert(
         string ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             | <bar>
             |   <d>d value</d>
@@ -38,7 +38,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
             |   </foo>
             |   <e>e</e>
             | </bar>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -53,7 +53,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = XmlEncoder[Bar].encode(bar)
       assert(
         string ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             | <bar e="e">
             |   <d>d value</d>
@@ -62,7 +62,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
             |     <c>3.0</c>
             |   </foo>
             | </bar>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -87,13 +87,13 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val xml = XmlEncoder[Qux].encode(qux)
       assert(
         xml ==
-          """
+          Right("""
           | <?xml version='1.0' encoding='UTF-8'?>
           | <qux>
           |   <str>constant</str>
           |   <foo bar="a74153b">text</foo>
           | </qux>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -108,7 +108,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val xml2 = XmlEncoder[Wrapper].encode(Wrapper(None))
       assert(
         xml1 ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             | <Wrapper>
             |   <foo b="b">
@@ -116,12 +116,12 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
             |     <c>2.0</c>
             |   </foo>
             | </Wrapper>
-          """.stripMargin.minimized &&
+          """.stripMargin.minimized) &&
           xml2 ==
-          """
+          Right("""
               | <?xml version='1.0' encoding='UTF-8'?>
               | <Wrapper/>
-            """.stripMargin.minimized,
+            """.stripMargin.minimized),
       )
     }
 
@@ -145,7 +145,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val xml2 = XmlEncoder[Foos].encode(bar2)
       assert(
         xml1 ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             | <foos>
             |   <foo b="b value">
@@ -163,12 +163,12 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
             |     <a>4</a>
             |   </foo>
             | </foos>
-          """.stripMargin.minimized
+          """.stripMargin.minimized)
           && xml2 ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             | <foos/>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -181,9 +181,9 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = XmlEncoder[Foo].encode(foo)
       assert(
         string ==
-          """<?xml version='1.0' encoding='UTF-8'?>
+          Right("""<?xml version='1.0' encoding='UTF-8'?>
             | <foo>Zm9vYmFy</foo>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -198,14 +198,14 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = XmlEncoder[Bar].encode(bar)
       assert(
         string ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             | <bar>
             |   <d>d value</d>
             |   <foo a="1" b="b value">3.0</foo>
             |   <e>e</e>
             | </bar>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -224,7 +224,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = XmlEncoder[Foo].encode(foo)
       assert(
         string ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             | <foo>
             |    <foo>
@@ -241,7 +241,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
             |    </foo>
             |    <das>0</das>
             | </foo>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -254,10 +254,10 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = XmlEncoder[Foo].encode(foo)
       assert(
         string ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             | <foo>Sending item to <count>1</count><buz>Buzz</buz></foo>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -270,12 +270,12 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = XmlEncoder[Foo].encode(foo)
       assert(
         string ==
-          """
+          Right("""
              | <?xml version='1.0' encoding='UTF-8'?>
              | <foo baz="Esca&quot;&apos;&lt;>&amp;pe">
              |   <bar>Esca"'&lt;>&amp;pe</bar>
              | </foo>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -290,7 +290,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = XmlEncoder[Bar].encode(bar)
       assert(
         string ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             | <bar>
             |   <d>d value</d>
@@ -301,7 +301,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
             |   </theFoo>
             |   <e>e</e>
             | </bar>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -314,13 +314,13 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = XmlEncoder[Foo].encode(bar)
       assert(
         string ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             |   <foo theB="b value">
             |     <a>1</a>
             |     <c>3.0</c>
             |   </foo>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -335,14 +335,14 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = XmlEncoder[Bar].encode(bar)
       assert(
         string ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             | <bar>
             |   <d>d value</d>
             |   <foo a="1" theB="b value">3.0</foo>
             |   <e>e</e>
             | </bar>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -358,14 +358,14 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = XmlEncoder[Bar].encode(bar)
       assert(
         string ==
-          """
+          Right("""
             |<?xml version='1.0' encoding='UTF-8'?>
             | <Bar>
             |   <SomeTopName>d value</SomeTopName>
             |   <SomeFoo SomeName="1" SomeOther="b value">3.0</SomeFoo>
             |   <E>e</E>
             | </Bar>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -381,14 +381,14 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = XmlEncoder[Bar].encode(bar)
       assert(
         string ==
-          """
+          Right("""
             |<?xml version='1.0' encoding='UTF-8'?>
             | <bar>
             |   <some_top_name>d value</some_top_name>
             |   <some_foo some_name="1" some_other="b value">3.0</some_foo>
             |   <e>e</e>
             | </bar>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -417,8 +417,8 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
           | </foo>
         """.stripMargin.minimized
 
-      assert(fooOptionEncoder.encode(fooOption) == fooOptionString)
-      assert(fooListEncoder.encode(fooList) == fooListString)
+      assert(fooOptionEncoder.encode(fooOption) == Right(fooOptionString))
+      assert(fooListEncoder.encode(fooList) == Right(fooListString))
     }
 
     "work for nested higher-kinded data" in {
@@ -460,8 +460,8 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
           | </bar>
         """.stripMargin.minimized
 
-      assert(barOptionEncoder.encode(barOption) == barOptionString)
-      assert(barListEncoder.encode(barList) == barListString)
+      assert(barOptionEncoder.encode(barOption) == Right(barOptionString))
+      assert(barListEncoder.encode(barList) == Right(barListString))
     }
   }
 
@@ -483,7 +483,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
 
       assert(
         string1 ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             | <bar>
             |   <d>d value</d>
@@ -492,9 +492,9 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
             |   </foo>
             |   <e>k</e>
             | </bar>
-          """.stripMargin.minimized &&
+          """.stripMargin.minimized) &&
           string2 ==
-          """
+          Right("""
               | <?xml version='1.0' encoding='UTF-8'?>
               | <bar>
               |   <d>d value</d>
@@ -503,9 +503,9 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
               |   </foo>
               |   <e>e</e>
               | </bar>
-          """.stripMargin.minimized &&
+          """.stripMargin.minimized) &&
           string3 ==
-          """
+          Right("""
               | <?xml version='1.0' encoding='UTF-8'?>
               | <bar>
               |   <d>another one value</d>
@@ -514,7 +514,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
               |   </foo>
               |   <e>v</e>
               | </bar>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -535,7 +535,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
 
       assert(
         string1 ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             | <qux>
             |   <d>d value</d>
@@ -544,9 +544,9 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
             |   </bar>
             |   <e>k</e>
             | </qux>
-          """.stripMargin.minimized &&
+          """.stripMargin.minimized) &&
           string2 ==
-          """
+          Right("""
               | <?xml version='1.0' encoding='UTF-8'?>
               | <qux>
               |   <d>d value</d>
@@ -555,9 +555,9 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
               |   </bar>
               |   <e>e</e>
               | </qux>
-          """.stripMargin.minimized &&
+          """.stripMargin.minimized) &&
           string3 ==
-          """
+          Right("""
               | <?xml version='1.0' encoding='UTF-8'?>
               | <qux>
               |   <d>another one value</d>
@@ -566,7 +566,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
               |   </bar>
               |   <e>v</e>
               | </qux>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
 
       case class Quux(d: String, baz: SealedClasses.Baz, e: Char)
@@ -585,7 +585,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
 
       assert(
         string4 ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             | <quux>
             |   <d>d value</d>
@@ -594,9 +594,9 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
             |   </baz>
             |   <e>k</e>
             | </quux>
-          """.stripMargin.minimized &&
+          """.stripMargin.minimized) &&
           string5 ==
-          """
+          Right("""
               | <?xml version='1.0' encoding='UTF-8'?>
               | <quux>
               |   <d>d value</d>
@@ -605,9 +605,9 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
               |   </baz>
               |   <e>e</e>
               | </quux>
-          """.stripMargin.minimized &&
+          """.stripMargin.minimized) &&
           string6 ==
-          """
+          Right("""
               | <?xml version='1.0' encoding='UTF-8'?>
               | <quux>
               |   <d>another one value</d>
@@ -616,7 +616,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
               |   </baz>
               |   <e>v</e>
               | </quux>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -628,23 +628,23 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
 
       assert(
         animalEncoder.encode(wolf) ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             | <animal xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="canis_lupus">
             |   <name>Igor</name>
             |   <strength>0.2</strength>
             |   <age>20</age>
             | </animal>
-          """.stripMargin.minimized &&
+          """.stripMargin.minimized) &&
           animalEncoder.encode(lion) ==
-          """
+          Right("""
               | <?xml version='1.0' encoding='UTF-8'?>
               | <animal xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="panthera_leo">
               |   <name>Sergey</name>
               |   <strength>0.75</strength>
               |   <speed>60.1</speed>
               | </animal>
-            """.stripMargin.minimized,
+            """.stripMargin.minimized),
       )
     }
 
@@ -656,21 +656,21 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
 
       assert(
         insectEncoder.encode(hornet) ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             | <insect xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="hornet">
             |   <name>Anton</name>
             |   <damage>200.123</damage>
             | </insect>
-          """.stripMargin.minimized &&
+          """.stripMargin.minimized) &&
           insectEncoder.encode(cockroach) ==
-          """
+          Right("""
               | <?xml version='1.0' encoding='UTF-8'?>
               | <insect xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="cockroach">
               |   <name>Dmitriy</name>
               |   <legsNumber>5</legsNumber>
               | </insect>
-            """.stripMargin.minimized,
+            """.stripMargin.minimized),
       )
     }
 
@@ -682,21 +682,21 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
 
       assert(
         fishEncoder.encode(clownFish) ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             | <fish xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="ClownFish">
             |   <name>Nemo</name>
             |   <finNumber>1</finNumber>
             | </fish>
-          """.stripMargin.minimized &&
+          """.stripMargin.minimized) &&
           fishEncoder.encode(whiteShark) ==
-          """
+          Right("""
               | <?xml version='1.0' encoding='UTF-8'?>
               | <fish xmlns:ans1="http://www.w3.org/2001/XMLSchema-instance" ans1:type="carcharodon_carcharias">
               |   <name>Bill</name>
               |   <teethNumber>20000000000</teethNumber>
               | </fish>
-            """.stripMargin.minimized,
+            """.stripMargin.minimized),
       )
     }
 
@@ -723,7 +723,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
           | </zoo>
                     """.stripMargin.minimized
       val zoo = Zoo(List(Cow(12.432), Cat("meow"), Dog(1234), Cat("nya")))
-      XmlEncoder[Zoo].encode(zoo) shouldBe string
+      XmlEncoder[Zoo].encode(zoo) shouldBe Right(string)
     }
 
     "override element name with discriminator in xml encoder if configured" in {
@@ -743,8 +743,8 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
           |  <woof>1234</woof>
           | </dog>
           |""".stripMargin.minimized
-      animalXmlEncoder.encode(cat) shouldBe catString
-      animalXmlEncoder.encode(dog) shouldBe dogString
+      animalXmlEncoder.encode(cat) shouldBe Right(catString)
+      animalXmlEncoder.encode(dog) shouldBe Right(dogString)
     }
   }
 
@@ -770,7 +770,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = XmlEncoder[Bar].encode(bar)
       assert(
         string ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             | <ans1:bar xmlns:ans1="tinkoff.ru">
             |   <ans1:d>d value</ans1:d>
@@ -781,7 +781,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
             |   </ans1:foo>
             |   <ans1:e>e</ans1:e>
             | </ans1:bar>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -806,7 +806,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = XmlEncoder[Bar].encode(bar)
       assert(
         string ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             | <ans1:bar xmlns:ans1="tinkoff.ru" ans1:e="e">
             |   <ans1:d>d value</ans1:d>
@@ -815,7 +815,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
             |     <ans1:c>3.0</ans1:c>
             |   </ans1:foo>
             | </ans1:bar>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -840,7 +840,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = XmlEncoder[Bar].encode(bar)
       assert(
         string ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             | <bar e="e">
             |   <d>d value</d>
@@ -849,7 +849,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
             |     <ans1:c>3.0</ans1:c>
             |   </ans1:foo>
             | </bar>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -876,7 +876,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = XmlEncoder[Bar].encode(bar)
       assert(
         string ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             | <ans1:bar xmlns:ans1="tcsbank.ru" e="e">
             |   <ans1:d>d value</ans1:d>
@@ -885,7 +885,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
             |     <ans2:c>3.0</ans2:c>
             |   </ans2:foo>
             | </ans1:bar>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -910,7 +910,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = XmlEncoder[Bar].encode(bar)
       assert(
         string ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             | <ans1:Bar xmlns:ans1="tinkoff.ru">
             |   <ans1:SomeTopName>d value</ans1:SomeTopName>
@@ -920,7 +920,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
             |     <ans1:C>3.0</ans1:C>
             |   </ans1:SomeFoo>
             | </ans1:Bar>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -945,7 +945,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = XmlEncoder[Bar].encode(bar)
       assert(
         string ==
-          """
+          Right("""
             | <?xml version='1.0' encoding='UTF-8'?>
             | <ans1:bar xmlns:ans1="tinkoff.ru">
             |   <ans1:some_top_name>d value</ans1:some_top_name>
@@ -955,7 +955,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
             |     <ans1:c>3.0</ans1:c>
             |   </ans1:some_foo>
             | </ans1:bar>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -972,13 +972,13 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = XmlEncoder[Bar].encode(bar)
       assert(
         string ==
-          """<?xml version='1.0' encoding='UTF-8'?>
+          Right("""<?xml version='1.0' encoding='UTF-8'?>
             | <bar>
             |   <some_top_name>d value</some_top_name>
             |   <Me2 some_name="1" i-Have-priority="b value">3.0</Me2>
             |   <e>e</e>
             | </bar>
-          """.stripMargin.minimized,
+          """.stripMargin.minimized),
       )
     }
 
@@ -999,7 +999,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
 
       assert(
         string ==
-          """<?xml version='1.0' encoding='UTF-8'?>
+          Right("""<?xml version='1.0' encoding='UTF-8'?>
           | <ans1:bar xmlns:ans1="tinkoff.ru" d="d value">
           |   <ans1:foo>
           |     <a>1</a>
@@ -1008,7 +1008,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
           |   </ans1:foo>
           |  <ans1:e>e</ans1:e>
           | </ans1:bar>
-      """.stripMargin.minimized,
+      """.stripMargin.minimized),
       )
     }
 
@@ -1031,7 +1031,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
 
       assert(
         string ==
-          """<?xml version='1.0' encoding='UTF-8'?>
+          Right("""<?xml version='1.0' encoding='UTF-8'?>
             | <ans1:bar xmlns:ans1="tinkoff.ru" d="d value">
             |   <ans2:foo xmlns:ans2="tcsbank.ru">
             |     <a>1</a>
@@ -1040,7 +1040,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
             |   </ans2:foo>
             |  <ans1:e>e</ans1:e>
             | </ans1:bar>
-      """.stripMargin.minimized,
+      """.stripMargin.minimized),
       )
     }
 
@@ -1060,7 +1060,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
 
       assert(
         string ==
-          """<?xml version='1.0' encoding='UTF-8'?>
+          Right("""<?xml version='1.0' encoding='UTF-8'?>
             | <ans1:bar xmlns:ans1="tinkoff.ru" ans1:d="d value" ans1:e="e">
             |   <foo>
             |     <a>1</a>
@@ -1068,7 +1068,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
             |     <c>3.0</c>
             |   </foo>
             | </ans1:bar>
-      """.stripMargin.minimized,
+      """.stripMargin.minimized),
       )
     }
 
@@ -1091,7 +1091,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
 
       assert(
         string ==
-          """<?xml version='1.0' encoding='UTF-8'?>
+          Right("""<?xml version='1.0' encoding='UTF-8'?>
             | <ans1:bar xmlns:ans1="tinkoff.ru" ans1:d="d value" xmlns:ans2="tcsbank.ru" ans2:e="e">
             |   <foo>
             |     <a>1</a>
@@ -1099,7 +1099,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
             |     <c>3.0</c>
             |   </foo>
             | </ans1:bar>
-      """.stripMargin.minimized,
+      """.stripMargin.minimized),
       )
     }
 
@@ -1125,13 +1125,13 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
 
       assert(
         string ==
-          """<?xml version='1.0' encoding='UTF-8'?>
+          Right("""<?xml version='1.0' encoding='UTF-8'?>
             | <foo xmlns:ans1="tcsbank.ru" xmlns:ans2="tinkoff.ru">
             |   <ans1:a>1</ans1:a>
             |   <ans1:b>b value</ans1:b>
             |   <ans1:c>3.0</ans1:c>
             | </foo>
-      """.stripMargin.minimized,
+      """.stripMargin.minimized),
       )
     }
 
@@ -1164,7 +1164,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = XmlEncoder[Bar].encode(bar)
       assert(
         string ==
-          """<?xml version='1.0' encoding='UTF-8'?>
+          Right("""<?xml version='1.0' encoding='UTF-8'?>
           | <ans1:bar xmlns:ans1="tinkoff.ru">
           |   <ans2:foo xmlns:ans2="tcsbank.ru" xmlns:ans3="example.com/3" xmlns:ans4="example.com/4" 
           |             xmlns:ans5="example.com/5" xmlns:ans6="example.com/6" xmlns:ans7="example.com/7" 
@@ -1174,7 +1174,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
           |     <c>3.0</c>
           |   </ans2:foo>
           | </ans1:bar>
-      """.stripMargin.minimized,
+      """.stripMargin.minimized),
       )
     }
 
@@ -1203,7 +1203,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = XmlEncoder[Bar].encode(bar)
       assert(
         string ==
-          """<?xml version='1.0' encoding='UTF-8'?>
+          Right("""<?xml version='1.0' encoding='UTF-8'?>
             | <ans1:bar xmlns:ans1="tinkoff.ru">
             |   <foo xmlns:ans2="tcsbank.ru">
             |     <a>1</a>
@@ -1211,7 +1211,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
             |     <c>3.0</c>
             |   </foo>
             | </ans1:bar>
-      """.stripMargin.minimized,
+      """.stripMargin.minimized),
       )
     }
 
@@ -1238,7 +1238,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
           |""".stripMargin.minimized
       val aquarium =
         Aquarium(List(SealedClasses.Amphiprion("Marlin", 3), SealedClasses.CarcharodonCarcharias("Jaws", 1234)))
-      XmlEncoder[Aquarium].encode(aquarium) shouldBe string
+      XmlEncoder[Aquarium].encode(aquarium) shouldBe Right(string)
     }
 
     "encode sealed traits using element names as discriminators" in {
@@ -1261,7 +1261,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
           | </shelter>
         """.stripMargin.minimized
       val animalShelter = AnimalShelter(List(Cat("meow"), Dog(1234)))
-      XmlEncoder[AnimalShelter].encode(animalShelter) shouldBe string
+      XmlEncoder[AnimalShelter].encode(animalShelter) shouldBe Right(string)
     }
 
     "encode namespaces with preferred prefixes" in {
@@ -1289,7 +1289,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
           | </tkf:foo>
         """.stripMargin.minimized
 
-      XmlEncoder[Foo].encode(foo) shouldBe string
+      XmlEncoder[Foo].encode(foo) shouldBe Right(string)
     }
 
     "declare namespaces with preferred prefixes from config" in {
@@ -1314,13 +1314,13 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
 
       assert(
         string ==
-          """<?xml version='1.0' encoding='UTF-8'?>
+          Right("""<?xml version='1.0' encoding='UTF-8'?>
             | <foo xmlns:tcs="tcsbank.ru" xmlns:tkf="tinkoff.ru">
             |   <tcs:a>1</tcs:a>
             |   <tcs:b>b value</tcs:b>
             |   <tcs:c>3.0</tcs:c>
             | </foo>
-     """.stripMargin.minimized,
+     """.stripMargin.minimized),
       )
     }
 
@@ -1350,7 +1350,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = XmlEncoder[Bar].encode(bar)
       assert(
         string ==
-          """<?xml version='1.0' encoding='UTF-8'?>
+          Right("""<?xml version='1.0' encoding='UTF-8'?>
           | <bar xmlns="tinkoff.ru">
           |   <ans1:a xmlns:ans1="tcsbank.ru">123</ans1:a>
           |   <b>b value</b>
@@ -1369,7 +1369,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
           |     </qux>
           |   </foo>
           | </bar>
-          |""".stripMargin.minimized,
+          |""".stripMargin.minimized),
       )
     }
 
@@ -1399,7 +1399,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
       val string = XmlEncoder[Bar].encode(bar)
       assert(
         string ==
-          """<?xml version='1.0' encoding='UTF-8'?>
+          Right("""<?xml version='1.0' encoding='UTF-8'?>
             | <bar xmlns="tinkoff.ru">
             |   <ans1:a xmlns:ans1="tcsbank.ru">123</ans1:a>
             |   <b>b value</b>
@@ -1410,7 +1410,7 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
             |     <f>4.321</f>
             |   </foo>
             | </bar>
-            |""".stripMargin.minimized,
+            |""".stripMargin.minimized),
       )
     }
   }

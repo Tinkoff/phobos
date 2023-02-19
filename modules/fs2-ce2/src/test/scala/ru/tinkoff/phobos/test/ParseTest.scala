@@ -73,12 +73,12 @@ class ParseTest extends AsyncWordSpec with Inspectors {
     xml.nestedRepetetive -> Vector(1, 2, 3, 4).map(Foo(_)).map(Right(_)),
     xml.nestedRepetetiveIcnludingOtherTags -> Vector(
       Right(Foo(1)),
-      Left(DecodingError("Invalid local name. Expected 'foo', but found 'bar'", List("bar", "sub", "root"))),
+      Left(DecodingError("Invalid local name. Expected 'foo', but found 'bar'", List("bar", "sub", "root"), None)),
       Right(Foo(2)),
       Right(Foo(3)),
       Right(Foo(4)),
       Right(Foo(5)),
-      Left(DecodingError("Invalid local name. Expected 'foo', but found 'bar'", List("bar", "sub", "root"))),
+      Left(DecodingError("Invalid local name. Expected 'foo', but found 'bar'", List("bar", "sub", "root"), None)),
     ),
   )
 

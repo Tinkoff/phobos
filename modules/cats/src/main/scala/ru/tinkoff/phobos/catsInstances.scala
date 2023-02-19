@@ -62,21 +62,25 @@ object catsInstances {
     listDecoder[A].emap((history, list) =>
       NonEmptyList
         .fromList(list)
-        .fold[Either[DecodingError, NonEmptyList[A]]](Left(DecodingError("List is empty", history)))(Right.apply),
+        .fold[Either[DecodingError, NonEmptyList[A]]](Left(DecodingError("List is empty", history, None)))(Right.apply),
     )
 
   implicit def nonEmptyVectorElementDecoder[A](implicit decoder: ElementDecoder[A]): ElementDecoder[NonEmptyVector[A]] =
     vectorDecoder[A].emap((history, vector) =>
       NonEmptyVector
         .fromVector(vector)
-        .fold[Either[DecodingError, NonEmptyVector[A]]](Left(DecodingError("Vector is empty", history)))(Right.apply),
+        .fold[Either[DecodingError, NonEmptyVector[A]]](Left(DecodingError("Vector is empty", history, None)))(
+          Right.apply,
+        ),
     )
 
   implicit def nonEmptyChainElementDecoder[A](implicit decoder: ElementDecoder[A]): ElementDecoder[NonEmptyChain[A]] =
     chainElementDecoder[A].emap((history, chain) =>
       NonEmptyChain
         .fromChain(chain)
-        .fold[Either[DecodingError, NonEmptyChain[A]]](Left(DecodingError("Chain is empty", history)))(Right.apply),
+        .fold[Either[DecodingError, NonEmptyChain[A]]](Left(DecodingError("Chain is empty", history, None)))(
+          Right.apply,
+        ),
     )
 
   implicit class XmlDecoderCatsOps[A](val xmlDecoder: XmlDecoder[A]) extends AnyVal {

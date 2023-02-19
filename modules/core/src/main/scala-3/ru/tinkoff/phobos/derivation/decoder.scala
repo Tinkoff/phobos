@@ -228,7 +228,7 @@ object decoder {
                         $currentFieldStates
                           .getOrElse(
                             ${Expr(field.localName)},
-                            Left(DecodingError(s"Attribute '${${field.xmlName}}' is missing or invalid", $c.history))
+                            Left(DecodingError(s"Attribute '${${field.xmlName}}' is missing or invalid", $c.history, None))
                           )
                           .asInstanceOf[Either[DecodingError, t]]
                           .flatMap { ${f.asExprOf[t => Either[DecodingError, T]]} }

@@ -27,7 +27,7 @@ class DerivationTest extends AnyWordSpec with Matchers {
                    """.stripMargin.minimized
 
       val encoded = XmlEncoder[Bar].encode(bar)
-      assert(encoded == string)
+      assert(encoded == Right(string))
     }
   }
 

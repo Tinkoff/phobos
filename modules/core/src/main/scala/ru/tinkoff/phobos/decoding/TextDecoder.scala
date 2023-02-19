@@ -113,7 +113,7 @@ object TextDecoder extends TextLiteralInstances {
       string match {
         case "true" | "1"  => Right(true)
         case "false" | "0" => Right(false)
-        case str           => Left(DecodingError(s"Value `$str` is not `true` or `false`", history))
+        case str           => Left(DecodingError(s"Value `$str` is not `true` or `false`", history, None))
       },
     )
 
@@ -122,7 +122,7 @@ object TextDecoder extends TextLiteralInstances {
   implicit val charDecoder: TextDecoder[Char] =
     stringDecoder.emap((history, string) => {
       if (string.length != 1) {
-        Left(DecodingError("Value too long for char", history))
+        Left(DecodingError("Value too long for char", history, None))
       } else {
         Right(string.head)
       }

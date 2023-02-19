@@ -5,6 +5,6 @@ private[decoding] trait ElementLiteralInstances {
     decoder
       .emap((history, a) =>
         if (a == valueOfL.value) Right(valueOfL.value)
-        else Left(DecodingError(s"Failed to decode literal type. Expected: ${valueOfL.value}, actual: $a", history)),
+        else Left(DecodingError(s"Failed to decode literal type. Expected: ${valueOfL.value}, actual: $a", history, None)),
       )
 }

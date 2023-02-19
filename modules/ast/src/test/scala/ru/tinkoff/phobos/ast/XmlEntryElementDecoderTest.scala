@@ -60,15 +60,9 @@ class XmlEntryElementDecoderTest extends AnyWordSpec with Matchers with DiffShou
 
       val encoded = ru.tinkoff.phobos.encoding.XmlEncoder.fromElementEncoder[XmlEntry]("ast").encode(n)
 
-      val result = XmlDecoder
-        .fromElementDecoder[XmlEntry]("ast")
-        .decode(
-          encoded,
-        )
+      val result = encoded.flatMap(XmlDecoder.fromElementDecoder[XmlEntry]("ast").decode(_))
 
-      result.map(util.AstTransformer.sortNodeValues) shouldMatchTo (
-        util.AstTransformer.sortNodeValues(n).asRight[DecodingError]
-      )
+      assert(result.map(util.AstTransformer.sortNodeValues) == Right(util.AstTransformer.sortNodeValues(n)))
     }
   }
 }

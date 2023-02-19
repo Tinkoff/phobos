@@ -34,45 +34,49 @@ class EnumeratumTest extends AnyWordSpec with Matchers {
       val xml2 = XmlEncoder[Bar].encode(bar2)
       val xml3 = XmlEncoder[Bar].encode(bar3)
       val xml4 = XmlEncoder[Baz].encode(baz)
+      val string1 =
+        """
+          | <?xml version='1.0' encoding='UTF-8'?>
+          | <bar>
+          |   <d>d value</d>
+          |   <foo>
+          |     Foo1
+          |   </foo>
+          |   <e>e</e>
+          | </bar>
+        """.stripMargin.minimized
+      val string2 =
+        """
+          | <?xml version='1.0' encoding='UTF-8'?>
+          | <bar>
+          |   <d>d value</d>
+          |   <foo>
+          |     Foo2
+          |   </foo>
+          |   <e>e</e>
+          | </bar>
+        """.stripMargin.minimized
+      val string3 =
+        """
+          | <?xml version='1.0' encoding='UTF-8'?>
+          | <bar>
+          |   <d>another one value</d>
+          |   <foo>
+          |     Foo3
+          |   </foo>
+          |   <e>v</e>
+          | </bar>
+        """.stripMargin.minimized
+      val string4 =
+        """
+          | <?xml version='1.0' encoding='UTF-8'?>
+          | <baz f="Foo1">Foo2</baz>
+        """.stripMargin.minimized
       assert(
-        xml1 ==
-          """
-              | <?xml version='1.0' encoding='UTF-8'?>
-              | <bar>
-              |   <d>d value</d>
-              |   <foo>
-              |     Foo1
-              |   </foo>
-              |   <e>e</e>
-              | </bar>
-            """.stripMargin.minimized &&
-          xml2 ==
-          """
-                | <?xml version='1.0' encoding='UTF-8'?>
-                | <bar>
-                |   <d>d value</d>
-                |   <foo>
-                |     Foo2
-                |   </foo>
-                |   <e>e</e>
-                | </bar>
-              """.stripMargin.minimized &&
-          xml3 ==
-          """
-                | <?xml version='1.0' encoding='UTF-8'?>
-                | <bar>
-                |   <d>another one value</d>
-                |   <foo>
-                |     Foo3
-                |   </foo>
-                |   <e>v</e>
-                | </bar>
-              """.stripMargin.minimized &&
-          xml4 ==
-          """
-                | <?xml version='1.0' encoding='UTF-8'?>
-                | <baz f="Foo1">Foo2</baz>
-              """.stripMargin.minimized,
+        xml1 == Right(string1) &&
+          xml2 == Right(string2) &&
+          xml3 == Right(string3) &&
+          xml4 == Right(string4),
       )
     }
 

@@ -58,8 +58,8 @@ object ElementDecoder extends ElementLiteralInstances with DerivedElement {
 
   def decodingNotCompleteError(history: List[String]): DecodingError =
     history match {
-      case element :: others => DecodingError(s"Element '$element' is missing or invalid", others)
-      case Nil               => DecodingError("Root element is missing or invalid", Nil)
+      case element :: others => DecodingError(s"Element '$element' is missing or invalid", others, None)
+      case Nil               => DecodingError("Root element is missing or invalid", Nil, None)
     }
 
   final class MappedDecoder[A, B](fa: ElementDecoder[A], f: A => B) extends ElementDecoder[B] {
@@ -161,7 +161,7 @@ object ElementDecoder extends ElementLiteralInstances with DerivedElement {
       string match {
         case "true" | "1"  => Right(true)
         case "false" | "0" => Right(false)
-        case str           => Left(DecodingError(s"Value `$str` is not `true` or `false`", history))
+        case str           => Left(DecodingError(s"Value `$str` is not `true` or `false`", history, None))
       },
     )
 
@@ -170,7 +170,7 @@ object ElementDecoder extends ElementLiteralInstances with DerivedElement {
   implicit val charDecoder: ElementDecoder[Char] =
     stringDecoder.emap((history, string) => {
       if (string.length != 1) {
-        Left(DecodingError("Value too long for char", history))
+        Left(DecodingError("Value too long for char", history, None))
       } else {
         Right(string.head)
       }
