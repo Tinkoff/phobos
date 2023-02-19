@@ -152,6 +152,12 @@ object ElementEncoder extends ElementLiteralInstances with DerivedElement {
   implicit def vectorEncoder[A](implicit encoder: ElementEncoder[A]): ElementEncoder[Vector[A]] =
     iteratorEncoder[A].contramap(_.iterator)
 
+  implicit val instantEncoder: ElementEncoder[Instant] =
+    stringEncoder.contramap(_.toString)
+
+  def instantEncoderWithFormatter(formatter: DateTimeFormatter): ElementEncoder[Instant] =
+    stringEncoder.contramap(formatter.format)
+
   implicit val localDateTimeEncoder: ElementEncoder[LocalDateTime] =
     stringEncoder.contramap(_.toString)
 

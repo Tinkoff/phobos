@@ -1,6 +1,7 @@
 package ru.tinkoff.phobos.encoding
 
 import java.time._
+import java.time.format.DateTimeFormatter
 import java.util.{Base64, UUID}
 
 /** Use XmlEncoder for encoding XML documents.
@@ -61,18 +62,39 @@ object TextEncoder extends TextLiteralInstances {
 
   implicit val base64Encoder: TextEncoder[Array[Byte]] = stringEncoder.contramap(Base64.getEncoder.encodeToString)
 
+  implicit val instantEncoder: TextEncoder[Instant] =
+    stringEncoder.contramap(_.toString)
+
+  def instantEncoderWithFormatter(formatter: DateTimeFormatter): TextEncoder[Instant] =
+    stringEncoder.contramap(formatter.format)
+
   implicit val localDateTimeEncoder: TextEncoder[LocalDateTime] =
     stringEncoder.contramap(_.toString)
+
+  def localDateTimeEncoderWithFormatter(formatter: DateTimeFormatter): TextEncoder[LocalDateTime] =
+    stringEncoder.contramap(_.format(formatter))
 
   implicit val zonedDateTimeEncoder: TextEncoder[ZonedDateTime] =
     stringEncoder.contramap(_.toString)
 
+  def zonedDateTimeEncoderWithFormatter(formatter: DateTimeFormatter): TextEncoder[ZonedDateTime] =
+    stringEncoder.contramap(_.format(formatter))
+
   implicit val offsetDateTimeEncoder: TextEncoder[OffsetDateTime] =
     stringEncoder.contramap(_.toString)
+
+  def offsetDateTimeEncoderWithFormatter(formatter: DateTimeFormatter): TextEncoder[OffsetDateTime] =
+    stringEncoder.contramap(_.format(formatter))
 
   implicit val localDateEncoder: TextEncoder[LocalDate] =
     stringEncoder.contramap(_.toString)
 
+  def localDateEncoderWithFormatter(formatter: DateTimeFormatter): TextEncoder[LocalDate] =
+    stringEncoder.contramap(_.format(formatter))
+
   implicit val localTimeEncoder: TextEncoder[LocalTime] =
     stringEncoder.contramap(_.toString)
+
+  def localTimeEncoderWithFormatter(formatter: DateTimeFormatter): TextEncoder[LocalTime] =
+    stringEncoder.contramap(_.format(formatter))
 }

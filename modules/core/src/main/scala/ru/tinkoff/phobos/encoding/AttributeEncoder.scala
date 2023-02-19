@@ -1,6 +1,7 @@
 package ru.tinkoff.phobos.encoding
 
 import java.time._
+import java.time.format.DateTimeFormatter
 import java.util.{Base64, UUID}
 
 /** Warning! This is an internal API which may change in future. Do not implement or use this trait directly unless you
@@ -80,18 +81,39 @@ object AttributeEncoder extends AttributeLiteralInstances {
 
   implicit val noneEncoder: AttributeEncoder[None.type] = unitEncoder.contramap(_ => ())
 
+  implicit val instantEncoder: AttributeEncoder[Instant] =
+    stringEncoder.contramap(_.toString)
+
+  def instantEncoderWithFormatter(formatter: DateTimeFormatter): AttributeEncoder[Instant] =
+    stringEncoder.contramap(formatter.format)
+
   implicit val localDateTimeEncoder: AttributeEncoder[LocalDateTime] =
     stringEncoder.contramap(_.toString)
+
+  def localDateTimeEncoderWithFormatter(formatter: DateTimeFormatter): AttributeEncoder[LocalDateTime] =
+    stringEncoder.contramap(_.format(formatter))
 
   implicit val zonedDateTimeEncoder: AttributeEncoder[ZonedDateTime] =
     stringEncoder.contramap(_.toString)
 
+  def zonedDateTimeEncoderWithFormatter(formatter: DateTimeFormatter): AttributeEncoder[ZonedDateTime] =
+    stringEncoder.contramap(_.format(formatter))
+
   implicit val offsetDateTimeEncoder: AttributeEncoder[OffsetDateTime] =
     stringEncoder.contramap(_.toString)
+
+  def offsetDateTimeEncoderWithFormatter(formatter: DateTimeFormatter): AttributeEncoder[OffsetDateTime] =
+    stringEncoder.contramap(_.format(formatter))
 
   implicit val localDateEncoder: AttributeEncoder[LocalDate] =
     stringEncoder.contramap(_.toString)
 
+  def localDateEncoderWithFormatter(formatter: DateTimeFormatter): AttributeEncoder[LocalDate] =
+    stringEncoder.contramap(_.format(formatter))
+
   implicit val localTimeEncoder: AttributeEncoder[LocalTime] =
     stringEncoder.contramap(_.toString)
+
+  def localTimeEncoderWithFormatter(formatter: DateTimeFormatter): AttributeEncoder[LocalTime] =
+    stringEncoder.contramap(_.format(formatter))
 }

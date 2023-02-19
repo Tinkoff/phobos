@@ -1,6 +1,7 @@
 package ru.tinkoff.phobos.decoding
 
 import java.time._
+import java.time.format.DateTimeFormatter
 import java.util.{Base64, UUID}
 
 /** Warning! This is an internal API which may change in future. Do not implement or use this trait directly unless you
@@ -130,18 +131,39 @@ object AttributeDecoder extends AttributeLiteralInstances {
       ): Either[DecodingError, None.type] = Right(None)
     }
 
+  implicit val instantDecoder: AttributeDecoder[Instant] =
+    stringDecoder.emap(wrapException(Instant.parse))
+
+  def instantDecoderWithFormatter(formatter: DateTimeFormatter): AttributeDecoder[Instant] =
+    stringDecoder.emap(wrapException(string => Instant.from(formatter.parse(string))))
+
   implicit val localDateTimeDecoder: AttributeDecoder[LocalDateTime] =
     stringDecoder.emap(wrapException(LocalDateTime.parse))
+
+  def localDateTimeDecoderWithFormatter(formatter: DateTimeFormatter): AttributeDecoder[LocalDateTime] =
+    stringDecoder.emap(wrapException(LocalDateTime.parse(_, formatter)))
 
   implicit val zonedDateTimeDecoder: AttributeDecoder[ZonedDateTime] =
     stringDecoder.emap(wrapException(ZonedDateTime.parse))
 
+  def zonedDateTimeDecoderWithFormatter(formatter: DateTimeFormatter): AttributeDecoder[ZonedDateTime] =
+    stringDecoder.emap(wrapException(ZonedDateTime.parse(_, formatter)))
+
   implicit val offsetDateTimeDecoder: AttributeDecoder[OffsetDateTime] =
     stringDecoder.emap(wrapException(OffsetDateTime.parse))
+
+  def offsetDateTimeDecoderWithFormatter(formatter: DateTimeFormatter): AttributeDecoder[OffsetDateTime] =
+    stringDecoder.emap(wrapException(OffsetDateTime.parse(_, formatter)))
 
   implicit val localDateDecoder: AttributeDecoder[LocalDate] =
     stringDecoder.emap(wrapException(LocalDate.parse))
 
+  def localDateDecoderWithFormatter(formatter: DateTimeFormatter): AttributeDecoder[LocalDate] =
+    stringDecoder.emap(wrapException(LocalDate.parse(_, formatter)))
+
   implicit val localTimeDecoder: AttributeDecoder[LocalTime] =
     stringDecoder.emap(wrapException(LocalTime.parse))
+
+  def localTimeDecoderWithFormatter(formatter: DateTimeFormatter): AttributeDecoder[LocalTime] =
+    stringDecoder.emap(wrapException(LocalTime.parse(_, formatter)))
 }
