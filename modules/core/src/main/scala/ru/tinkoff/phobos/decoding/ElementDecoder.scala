@@ -294,6 +294,12 @@ object ElementDecoder extends ElementLiteralInstances with DerivedElement {
   implicit def vectorDecoder[A](implicit decoder: ElementDecoder[A]): ElementDecoder[Vector[A]] =
     listDecoder[A].map(_.toVector)
 
+  implicit val instantDecoder: ElementDecoder[Instant] =
+    stringDecoder.emap(wrapException(Instant.parse))
+
+  def instantDecoderWithFormatter(formatter: DateTimeFormatter): ElementDecoder[Instant] =
+    stringDecoder.emap(wrapException(string => Instant.from(formatter.parse(string))))
+
   implicit val localDateTimeDecoder: ElementDecoder[LocalDateTime] =
     stringDecoder.emap(wrapException(LocalDateTime.parse))
 
