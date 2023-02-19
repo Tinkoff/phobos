@@ -177,9 +177,9 @@ private[phobos] abstract class Derivation(val c: blackbox.Context) {
           .flatten
 
         val params = caseParams.zip(annotations).map { case (paramType, param) =>
-          val category  = fetchCategory(param)
+          val category                              = fetchCategory(param)
           val (namespace, preferredNamespacePrefix) = fetchNamespace(param, category)
-          val localName = param.name.decodedName.toString
+          val localName                             = param.name.decodedName.toString
           val xmlName: Tree = param.annotations.collectFirst {
             case annotation if annotation.tree.tpe =:= renamedType =>
               annotation.tree.children.tail.collectFirst { case t @ Literal(Constant(_: String)) =>

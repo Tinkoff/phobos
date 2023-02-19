@@ -728,7 +728,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
       val barList =
         Bar[List, Option](
           Some("qux value"),
-          List(Foo[List](List(123), List("b value 1", "b value 2", "b value 3"), Nil))
+          List(Foo[List](List(123), List("b value 1", "b value 2", "b value 3"), Nil)),
         )
 
       val barOptionString =
@@ -1540,7 +1540,7 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
           d: Int,
           @xmlns(tcs) e: String,
           f: Double,
-          qux: List[Qux]
+          qux: List[Qux],
       )
       implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
 
