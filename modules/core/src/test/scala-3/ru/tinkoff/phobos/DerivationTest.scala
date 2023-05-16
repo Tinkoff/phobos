@@ -13,7 +13,7 @@ class DerivationTest extends AnyWordSpec with Matchers {
       case class Bar(d: String, foo: Foo, e: Char) derives ElementEncoder
       given XmlEncoder[Bar] = XmlEncoder.fromElementEncoder("bar")
 
-      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <bar>
                      |   <d>d value</d>
@@ -37,7 +37,7 @@ class DerivationTest extends AnyWordSpec with Matchers {
       case class Bar(d: String, foo: Foo, e: Char) derives ElementDecoder
       given XmlDecoder[Bar] = XmlDecoder.fromElementDecoder("bar")
 
-      val bar    = Bar("d value", Foo(1, "b value", 3.0), 'e')
+      val bar = Bar("d value", Foo(1, "b value", 3.0), 'e')
       val string = """<?xml version='1.0' encoding='UTF-8'?>
                      | <bar>
                      |   <d>d value</d>

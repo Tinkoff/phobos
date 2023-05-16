@@ -17,8 +17,17 @@ package object semiauto {
   inline def deriveXmlEncoderConfigured[T](localName: String, config: ElementCodecConfig): XmlEncoder[T] =
     encoder.deriveXmlEncoder[T](localName, None, None, config)
   inline def deriveXmlEncoder[T, NS: Namespace](localName: String, ns: NS): XmlEncoder[T] =
-    encoder.deriveXmlEncoder[T](localName, Some(Namespace[NS].getNamespace), Namespace[NS].getPreferredPrefix, ElementCodecConfig.default)
-  inline def deriveXmlEncoderConfigured[T, NS: Namespace](localName: String, ns: NS, config: ElementCodecConfig): XmlEncoder[T] =
+    encoder.deriveXmlEncoder[T](
+      localName,
+      Some(Namespace[NS].getNamespace),
+      Namespace[NS].getPreferredPrefix,
+      ElementCodecConfig.default,
+    )
+  inline def deriveXmlEncoderConfigured[T, NS: Namespace](
+      localName: String,
+      ns: NS,
+      config: ElementCodecConfig,
+  ): XmlEncoder[T] =
     encoder.deriveXmlEncoder[T](localName, Some(Namespace[NS].getNamespace), Namespace[NS].getPreferredPrefix, config)
 
   inline def deriveElementDecoder[T]: ElementDecoder[T] =
@@ -31,6 +40,10 @@ package object semiauto {
     decoder.deriveXmlDecoder[T](localName, None, config)
   inline def deriveXmlDecoder[T, NS: Namespace](localName: String, ns: NS): XmlDecoder[T] =
     decoder.deriveXmlDecoder[T](localName, Some(Namespace[NS].getNamespace), ElementCodecConfig.default)
-  inline def deriveXmlDecoderConfigured[T, NS: Namespace](localName: String, ns: NS, config: ElementCodecConfig): XmlDecoder[T] =
+  inline def deriveXmlDecoderConfigured[T, NS: Namespace](
+      localName: String,
+      ns: NS,
+      config: ElementCodecConfig,
+  ): XmlDecoder[T] =
     decoder.deriveXmlDecoder[T](localName, Some(Namespace[NS].getNamespace), config)
 }
