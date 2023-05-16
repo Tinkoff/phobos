@@ -9,6 +9,7 @@ import ru.tinkoff.phobos.derivation.common.*
 import scala.annotation.nowarn
 import scala.compiletime.*
 import scala.quoted.*
+import scala.deriving.Mirror
 
 @nowarn("msg=Use errorAndAbort")
 object encoder {
@@ -16,7 +17,13 @@ object encoder {
   inline def deriveElementEncoder[T](
       inline config: ElementCodecConfig,
   ): ElementEncoder[T] =
-    ${ deriveElementEncoderImpl('{ config }) }
+    summonFrom {
+      case _: Mirror.ProductOf[T] => deriveProduct(config)
+      case _: Mirror.SumOf[T] =>
+        val childInfos = extractSumTypeChild[ElementEncoder, T](config)
+        deriveSum(config, childInfos)
+      case _ => error(s"${showType[T]} is not a sum type or product type")
+    }
 
   inline def deriveXmlEncoder[T](
       inline localName: String,
@@ -24,33 +31,7 @@ object encoder {
       inline preferredNamespacePrefix: Option[String],
       inline config: ElementCodecConfig,
   ): XmlEncoder[T] =
-    ${ deriveXmlEncoderImpl('{ localName }, '{ namespace }, '{ preferredNamespacePrefix }, '{ config }) }
-
-  def deriveElementEncoderImpl[T: Type](config: Expr[ElementCodecConfig])(using Quotes): Expr[ElementEncoder[T]] = {
-    import quotes.reflect.*
-
-    val tpe        = TypeRepr.of[T]
-    val typeSymbol = tpe.typeSymbol
-    if (typeSymbol.flags.is(Flags.Case)) {
-      deriveProduct(config)
-    } else if (typeSymbol.flags.is(Flags.Sealed)) {
-      deriveSum(config)
-    } else {
-      report.throwError(s"${typeSymbol} is not a sum type or product type")
-    }
-  }
-
-  def deriveXmlEncoderImpl[T: Type](
-      localName: Expr[String],
-      namespace: Expr[Option[String]],
-      preferredNamespacePrefix: Expr[Option[String]],
-      config: Expr[ElementCodecConfig],
-  )(using Quotes): Expr[XmlEncoder[T]] =
-    '{
-      XmlEncoder.fromElementEncoder[T]($localName, $namespace, $preferredNamespacePrefix)(${
-        deriveElementEncoderImpl(config)
-      })
-    }
+    XmlEncoder.fromElementEncoder[T](localName, namespace, preferredNamespacePrefix)(deriveElementEncoder(config))
 
   // PRODUCT
 
@@ -121,12 +102,11 @@ object encoder {
     })
   }
 
-  private def deriveProduct[T: Type](config: Expr[ElementCodecConfig])(using Quotes): Expr[ElementEncoder[T]] = {
-    import quotes.reflect.*
-    val classTypeRepr = TypeRepr.of[T]
-    val classSymbol   = classTypeRepr.typeSymbol
-    val fields        = extractProductTypeFields[T](config)
+  inline def deriveProduct[T](inline config: ElementCodecConfig): ElementEncoder[T] =
+    ${ deriveProductImpl[T]('config) }
 
+  private def deriveProductImpl[T: Type](config: Expr[ElementCodecConfig])(using Quotes): Expr[ElementEncoder[T]] = {
+    val fields = extractProductTypeFields[T](config)
     val groups = fields.groupBy(_.category)
 
     '{
@@ -169,69 +149,35 @@ object encoder {
 
   // SUM
 
-  private def encodeChild[T: Type](using Quotes)(
-      config: Expr[ElementCodecConfig],
-      child: SumTypeChild,
-      childValue: Expr[T],
-      sw: Expr[PhobosStreamWriter],
-      localName: Expr[String],
-      namespaceUri: Expr[Option[String]],
-      preferredNamespacePrefix: Expr[Option[String]],
-  ): Expr[Unit] = {
-    import quotes.reflect.*
-
-    '{
-      val instance = summonInline[ElementEncoder[T]]
-      if ($config.useElementNameAsDiscriminator) {
-        instance.encodeAsElement(${ childValue }, $sw, ${ child.xmlName }, $namespaceUri, $preferredNamespacePrefix)
-      } else {
-        $sw.memorizeDiscriminator($config.discriminatorNamespace, $config.discriminatorLocalName, ${ child.xmlName })
-        instance.encodeAsElement(${ childValue }, $sw, $localName, $namespaceUri, $preferredNamespacePrefix)
-      }
-    }
-  }
-
-  private def deriveSum[T: Type](config: Expr[ElementCodecConfig])(using Quotes): Expr[ElementEncoder[T]] = {
-    import quotes.reflect.*
-
-    '{
-      new ElementEncoder[T] {
-        def encodeAsElement(
-            a: T,
-            sw: PhobosStreamWriter,
-            localName: String,
-            namespaceUri: Option[String],
-            preferredNamespacePrefix: Option[String],
-        ): Unit = {
-          ${
-            val alternatives =
-              extractSumTypeChildren[T](config).map { child =>
-                child.typeRepr.asType match {
-                  case '[t] =>
-                    val childValueSymbol = Symbol.newBind(Symbol.spliceOwner, "child", Flags.EmptyFlags, TypeRepr.of[t])
-                    val encode = encodeChild(
-                      config,
-                      child,
-                      Ref(childValueSymbol).asExprOf[t],
-                      'sw,
-                      'localName,
-                      'namespaceUri,
-                      'preferredNamespacePrefix,
-                    )
-                    CaseDef(Bind(childValueSymbol, Typed(Ref(childValueSymbol), TypeTree.of[t])), None, encode.asTerm)
-                }
-              }
-            Match(
-              '{ a }.asTerm,
-              // Scala 3.0 reports false positive match may not be exhaustive warning
-              if (util.Properties.versionNumberString.startsWith("3.0")) alternatives :+ {
-                val symbol = Symbol.newBind(Symbol.spliceOwner, "_", Flags.EmptyFlags, TypeRepr.of[T])
-                CaseDef(Bind(symbol, Typed(Ref(symbol), TypeTree.of[T])), None, '{ () }.asTerm)
-              }
-              else alternatives,
-            ).asExprOf[Unit]
+  inline def deriveSum[T](
+      inline config: ElementCodecConfig,
+      inline childInfos: List[SumTypeChild[ElementEncoder, T]],
+  ): ElementEncoder[T] = {
+    new ElementEncoder[T] {
+      def encodeAsElement(
+          t: T,
+          sw: PhobosStreamWriter,
+          localName: String,
+          namespaceUri: Option[String],
+          preferredNamespacePrefix: Option[String],
+      ): Unit = {
+        val childInfo = childInfos
+          .byInstance(t)
+          .getOrElse(throw EncodingError(s"Looks like an error in derivation: no TypeTest was positive for $t"))
+        val discr =
+          if (config.useElementNameAsDiscriminator) childInfo.xmlName
+          else {
+            sw.memorizeDiscriminator(
+              config.discriminatorNamespace,
+              config.discriminatorLocalName,
+              childInfo.xmlName,
+            )
+            localName
           }
-        }
+
+        childInfo.lazyTC.instance
+          .asInstanceOf[ElementEncoder[T]]
+          .encodeAsElement(t, sw, discr, namespaceUri, preferredNamespacePrefix)
       }
     }
   }

@@ -7,6 +7,8 @@ import ru.tinkoff.phobos.syntax.*
 import scala.quoted.*
 import scala.compiletime.*
 import scala.annotation.nowarn
+import scala.deriving.Mirror
+import scala.reflect.TypeTest
 
 @nowarn("msg=Use errorAndAbort")
 object common {
@@ -28,10 +30,17 @@ object common {
       val category: FieldCategory,
   )
 
-  private[derivation] final class SumTypeChild(using val quotes: Quotes)(
-      val xmlName: Expr[String], // Value of discriminator
-      val typeRepr: quotes.reflect.TypeRepr,
+  private[derivation] final class SumTypeChild[TC[_], Base](
+      val xmlName: String,
+      val lazyTC: LazySummon[TC, Base],
+      val typeTest: TypeTest[Base, ?],
   )
+
+  extension [TC[_], Base](children: List[SumTypeChild[TC, Base]])
+    def byInstance[T](i: Base): Option[SumTypeChild[TC, Base]] =
+      children.find(_.typeTest.unapply(i).isDefined)
+
+    def byXmlName(n: String): Option[SumTypeChild[TC, Base]] = children.find(_.xmlName == n)
 
   private[derivation] def extractProductTypeFields[T: Type](
       config: Expr[ElementCodecConfig],
@@ -75,17 +84,34 @@ object common {
     fields
   }
 
-  private[derivation] def extractSumTypeChildren[T: Type](
+  inline def extractSumTypeChild[TC[_], T](
+      inline config: ElementCodecConfig,
+  )(using m: Mirror.SumOf[T]): List[SumTypeChild[TC, T]] = {
+    type Children = m.MirroredElemTypes
+    val typeTests = summonAll[Tuple.Map[Children, [t] =>> TypeTest[T, t]]].toList.map(_.asInstanceOf[TypeTest[T, ?]])
+    val lazyTCs =
+      summonAll[Tuple.Map[Children, [t] =>> LazySummon[TC, t]]].toList.map(_.asInstanceOf[LazySummon[TC, T]])
+    val xmlNames = extractSumXmlNames[T](config)
+
+    typeTests.zip(lazyTCs).zip(xmlNames).map { case ((typeTest, lazyTC), xmlName) =>
+      new SumTypeChild(xmlName, lazyTC, typeTest)
+    }
+  }
+
+  private[derivation] inline def extractSumXmlNames[T](inline config: ElementCodecConfig): List[String] =
+    ${ extractSumXmlNamesImpl[T]('config) }
+
+  private[derivation] def extractSumXmlNamesImpl[T: Type](
       config: Expr[ElementCodecConfig],
-  )(using Quotes): List[SumTypeChild] = {
+  )(using q: Quotes): Expr[List[String]] = {
     import quotes.reflect.*
     val traitTypeRepr = TypeRepr.of[T]
     val traitSymbol   = traitTypeRepr.typeSymbol
 
-    traitSymbol.children.map { childSymbol =>
-      val xmlName = extractChildXmlName(config, traitSymbol, childSymbol)
-      SumTypeChild(using quotes)(xmlName, TypeIdent(childSymbol).tpe)
-    }
+    val names = Varargs(traitSymbol.children.map { childInfosymbol =>
+      extractChildXmlName(using q)(config, traitSymbol, childInfosymbol)
+    })
+    '{ List($names: _*) }
   }
 
   private def extractFieldCategory(using Quotes)(
@@ -180,20 +206,26 @@ object common {
   private def extractChildXmlName(using Quotes)(
       config: Expr[ElementCodecConfig],
       traitSymbol: quotes.reflect.Symbol,
-      childSymbol: quotes.reflect.Symbol,
+      childInfosymbol: quotes.reflect.Symbol,
   ): Expr[String] = {
     import quotes.reflect.*
-    childSymbol.annotations.map(_.asExpr).collect { case '{ discriminator($a) } => a } match {
-      case Nil        => '{ $config.transformConstructorNames(${ Expr(childSymbol.name) }) }
+    childInfosymbol.annotations.map(_.asExpr).collect { case '{ discriminator($a) } => a } match {
+      case Nil        => '{ $config.transformConstructorNames(${ Expr(childInfosymbol.name) }) }
       case List(name) => name
       case names =>
         val discriminatorAnnotations = names.map(name => s"@discriminator(${name.show})").mkString(", ")
         report.throwError(
           s"""
              |Sum type child cannot have more than one @discriminator annotation.
-             |Child '${childSymbol.name}' of sum type '${traitSymbol.name}' has ${names.size}: $discriminatorAnnotations
+             |Child '${childInfosymbol.name}' of sum type '${traitSymbol.name}' has ${names.size}: $discriminatorAnnotations
              |""".stripMargin,
         )
     }
   }
+
+  inline def showType[T <: AnyKind]: String = ${ showTypeMacro[T] }
+
+  private def showTypeMacro[T <: AnyKind: Type](using q: Quotes): Expr[String] =
+    import q.reflect.*
+    Expr(TypeRepr.of[T].dealias.widen.show)
 }

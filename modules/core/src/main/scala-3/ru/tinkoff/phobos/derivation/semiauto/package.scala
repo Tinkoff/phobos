@@ -5,8 +5,6 @@ import ru.tinkoff.phobos.configured.ElementCodecConfig
 import ru.tinkoff.phobos.decoding.{ElementDecoder, XmlDecoder}
 import ru.tinkoff.phobos.encoding.{ElementEncoder, XmlEncoder}
 
-import scala.deriving.Mirror
-
 package object semiauto {
   inline def deriveElementEncoder[T]: ElementEncoder[T] =
     encoder.deriveElementEncoder[T](ElementCodecConfig.default)

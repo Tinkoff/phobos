@@ -14,6 +14,7 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.compiletime.*
 import scala.quoted.*
+import scala.deriving.Mirror
 
 @nowarn("msg=Use errorAndAbort")
 @nowarn("msg=Use methodMember")
@@ -22,34 +23,20 @@ object decoder {
   inline def deriveElementDecoder[T](
       inline config: ElementCodecConfig,
   ): ElementDecoder[T] =
-    ${ deriveElementDecoderImpl('{ config }) }
+    summonFrom {
+      case _: Mirror.ProductOf[T] => deriveProduct(config)
+      case _: Mirror.SumOf[T] =>
+        val childInfos = extractSumTypeChild[ElementDecoder, T](config)
+        deriveSum(config, childInfos)
+      case _ => error(s"${showType[T]} is not a sum type or product type")
+    }
 
   inline def deriveXmlDecoder[T](
       inline localName: String,
       inline namespace: Option[String],
       inline config: ElementCodecConfig,
   ): XmlDecoder[T] =
-    ${ deriveXmlDecoderImpl('{ localName }, '{ namespace }, '{ config }) }
-
-  def deriveElementDecoderImpl[T: Type](config: Expr[ElementCodecConfig])(using Quotes): Expr[ElementDecoder[T]] = {
-    import quotes.reflect.*
-    val tpe        = TypeRepr.of[T]
-    val typeSymbol = tpe.typeSymbol
-    if (typeSymbol.flags.is(Flags.Case)) {
-      deriveProduct[T](config)
-    } else if (typeSymbol.flags.is(Flags.Sealed)) {
-      deriveSum[T](config)
-    } else {
-      report.throwError(s"${typeSymbol} is not a sum type or product type")
-    }
-  }
-
-  def deriveXmlDecoderImpl[T: Type](
-      localName: Expr[String],
-      namespace: Expr[Option[String]],
-      config: Expr[ElementCodecConfig],
-  )(using Quotes): Expr[XmlDecoder[T]] =
-    '{ XmlDecoder.fromElementDecoder[T]($localName, $namespace)(${ deriveElementDecoderImpl(config) }) }
+    XmlDecoder.fromElementDecoder[T](localName, namespace)(deriveElementDecoder(config))
 
   // PRODUCT
 
@@ -210,16 +197,23 @@ object decoder {
     '{
       $c.getLocalName match {
         case name if name == $localName =>
-          ${
-            val classTypeRepr      = TypeRepr.of[T]
-            val primaryConstructor = Select(New(TypeTree.of[T]), classTypeRepr.typeSymbol.primaryConstructor)
-            val primaryConstructorTypeApplied = classTypeRepr match {
-              case AppliedType(_, params) => TypeApply(primaryConstructor, params.map(Inferred.apply))
-              case _                      => primaryConstructor
+          val decodingResult: Either[DecodingError, T] = ${
+            def appliedConstructor(constructorParams: List[Term]): Term = {
+              val classTypeRepr      = TypeRepr.of[T]
+              val primaryConstructor = Select(New(TypeTree.of[T]), classTypeRepr.typeSymbol.primaryConstructor)
+              classTypeRepr match {
+                case AppliedType(_, params) =>
+                  Apply(TypeApply(primaryConstructor, params.map(Inferred.apply)), constructorParams)
+                case TermRef(typeRepr, name) =>
+                  Ref(classTypeRepr.termSymbol)
+                case _ =>
+                  Apply(primaryConstructor, constructorParams)
+              }
             }
+
             fields
               .foldLeft[List[Term] => Expr[Either[DecodingError, T]]] { terms =>
-                '{ Right(${ Apply(primaryConstructorTypeApplied, terms).asExprOf[T] }) }
+                '{ Right(${ appliedConstructor(terms).asExprOf[T] }) }
               } { (acc, field) => params =>
                 field.typeRepr.asType match {
                   case '[t] =>
@@ -281,14 +275,15 @@ object decoder {
                     }
                 }
               }(Nil)
-          } match {
-            case Right(result) =>
+          }
+          decodingResult.fold(
+            new FailedDecoder[T](_),
+            result => {
               $c.next()
               $config.scopeDefaultNamespace.foreach(_ => $c.unsetScopeDefaultNamespace())
               new ConstDecoder[T](result)
-            case Left(error) =>
-              new FailedDecoder[T](error)
-          }
+            },
+          )
         case _ =>
           $c.next()
           $go(DecoderState.DecodingSelf)
@@ -375,7 +370,10 @@ object decoder {
       }
   }
 
-  private def deriveProduct[T: Type](config: Expr[ElementCodecConfig])(using Quotes): Expr[ElementDecoder[T]] = {
+  private inline def deriveProduct[T](inline config: ElementCodecConfig): ElementDecoder[T] =
+    ${ deriveProductImpl[T]('config) }
+
+  private def deriveProductImpl[T: Type](config: Expr[ElementCodecConfig])(using Quotes): Expr[ElementDecoder[T]] = {
     import quotes.reflect.*
     val classTypeRepr = TypeRepr.of[T]
     val classSymbol   = classTypeRepr.typeSymbol
@@ -436,84 +434,59 @@ object decoder {
     }
   }
 
-  private def deriveSum[T: Type](config: Expr[ElementCodecConfig])(using Quotes): Expr[ElementDecoder[T]] = {
-    import quotes.reflect.*
-    '{
-      new ElementDecoder[T] {
-        def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String]): ElementDecoder[T] = {
-          if (c.getEventType == AsyncXMLStreamReader.EVENT_INCOMPLETE) {
-            this
+  private inline def deriveSum[T](
+      inline config: ElementCodecConfig,
+      inline childInfos: List[SumTypeChild[ElementDecoder, T]],
+  ): ElementDecoder[T] = {
+    new ElementDecoder[T] {
+      def decodeAsElement(c: Cursor, localName: String, namespaceUri: Option[String]): ElementDecoder[T] = {
+        if (c.getEventType == AsyncXMLStreamReader.EVENT_INCOMPLETE) {
+          this
+        } else {
+          val discriminator = if (config.useElementNameAsDiscriminator) {
+            Right(c.getLocalName)
           } else {
-            val discriminator = if ($config.useElementNameAsDiscriminator) {
-              Right(c.getLocalName)
-            } else {
-              ElementDecoder
-                .errorIfWrongName[T](c, localName, namespaceUri)
-                .map(Left.apply)
-                .getOrElse {
-                  val discriminatorIdx =
-                    c.getAttributeIndex($config.discriminatorNamespace.getOrElse(null), $config.discriminatorLocalName)
-                  if (discriminatorIdx > -1) {
-                    Right(c.getAttributeValue(discriminatorIdx))
-                  } else {
-                    Left(
-                      new FailedDecoder[T](
-                        c.error(
-                          s"No type discriminator '${$config.discriminatorNamespace.fold("")(_ + ":")}${$config.discriminatorLocalName}' found",
-                        ),
+            ElementDecoder
+              .errorIfWrongName[T](c, localName, namespaceUri)
+              .map(Left.apply)
+              .getOrElse {
+                val discriminatorIdx =
+                  c.getAttributeIndex(config.discriminatorNamespace.getOrElse(null), config.discriminatorLocalName)
+                if (discriminatorIdx > -1) {
+                  Right(c.getAttributeValue(discriminatorIdx))
+                } else {
+                  Left(
+                    new FailedDecoder[T](
+                      c.error(
+                        s"No type discriminator '${config.discriminatorNamespace.fold("")(_ + ":")}${config.discriminatorLocalName}' found",
                       ),
-                    )
-                  }
+                    ),
+                  )
                 }
-            }
-            discriminator.fold(
-              identity,
-              d =>
-                ${
-                  Match(
-                    'd.asTerm,
-                    extractSumTypeChildren[T](config).map { child =>
-                      val symbol = Symbol.newBind(Symbol.spliceOwner, "x", Flags.EmptyFlags, TypeRepr.of[String])
-                      val eq     = symbol.memberMethod("==").head
-                      CaseDef(
-                        Bind(symbol, Typed(Ref(symbol), TypeTree.of[String])),
-                        Some(Apply(Select(Ref(symbol), eq), List(child.xmlName.asTerm))),
-                        child.typeRepr.asType match {
-                          case '[t] =>
-                            '{
-                              summonInline[ElementDecoder[t]]
-                                .decodeAsElement(
-                                  c,
-                                  c.getLocalName,
-                                  Option(c.getNamespaceURI).filter(_.nonEmpty).orElse(c.getScopeDefaultNamespace),
-                                )
-                                .map(_.asInstanceOf[T])
-                            }.asTerm
-                        },
-                      )
-                    } :+ {
-                      val symbol = Symbol.newBind(Symbol.spliceOwner, "unknown", Flags.EmptyFlags, TypeRepr.of[String])
-                      CaseDef(
-                        Bind(symbol, Typed(Ref(symbol), TypeTree.of[String])),
-                        None,
-                        '{
-                          new FailedDecoder[T](
-                            c.error(s"Unknown type discriminator value: '${${ Ref(symbol).asExprOf[String] }}'"),
-                          )
-                        }.asTerm,
-                      )
-                    },
-                  ).asExprOf[ElementDecoder[T]]
-                },
-            )
+              }
           }
+          discriminator.fold(
+            identity,
+            d => {
+              childInfos.byXmlName(d) match {
+                case Some(childInfo) =>
+                  childInfo.lazyTC.instance.decodeAsElement(
+                    c,
+                    c.getLocalName,
+                    Option(c.getNamespaceURI).filter(_.nonEmpty).orElse(c.getScopeDefaultNamespace),
+                  )
+                case None =>
+                  new FailedDecoder[T](c.error(s"Unknown type discriminator value: '$d'"))
+              }
+            },
+          )
         }
-
-        val isCompleted: Boolean = false
-
-        def result(history: => List[String]): Either[DecodingError, T] =
-          Left(ElementDecoder.decodingNotCompleteError(history))
       }
+
+      val isCompleted: Boolean = false
+
+      def result(history: => List[String]): Either[DecodingError, T] =
+        Left(ElementDecoder.decodingNotCompleteError(history))
     }
   }
 }

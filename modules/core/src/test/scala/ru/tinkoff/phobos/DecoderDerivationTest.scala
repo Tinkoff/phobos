@@ -83,13 +83,9 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
         TextDecoder.stringDecoder.map(_ => -42.0)
 
       case class Foo(@attr bar: Int, @text baz: Double)
-      object Foo {
-        implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
-      }
+      implicit val fooDecoder: ElementDecoder[Foo] = deriveElementDecoder
       case class Qux(str: String, foo: Foo)
-      object Qux {
-        implicit val quxDecoder: XmlDecoder[Qux] = deriveXmlDecoder("qux")
-      }
+      implicit val quxDecoder: XmlDecoder[Qux] = deriveXmlDecoder("qux")
 
       val qux = Qux("constant", Foo(24, -42.0))
       val string =
@@ -1700,3 +1696,4 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     }
   }
 }
+
