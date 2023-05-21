@@ -75,13 +75,9 @@ class EncoderDerivationTest extends AnyWordSpec with Matchers {
         TextEncoder.stringEncoder.contramap(_ => "text")
 
       case class Foo(@attr bar: Int, @text baz: Double)
-      object Foo {
-        implicit val fooEncoder: ElementEncoder[Foo] = deriveElementEncoder
-      }
+      implicit val fooEncoder: ElementEncoder[Foo] = deriveElementEncoder
       case class Qux(str: String, foo: Foo)
-      object Qux {
-        implicit val quxEncoder: XmlEncoder[Qux] = deriveXmlEncoder[Qux]("qux")
-      }
+      implicit val quxEncoder: XmlEncoder[Qux] = deriveXmlEncoder[Qux]("qux")
 
       val qux = Qux("42", Foo(42, 12.2))
       val xml = XmlEncoder[Qux].encode(qux)
