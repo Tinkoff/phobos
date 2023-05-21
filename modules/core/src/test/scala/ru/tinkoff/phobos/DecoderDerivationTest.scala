@@ -1696,4 +1696,3 @@ class DecoderDerivationTest extends AnyWordSpec with Matchers {
     }
   }
 }
-

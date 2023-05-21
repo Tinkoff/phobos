@@ -108,8 +108,8 @@ object common {
     val traitTypeRepr = TypeRepr.of[T]
     val traitSymbol   = traitTypeRepr.typeSymbol
 
-    val names = Varargs(traitSymbol.children.map { childInfosymbol =>
-      extractChildXmlName(using q)(config, traitSymbol, childInfosymbol)
+    val names = Varargs(traitSymbol.children.map { childInfoSymbol =>
+      extractChildXmlName(using q)(config, traitSymbol, childInfoSymbol)
     })
     '{ List($names: _*) }
   }
@@ -206,18 +206,18 @@ object common {
   private def extractChildXmlName(using Quotes)(
       config: Expr[ElementCodecConfig],
       traitSymbol: quotes.reflect.Symbol,
-      childInfosymbol: quotes.reflect.Symbol,
+      childInfoSymbol: quotes.reflect.Symbol,
   ): Expr[String] = {
     import quotes.reflect.*
-    childInfosymbol.annotations.map(_.asExpr).collect { case '{ discriminator($a) } => a } match {
-      case Nil        => '{ $config.transformConstructorNames(${ Expr(childInfosymbol.name) }) }
+    childInfoSymbol.annotations.map(_.asExpr).collect { case '{ discriminator($a) } => a } match {
+      case Nil        => '{ $config.transformConstructorNames(${ Expr(childInfoSymbol.name) }) }
       case List(name) => name
       case names =>
         val discriminatorAnnotations = names.map(name => s"@discriminator(${name.show})").mkString(", ")
         report.throwError(
           s"""
              |Sum type child cannot have more than one @discriminator annotation.
-             |Child '${childInfosymbol.name}' of sum type '${traitSymbol.name}' has ${names.size}: $discriminatorAnnotations
+             |Child '${childInfoSymbol.name}' of sum type '${traitSymbol.name}' has ${names.size}: $discriminatorAnnotations
              |""".stripMargin,
         )
     }
